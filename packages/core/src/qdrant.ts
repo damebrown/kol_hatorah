@@ -1,6 +1,6 @@
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { Chunk, ChunkZod, TextType } from "./types";
-import { VECTOR_SIZE, dummyVectorFromText, dummyVectorFromQuery } from "./vectors";
+import { VECTOR_SIZE } from "./vectors"; // Keep for dummy, but new ensureCollection uses dynamic size
 import { setTimeout } from "timers/promises";
 
 export interface QdrantClientOptions {
@@ -18,6 +18,8 @@ export function createQdrantClient(options: QdrantClientOptions): QdrantClient {
   return new QdrantClient({
     url: options.url,
     apiKey: options.apiKey,
+    // Suppress server version check warning
+    checkCompatibility: false,
   });
 }
 
@@ -67,7 +69,7 @@ async function areIndexesReady(client: QdrantClient, collectionName: string): Pr
     for (const indexName of requiredIndexes) {
       const index = (payloadSchema as any)[indexName];
       if (!index || index.data_type !== "keyword") {
-        console.log(`Index for '${indexName}' not ready or incorrect type. Current: ${JSON.stringify(index)}`);
+        // console.log(`Index for '${indexName}' not ready or incorrect type. Current: ${JSON.stringify(index)}`);
         allReady = false;
       }
     }
@@ -78,14 +80,31 @@ async function areIndexesReady(client: QdrantClient, collectionName: string): Pr
   }
 }
 
-export async function ensureChunksCollection(client: QdrantClient, collectionName: string): Promise<void> {
+export async function ensureCollection(
+  client: QdrantClient,
+  collectionName: string,
+  vectorSize: number,
+  distance: "Cosine" | "Euclid" | "Dot" = "Cosine"
+): Promise<void> {
   const exists = await collectionExists(client, collectionName);
-  if (!exists) {
-    console.log(`Creating collection ${collectionName}...`);
+  if (exists) {
+    const collectionInfo = await client.getCollection(collectionName);
+    const currentVectorSize = (collectionInfo.config as any)?.params?.vectors?.size;
+
+    if (currentVectorSize !== vectorSize) {
+      throw new Error(
+        `Collection '${collectionName}' already exists with a different vector size (` +
+          `${currentVectorSize} instead of ${vectorSize}). Please delete the collection manually ` +
+          `or use a different collection name.`
+      );
+    }
+    console.log(`Collection '${collectionName}' already exists and has matching vector size.`);
+  } else {
+    console.log(`Creating collection ${collectionName} with vector size ${vectorSize}...`);
     await createCollection(client, {
       name: collectionName,
-      vectorSize: VECTOR_SIZE,
-      distance: "Cosine",
+      vectorSize,
+      distance,
     });
     console.log(`Collection ${collectionName} created.`);
 
@@ -133,10 +152,19 @@ export async function ensureChunksCollection(client: QdrantClient, collectionNam
   }
 }
 
-export async function upsertChunks(client: QdrantClient, collectionName: string, chunks: Chunk[]): Promise<void> {
-  const points = chunks.map((chunk) => ({
+export async function upsertChunksWithVectors(
+  client: QdrantClient,
+  collectionName: string,
+  chunks: Chunk[],
+  vectors: number[][]
+): Promise<void> {
+  if (chunks.length !== vectors.length) {
+    throw new Error("Number of chunks and vectors must be equal.");
+  }
+
+  const points = chunks.map((chunk, index) => ({
     id: chunk.id,
-    vector: dummyVectorFromText(chunk.text),
+    vector: vectors[index],
     payload: chunk,
   }));
 
@@ -150,10 +178,10 @@ export async function upsertChunks(client: QdrantClient, collectionName: string,
   });
 }
 
-export async function searchChunks(
+export async function searchByVector(
   client: QdrantClient,
   collectionName: string,
-  query: string,
+  queryVector: number[],
   opts: { limit: number; type?: TextType; work?: string; source?: string; lang?: string }
 ): Promise<Array<{ score: number; chunk: Chunk }>> {
   const { limit, type, work, source, lang } = opts;
@@ -174,7 +202,7 @@ export async function searchChunks(
   }
 
   const searchResult = await client.search(collectionName, {
-    vector: dummyVectorFromQuery(query),
+    vector: queryVector,
     limit,
     filter: filter.must.length > 0 ? filter : undefined,
     with_payload: true,

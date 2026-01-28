@@ -9,6 +9,17 @@ const ConfigSchema = z.object({
   log: z.object({
     level: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
   }),
+  openai: z.object({
+    apiKey: z.string().min(1, "OPENAI_API_KEY is required"),
+    embeddingModel: z.string().default("text-embedding-3-small"),
+    chatModel: z.string().default("gpt-4o-mini"),
+  }),
+  rag: z.object({
+    topK: z.coerce.number().int().min(1).default(8),
+    minSources: z.coerce.number().int().min(1).default(2),
+    minScore: z.coerce.number().min(0).optional(), // Truly optional, defaults to undefined
+  }),
+  sefariaExportPath: z.string().min(1, "SEFARIA_EXPORT_PATH is required for Sefaria ingestion").optional(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -29,6 +40,17 @@ export function getConfig(): Config {
     log: {
       level: (process.env.LOG_LEVEL || "info") as Config["log"]["level"],
     },
+    openai: {
+      apiKey: process.env.OPENAI_API_KEY,
+      embeddingModel: process.env.OPENAI_EMBEDDING_MODEL || "text-embedding-3-small",
+      chatModel: process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini",
+    },
+    rag: {
+      topK: process.env.RAG_TOP_K ? parseInt(process.env.RAG_TOP_K, 10) : undefined,
+      minSources: process.env.RAG_MIN_SOURCES ? parseInt(process.env.RAG_MIN_SOURCES, 10) : undefined,
+      minScore: process.env.RAG_MIN_SCORE ? parseFloat(process.env.RAG_MIN_SCORE) : undefined,
+    },
+    sefariaExportPath: process.env.SEFARIA_EXPORT_PATH,
   };
 
   try {
