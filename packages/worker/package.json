@@ -6,12 +6,15 @@
     "build": "tsc",
     "dev": "npx tsx watch src/cli.ts",
     "lint": "eslint src --ext .ts",
-    "qdrant:smoke": "QDRANT_URL=https://a3d4d71c-e75f-4571-8fe3-297d9a995828.europe-west3-0.gcp.cloud.qdrant.io QDRANT_API_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.4lCjSQb2AOnObTHv9L6-ZTTxd391rFKqxQABjNb5FEU' QDRANT_COLLECTION_PREFIX=hebrag_dev LOG_LEVEL=info npx tsx src/cli.ts qdrant-smoke"
+    "qdrant:smoke": "QDRANT_URL=https://a3d4d71c-e75f-4571-8fe3-297d9a995828.europe-west3-0.gcp.cloud.qdrant.io QDRANT_API_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.4lCjSQb2AOnObTHv9L6-ZTTxd391rFKqxQABjNb5FEU' QDRANT_COLLECTION_PREFIX=hebrag_dev LOG_LEVEL=info npx tsx src/cli.ts qdrant-smoke",
+    "ingest:fake": "QDRANT_URL=https://a3d4d71c-e75f-4571-8fe3-297d9a995828.europe-west3-0.gcp.cloud.qdrant.io QDRANT_API_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.4lCjSQb2AOnObTHv9L6-ZTTxd391rFKqxQABjNb5FEU' QDRANT_COLLECTION_PREFIX=hebrag_dev LOG_LEVEL=info npx tsx src/cli.ts ingest-fake",
+    "ask:retrieve": "QDRANT_URL=https://a3d4d71c-e75f-4571-8fe3-297d9a995828.europe-west3-0.gcp.cloud.qdrant.io QDRANT_API_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.4lCjSQb2AOnObTHv9L6-ZTTxd391rFKqxQABjNb5FEU' QDRANT_COLLECTION_PREFIX=hebrag_dev LOG_LEVEL=info npx tsx src/cli.ts ask-retrieve"
   },
   "dependencies": {
     "@kol-hatorah/core": "*"
   },
   "devDependencies": {
+    "@types/minimist": "^1.2.5",
     "@types/node": "^20.11.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
