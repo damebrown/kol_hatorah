@@ -1,4 +1,9 @@
+import path from "path";
+import dotenv from "dotenv";
 import { z } from "zod";
+
+// Load .env from monorepo root regardless of cwd
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 const ConfigSchema = z.object({
   qdrant: z.object({

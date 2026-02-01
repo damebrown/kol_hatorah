@@ -151,7 +151,8 @@ export function getFakeChunks(): Chunk[] {
   while (chunks.length < 80) {
     const baseChunk = fakeTexts[chunks.length % fakeTexts.length];
     const newText = `(Additional) ${baseChunk.text} - ${chunks.length}`;
-    const newRef = `${baseChunk.ref}.${chunks.length}`;
+    // Keep canonical ref (no .NN suffix). Uniqueness is handled by id.
+    const newRef = baseChunk.ref;
     const chunk: Chunk = {
       id: createChunkId({ source: baseChunk.source, ref: newRef, lang: baseChunk.lang, text: newText }),
       text: newText,

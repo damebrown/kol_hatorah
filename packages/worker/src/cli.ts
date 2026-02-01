@@ -1,4 +1,4 @@
-import { getConfig, createLogger, createQdrantClient, ensureCollection, upsertChunksWithVectors, searchByVector, TextType, OpenAIService, buildRagPrompt, shouldAnswer, deduplicateCitations, formatCitations, Chunk, createChunkId, Citation } from "@kol-hatorah/core";
+import { getConfig, createLogger, createQdrantClient, ensureCollection, upsertChunksWithVectors, searchByVector, TextType, OpenAIService, buildRagPrompt, shouldAnswer, deduplicateCitations, formatCitations, Chunk, createChunkId, Citation, displayCitation } from "@kol-hatorah/core";
 import { getFakeChunks } from "./fakeCorpus";
 import minimist from "minimist";
 import path from "path";
@@ -56,6 +56,10 @@ async function qdrantSmokeTest() {
 }
 
 async function ingestFakeEmbCommand() {
+  const argv = minimist(process.argv.slice(3));
+  const limit = parseInt(argv.limit || argv.l || "40", 10);
+  const checkpointPath = path.join(process.cwd(), "packages/worker/.checkpoints/ingest-fake-emb.json");
+
   const config = getConfig();
   const logger = createLogger(config);
   const qdrantClient = createQdrantClient({
@@ -65,29 +69,66 @@ async function ingestFakeEmbCommand() {
   const openaiService = new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel);
 
   const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
-  logger.info({ collectionName }, "Generating embeddings for fake chunks and ingesting into Qdrant...");
+  logger.info({ collectionName, limit }, "Generating embeddings for fake chunks and ingesting into Qdrant...");
 
   logger.info("Generating fake chunks...");
   const fakeChunks = getFakeChunks();
   logger.info({ count: fakeChunks.length }, "Generated fake chunks.");
 
-  logger.info("Embedding fake chunk texts...");
-  const chunkTexts = fakeChunks.map((c: Chunk) => c.text);
-  const embeddings = await openaiService.embedTexts(chunkTexts);
-  logger.info({ count: embeddings.length }, "Embeddings generated.");
-
-  if (embeddings.length === 0) {
-    logger.error("No embeddings generated. Cannot proceed with ingestion.");
-    process.exit(1);
+  // Load checkpoint
+  let checkpoint: { doneIds: Record<string, boolean> } = { doneIds: {} };
+  try {
+    const raw = await fs.readFile(checkpointPath, "utf8");
+    checkpoint = JSON.parse(raw);
+    checkpoint.doneIds = checkpoint.doneIds || {};
+    logger.info({ done: Object.keys(checkpoint.doneIds).length }, "Loaded existing checkpoint for ingest-fake-emb.");
+  } catch {
+    logger.info("No existing checkpoint for ingest-fake-emb. Starting fresh.");
   }
 
-  const vectorSize = embeddings[0].length;
+  const limitedChunks = limit > 0 ? fakeChunks.slice(0, limit) : fakeChunks;
+  const pendingChunks = limitedChunks.filter((c) => !checkpoint.doneIds[c.id]);
+
+  logger.info({ pending: pendingChunks.length, skipped: limitedChunks.length - pendingChunks.length }, "Pending chunks after checkpoint and limit.");
+
+  if (pendingChunks.length === 0) {
+    logger.info("No pending chunks to ingest. Exiting.");
+    process.exit(0);
+  }
+
+  // Embed all pending chunks (small batch size handled inside OpenAIService). Also obtain vector size from first embedding.
+  const firstEmbedding = await openaiService.embedTexts([pendingChunks[0].text]);
+  if (!firstEmbedding[0]) {
+    logger.error("Failed to embed sample chunk.");
+    process.exit(1);
+  }
+  const vectorSize = firstEmbedding[0].length;
+
+  // Embed remaining (excluding the first, already embedded)
+  const remainingTexts = pendingChunks.slice(1).map((c) => c.text);
+  const remainingEmbeddings = remainingTexts.length > 0 ? await openaiService.embedTexts(remainingTexts) : [];
+  const embeddings = [firstEmbedding[0], ...remainingEmbeddings];
+  logger.info({ count: embeddings.length }, "Embeddings generated.");
+
   await ensureCollection(qdrantClient, collectionName, vectorSize);
   logger.info("✓ Chunks collection ensured.");
 
-  logger.info("Upserting fake chunks with embeddings into Qdrant...");
-  await upsertChunksWithVectors(qdrantClient, collectionName, fakeChunks, embeddings);
-  logger.info({ count: fakeChunks.length }, "✓ Chunks upserted successfully.");
+  // Upsert in small batches and checkpoint progress
+  const UPSERT_BATCH_SIZE = 16;
+  for (let i = 0; i < pendingChunks.length; i += UPSERT_BATCH_SIZE) {
+    const chunkBatch = pendingChunks.slice(i, i + UPSERT_BATCH_SIZE);
+    const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
+    logger.info({ batch: `${i / UPSERT_BATCH_SIZE + 1}/${Math.ceil(pendingChunks.length / UPSERT_BATCH_SIZE)}`, size: chunkBatch.length }, "Upserting batch...");
+    await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
+    for (const c of chunkBatch) {
+      checkpoint.doneIds[c.id] = true;
+    }
+    await fs.mkdir(path.dirname(checkpointPath), { recursive: true });
+    await fs.writeFile(checkpointPath, JSON.stringify(checkpoint, null, 2));
+    logger.info("Checkpoint saved for batch.");
+  }
+
+  logger.info({ count: pendingChunks.length }, "✓ Chunks upserted successfully.");
   process.exit(0);
 }
 
@@ -151,7 +192,7 @@ async function askCommand() {
   if (jsonOutput) {
     console.log(JSON.stringify({
       answer: openaiResponse.text,
-      citations: citations.map((c: Citation) => `${c.work} ${c.ref}`),
+      citations: citations.map((c: Citation) => displayCitation(c)),
       usedChunks: chunks.map((c: Chunk) => ({ id: c.id, work: c.work, ref: c.ref, textPreview: c.text.substring(0, 100) + "..." })),
       model: config.openai.chatModel,
       tokens: openaiResponse.usage?.total_tokens || 0,
