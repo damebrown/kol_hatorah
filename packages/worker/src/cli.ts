@@ -2,15 +2,14 @@ import { getConfig, createLogger, createQdrantClient, ensureCollection, upsertCh
 import minimist from "minimist";
 import path from "path";
 import fs from "fs/promises";
-import { FindResult, findHebrewMergedFile, loadSefariaSegmentsFromMerged, SLICE1_TARGETS } from "./sefariaLoader";
+import { FindResult, findHebrewMergedFile, loadSefariaSegmentsFromMerged } from "./sefariaLoader";
 import { qdrantDeleteByFilterCommand } from "./cli-extra";
 import { getSQLiteManager } from "./sqlite";
 import { normalizeText } from "@kol-hatorah/core";
 import { randomUUID } from "crypto";
 
 const SEFARIA_CHECKPOINT_FILE = ".checkpoints/sefaria-taste.json";
-const SEFARIA_SLICE1_CHECKPOINT_FILE = ".checkpoints/sefaria-slice1.json";
-const SEFARIA_TANAKH_REST_CHECKPOINT_FILE = ".checkpoints/sefaria-tanakh-rest.json";
+const SEFARIA_TANAKH_ALL_CHECKPOINT_FILE = ".checkpoints/sefaria-tanakh-all.json";
 const SEFARIA_MISHNAH_ALL_CHECKPOINT_FILE = ".checkpoints/sefaria-mishnah-all.json";
 const ID_TEST_SAMPLES = [
   { type: "tanakh", work: "Genesis", normalizedRef: "Genesis 1:1", lang: "he", versionTitle: "merged", source: "sefaria-merged" },
@@ -525,114 +524,9 @@ async function ingestSefariaTasteCommand() {
   process.exit(0);
 }
 
-async function ingestSefariaSlice1Command() {
-  const argv = minimist(process.argv.slice(2));
-  const limit = parseInt(argv.limit || "0", 10);
-  const reset = !!argv.reset;
-  const resetWork = argv["reset-work"] ? String(argv["reset-work"]).split(",").map((s: string) => s.trim()) : [];
-
-  const config = getConfig();
-  const logger = createLogger(config);
-
-  if (!config.sefariaExportPath) {
-    logger.error("SEFARIA_EXPORT_PATH is not configured in .env. Cannot ingest Sefaria slice 1.");
-    process.exit(1);
-  }
-
-  const qdrantClient = createQdrantClient({
-    url: config.qdrant.url,
-    apiKey: config.qdrant.apiKey,
-  });
-  const openaiService = new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel);
-
-  const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
-  logger.info({ collectionName, limit }, "Ingesting Sefaria Slice 1...");
-
-  const checkpointFilePath = path.join(process.cwd(), SEFARIA_SLICE1_CHECKPOINT_FILE);
-  let checkpoint: Record<string, boolean> = {};
-  if (!reset) {
-    try {
-      const checkpointData = await fs.readFile(checkpointFilePath, "utf8");
-      checkpoint = JSON.parse(checkpointData);
-      logger.info({ done: Object.keys(checkpoint).length }, "Loaded slice1 checkpoint.");
-    } catch {
-      logger.info("No slice1 checkpoint found; starting fresh.");
-    }
-  }
-
-  let ingestedCount = 0;
-  for (const target of SLICE1_TARGETS) {
-    if (limit > 0 && ingestedCount >= limit) break;
-    if (resetWork.includes(target.work)) {
-      delete checkpoint[target.work];
-    }
-    if (checkpoint[target.work]) {
-      logger.info({ work: target.work }, "Skipping (already ingested in checkpoint).");
-      continue;
-    }
-
-    logger.info({ work: target.work, type: target.type }, "Resolving Hebrew merged file...");
-    const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target);
-    if (!findResult.filePath) {
-      logger.warn({ work: target.work }, "No Hebrew merged file found in category root; skipping.");
-      if (findResult.candidates.length) {
-        logger.info({ candidates: findResult.candidates.slice(0, 5) }, "Closest candidates");
-      }
-      checkpoint[target.work] = true;
-      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-      continue;
-    }
-
-    logger.info({ work: target.work, mergedPath: findResult.filePath }, "Loading Sefaria segments...");
-    const segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target);
-    if (!segments.length) {
-      logger.warn({ work: target.work }, "No segments loaded; skipping.");
-      checkpoint[target.work] = true;
-      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-      continue;
-    }
-
-    const textsToEmbed = segments.map((c) => c.text);
-    const embeddings = await openaiService.embedTexts(textsToEmbed);
-    if (!embeddings.length) {
-      logger.warn({ work: target.work }, "No embeddings generated; skipping.");
-      continue;
-    }
-    const vectorSize = embeddings[0].length;
-    await ensureCollection(qdrantClient, collectionName, vectorSize);
-
-    const sqlite = await getSQLiteManager();
-    try {
-      sqlite.insertSegments(segments);
-    } finally {
-      sqlite.close();
-    }
-
-    const UPSERT_BATCH_SIZE = 32;
-    for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
-      const chunkBatch = segments.slice(i, i + UPSERT_BATCH_SIZE);
-      const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
-      await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
-    }
-
-    ingestedCount += segments.length;
-    checkpoint[target.work] = true;
-    await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-    await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-    logger.info({ work: target.work, added: segments.length, totalIngested: ingestedCount }, "Ingested work and checkpoint saved.");
-
-    if (limit > 0 && ingestedCount >= limit) break;
-  }
-
-  logger.info({ ingestedCount }, "✅ Sefaria Slice 1 ingestion complete.");
-  process.exit(0);
-}
-
 async function evalQueriesCommand() {
   const argv = minimist(process.argv.slice(2));
-  const file = argv.file || argv.f || path.join(process.cwd(), "packages/worker/eval/queries.slice1.json");
+  const file = argv.file || argv.f || path.join(process.cwd(), "packages/worker/eval/queries.json");
   const limit = parseInt(argv.k || argv.limit || getConfig().rag.topK.toString(), 10);
   const outPath = argv.out || argv.o;
 
@@ -679,80 +573,6 @@ async function evalQueriesCommand() {
   } else {
     console.log(JSON.stringify(report, null, 2));
   }
-  process.exit(0);
-}
-
-async function sqliteIngestCommand() {
-  const argv = minimist(process.argv.slice(2));
-  const reset = !!argv.reset; // currently unused; upsert is idempotent
-
-  const config = getConfig();
-  const logger = createLogger(config);
-
-  if (!config.sefariaExportPath) {
-    logger.error("SEFARIA_EXPORT_PATH is not configured in .env. Cannot ingest to SQLite.");
-    process.exit(1);
-  }
-
-  const sqlite = await getSQLiteManager();
-
-  // Discover Prophets/Writings
-  const listDirs = async (p: string) => {
-    try {
-      const entries = await fs.readdir(p, { withFileTypes: true });
-      return entries.filter((e) => e.isDirectory()).map((e) => e.name);
-    } catch {
-      return [];
-    }
-  };
-  const prophetsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Prophets");
-  const writingsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Writings");
-  const prophets = await listDirs(prophetsRoot);
-  const writings = await listDirs(writingsRoot);
-  const dynamicTanakh = [...new Set([...prophets, ...writings])].map((w) => ({ type: "tanakh", work: w, categoryGuess: "Tanakh" as const }));
-
-  // Fixed targets (Slice1)
-  const fixedTargets = SLICE1_TARGETS;
-
-  // Union
-  const allTargets = [
-    ...fixedTargets,
-    ...dynamicTanakh.filter((t) => !fixedTargets.find((f) => f.work === t.work && f.type === t.type)),
-  ];
-
-  logger.info({ totalTargets: allTargets.length }, "Starting SQLite ingest (idempotent upsert)...");
-
-  for (const target of allTargets) {
-    logger.info({ work: target.work, type: target.type }, "Resolving merged file...");
-    const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target as any);
-    if (!findResult.filePath) {
-      logger.warn({ work: target.work }, "No merged file found; skipping.");
-      continue;
-    }
-    logger.info({ work: target.work, mergedPath: findResult.filePath }, "Loading segments...");
-    let segments: Chunk[] = [];
-    try {
-      segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target as any);
-    } catch (e) {
-      logger.error({ work: target.work, error: e }, "Failed to load segments; skipping.");
-      continue;
-    }
-    if (!segments.length) {
-      logger.warn({ work: target.work }, "No segments loaded; skipping.");
-      continue;
-    }
-    try {
-      sqlite.insertSegments(segments);
-      logger.info({ work: target.work, count: segments.length }, "Inserted into SQLite.");
-    } catch (e) {
-      logger.error({ work: target.work, error: e }, "SQLite insert failed; aborting.");
-      sqlite.close();
-      process.exit(1);
-    }
-  }
-
-  sqlite.close();
-  logger.info("✅ SQLite ingest complete.");
   process.exit(0);
 }
 
@@ -823,92 +643,22 @@ async function debugIdsCommand() {
   }
 }
 
-async function sqliteTanakhRestCommand() {
-  const config = getConfig();
-  const logger = createLogger(config);
-
-  if (!config.sefariaExportPath) {
-    logger.error("SEFARIA_EXPORT_PATH is not configured in .env. Cannot ingest Tanakh rest into SQLite.");
-    process.exit(1);
-  }
-
-  const listDirs = async (p: string) => {
-    try {
-      const entries = await fs.readdir(p, { withFileTypes: true });
-      return entries.filter((e) => e.isDirectory()).map((e) => e.name);
-    } catch {
-      return [];
-    }
-  };
-
-  const prophetsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Prophets");
-  const writingsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Writings");
-  const prophets = await listDirs(prophetsRoot);
-  const writings = await listDirs(writingsRoot);
-  const allWorks = [...new Set([...prophets, ...writings])];
-  const torah = new Set(["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"]);
-  const targets: { type: TextType; work: string; categoryGuess: "Tanakh" }[] = allWorks
-    .filter((w) => !torah.has(w))
-    .map((w) => ({ type: "tanakh", work: w, categoryGuess: "Tanakh" }));
-
-  if (!targets.length) {
-    logger.info("No Tanakh Prophets/Writings works discovered; nothing to ingest into SQLite.");
-    process.exit(0);
-  }
-
-  const sqlite = await getSQLiteManager();
-  try {
-    for (const target of targets) {
-      logger.info({ work: target.work }, "Resolving merged file for SQLite ingest (Tanakh rest)...");
-      const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target);
-      if (!findResult.filePath) {
-        logger.warn({ work: target.work }, "No merged file found; skipping.");
-        continue;
-      }
-      let segments: Chunk[] = [];
-      try {
-        segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target);
-      } catch (e) {
-        logger.error({ work: target.work, error: e }, "Failed to load segments; skipping.");
-        continue;
-      }
-      if (!segments.length) {
-        logger.warn({ work: target.work }, "No segments loaded; skipping.");
-        continue;
-      }
-      try {
-        sqlite.insertSegments(segments);
-        logger.info({ work: target.work, count: segments.length }, "Inserted into SQLite.");
-      } catch (e) {
-        logger.error({ work: target.work, error: e }, "SQLite insert failed; aborting.");
-        throw e;
-      }
-    }
-  } finally {
-    sqlite.close();
-  }
-
-  logger.info("✅ SQLite ingest (Tanakh rest) complete.");
-  process.exit(0);
-}
-
-async function ingestSefariaTanakhRestCommand() {
+async function ingestSefariaTanakhAllCommand() {
   const argv = minimist(process.argv.slice(2));
   const limit = parseInt(argv.limit || "0", 10);
   const reset = !!argv.reset;
   const resetWork = argv["reset-work"] ? String(argv["reset-work"]).split(",").map((s: string) => s.trim()) : [];
+  const doQdrant = argv["qdrant"] !== false && argv["no-qdrant"] !== true;
+  const doSqlite = argv["sqlite"] !== false && argv["no-sqlite"] !== true;
+  const ingestedSummary: Array<{ work: string; path: string; destinations: string[] }> = [];
 
   const config = getConfig();
   const logger = createLogger(config);
 
   if (!config.sefariaExportPath) {
-    logger.error("SEFARIA_EXPORT_PATH is not configured in .env. Cannot ingest Tanakh rest.");
+    logger.error("SEFARIA_EXPORT_PATH is not configured in .env. Cannot ingest Tanakh.");
     process.exit(1);
   }
-
-  // Discover works from filesystem under Prophets and Writings
-  const tanakhProphetsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Prophets");
-  const tanakhWritingsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Writings");
 
   const listDirs = async (p: string) => {
     try {
@@ -919,66 +669,47 @@ async function ingestSefariaTanakhRestCommand() {
     }
   };
 
-  const prophets = await listDirs(tanakhProphetsRoot);
-  const writings = await listDirs(tanakhWritingsRoot);
-  const allTanakhNonTorah = new Set<string>([...prophets, ...writings]);
+  const torahRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Torah");
+  const prophetsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Prophets");
+  const writingsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Writings");
+  const torah = await listDirs(torahRoot);
+  const prophets = await listDirs(prophetsRoot);
+  const writings = await listDirs(writingsRoot);
+  const tanakhTargets = [...torah, ...prophets, ...writings].map((w) => ({ type: "tanakh" as TextType, work: w, categoryGuess: "Tanakh" as const }));
 
-  const torah = new Set(["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"]);
-
-  // Load slice1 checkpoint to avoid re-ingesting works already done there
-  const slice1CheckpointPath = path.join(process.cwd(), SEFARIA_SLICE1_CHECKPOINT_FILE);
-  const slice1Done = new Set<string>();
-  try {
-    const raw = await fs.readFile(slice1CheckpointPath, "utf8");
-    const data = JSON.parse(raw);
-    Object.keys(data).forEach((w) => slice1Done.add(w));
-  } catch {
-    // ignore
-  }
-  // Normalize Kings from slice1 to I/II Kings for comparison only
-  if (slice1Done.has("Kings")) {
-    slice1Done.add("I Kings");
-    slice1Done.add("II Kings");
-  }
-
-  const ingestedWorks = new Set<string>();
-  slice1Done.forEach((w) => ingestedWorks.add(w));
-
-  // Remove Torah from discovered
-  torah.forEach((w) => allTanakhNonTorah.delete(w));
-
-  const remainingWorks = [...allTanakhNonTorah].filter((w) => !ingestedWorks.has(w));
+  const allWorksSet = new Set(tanakhTargets.map((t) => t.work));
+  const remainingWorks = [...allWorksSet];
 
   logger.info({
-    discovered: allTanakhNonTorah.size,
-    ingestedSlice1: ingestedWorks.size,
+    discovered: allWorksSet.size,
     remaining: remainingWorks.length,
     remainingWorks,
-  }, "Tanakh rest discovery summary");
+  }, "Tanakh discovery summary");
 
   if (remainingWorks.length === 0) {
     logger.info("No remaining Tanakh works to ingest (all done or excluded).");
     process.exit(0);
   }
 
-  const qdrantClient = createQdrantClient({
-    url: config.qdrant.url,
-    apiKey: config.qdrant.apiKey,
-  });
-  const openaiService = new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel);
-
+  const qdrantClient = doQdrant
+    ? createQdrantClient({
+        url: config.qdrant.url,
+        apiKey: config.qdrant.apiKey,
+      })
+    : null;
+  const openaiService = doQdrant ? new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel) : null;
   const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
-  logger.info({ collectionName, limit }, "Ingesting Sefaria Tanakh rest...");
+  logger.info({ collectionName, limit, doQdrant, doSqlite }, "Ingesting Tanakh...");
 
-  const checkpointFilePath = path.join(process.cwd(), SEFARIA_TANAKH_REST_CHECKPOINT_FILE);
+  const checkpointFilePath = path.join(process.cwd(), SEFARIA_TANAKH_ALL_CHECKPOINT_FILE);
   let checkpoint: Record<string, boolean> = {};
   if (!reset) {
     try {
       const checkpointData = await fs.readFile(checkpointFilePath, "utf8");
       checkpoint = JSON.parse(checkpointData);
-      logger.info({ done: Object.keys(checkpoint).length }, "Loaded tanakh-rest checkpoint.");
+      logger.info({ done: Object.keys(checkpoint).length }, "Loaded tanakh checkpoint.");
     } catch {
-      logger.info("No tanakh-rest checkpoint found; starting fresh.");
+      logger.info("No tanakh checkpoint found; starting fresh.");
     }
   }
 
@@ -1016,32 +747,51 @@ async function ingestSefariaTanakhRestCommand() {
       continue;
     }
 
-    const textsToEmbed = segments.map((c) => c.text);
-    const embeddings = await openaiService.embedTexts(textsToEmbed);
-    if (!embeddings.length) {
-      logger.warn({ work: target.work }, "No embeddings generated; skipping.");
-      continue;
+    if (doSqlite) {
+      const sqlite = await getSQLiteManager();
+      try {
+        sqlite.insertSegments(segments);
+      } finally {
+        sqlite.close();
+      }
     }
-    const vectorSize = embeddings[0].length;
-    await ensureCollection(qdrantClient, collectionName, vectorSize);
 
-    const UPSERT_BATCH_SIZE = 32;
-    for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
-      const chunkBatch = segments.slice(i, i + UPSERT_BATCH_SIZE);
-      const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
-      await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
+    if (doQdrant && openaiService && qdrantClient) {
+      const textsToEmbed = segments.map((c) => c.text);
+      const embeddings = await openaiService.embedTexts(textsToEmbed);
+      if (!embeddings.length) {
+        logger.warn({ work: target.work }, "No embeddings generated; skipping Qdrant upsert.");
+      } else {
+        const vectorSize = embeddings[0].length;
+        await ensureCollection(qdrantClient, collectionName, vectorSize);
+
+        const UPSERT_BATCH_SIZE = 32;
+        for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
+          const chunkBatch = segments.slice(i, i + UPSERT_BATCH_SIZE);
+          const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
+          await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
+        }
+      }
     }
 
     ingestedCount += segments.length;
     checkpoint[work] = true;
     await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
     await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+    ingestedSummary.push({
+      work,
+      path: findResult.filePath,
+      destinations: [
+        ...(doSqlite ? ["sqlite"] : []),
+        ...(doQdrant ? [collectionName] : []),
+      ],
+    });
     logger.info({ work, added: segments.length, totalIngested: ingestedCount }, "Ingested work and checkpoint saved.");
 
     if (limit > 0 && ingestedCount >= limit) break;
   }
 
-  logger.info({ ingestedCount }, "✅ Sefaria Tanakh rest ingestion complete.");
+  logger.info({ ingestedCount, ingestedSummary }, "✅ Tanakh ingestion complete.");
   process.exit(0);
 }
 
@@ -1050,6 +800,9 @@ async function ingestSefariaMishnahAllCommand() {
   const limit = parseInt(argv.limit || "0", 10);
   const reset = !!argv.reset;
   const resetWork = argv["reset-work"] ? String(argv["reset-work"]).split(",").map((s: string) => s.trim()) : [];
+  const doQdrant = argv["qdrant"] !== false && argv["no-qdrant"] !== true;
+  const doSqlite = argv["sqlite"] !== false && argv["no-sqlite"] !== true;
+  const ingestedSummary: Array<{ work: string; path: string; destinations: string[] }> = [];
 
   const config = getConfig();
   const logger = createLogger(config);
@@ -1090,11 +843,13 @@ async function ingestSefariaMishnahAllCommand() {
     process.exit(0);
   }
 
-  const qdrantClient = createQdrantClient({
-    url: config.qdrant.url,
-    apiKey: config.qdrant.apiKey,
-  });
-  const openaiService = new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel);
+  const qdrantClient = doQdrant
+    ? createQdrantClient({
+        url: config.qdrant.url,
+        apiKey: config.qdrant.apiKey,
+      })
+    : null;
+  const openaiService = doQdrant ? new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel) : null;
   const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
 
   const checkpointFilePath = path.join(process.cwd(), SEFARIA_MISHNAH_ALL_CHECKPOINT_FILE);
@@ -1143,39 +898,51 @@ async function ingestSefariaMishnahAllCommand() {
       continue;
     }
 
-    const textsToEmbed = segments.map((c) => c.text);
-    const embeddings = await openaiService.embedTexts(textsToEmbed);
-    if (!embeddings.length) {
-      logger.warn({ work }, "No embeddings generated; skipping.");
-      continue;
-    }
-    const vectorSize = embeddings[0].length;
-    await ensureCollection(qdrantClient, collectionName, vectorSize);
-
-    const sqlite = await getSQLiteManager();
-    try {
-      sqlite.insertSegments(segments);
-    } finally {
-      sqlite.close();
+    if (doSqlite) {
+      const sqlite = await getSQLiteManager();
+      try {
+        sqlite.insertSegments(segments);
+      } finally {
+        sqlite.close();
+      }
     }
 
-    const UPSERT_BATCH_SIZE = 32;
-    for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
-      const chunkBatch = segments.slice(i, i + UPSERT_BATCH_SIZE);
-      const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
-      await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
+    if (doQdrant && openaiService && qdrantClient) {
+      const textsToEmbed = segments.map((c) => c.text);
+      const embeddings = await openaiService.embedTexts(textsToEmbed);
+      if (!embeddings.length) {
+        logger.warn({ work }, "No embeddings generated; skipping Qdrant upsert.");
+      } else {
+        const vectorSize = embeddings[0].length;
+        await ensureCollection(qdrantClient, collectionName, vectorSize);
+
+        const UPSERT_BATCH_SIZE = 32;
+        for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
+          const chunkBatch = segments.slice(i, i + UPSERT_BATCH_SIZE);
+          const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
+          await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
+        }
+      }
     }
 
     ingestedCount += segments.length;
     checkpoint[work] = true;
     await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
     await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+    ingestedSummary.push({
+      work,
+      path: findResult.filePath,
+      destinations: [
+        ...(doSqlite ? ["sqlite"] : []),
+        ...(doQdrant ? [collectionName] : []),
+      ],
+    });
     logger.info({ work, added: segments.length, totalIngested: ingestedCount }, "Ingested work and checkpoint saved.");
 
     if (limit > 0 && ingestedCount >= limit) break;
   }
 
-  logger.info({ ingestedCount }, "✅ Mishnah all ingestion complete.");
+  logger.info({ ingestedCount, ingestedSummary }, "✅ Mishnah all ingestion complete.");
   process.exit(0);
 }
 
@@ -1291,22 +1058,12 @@ if (command === "qdrant-smoke") {
     console.error("Fatal error:", error);
     process.exit(1);
   });
-} else if (command === "ingest-sefaria-taste") {
-  ingestSefariaTasteCommand().catch((error) => {
+} else if (command === "ingest-tanakh") {
+  ingestSefariaTanakhAllCommand().catch((error) => {
     console.error("Fatal error:", error);
     process.exit(1);
   });
-} else if (command === "ingest-sefaria-slice1") {
-  ingestSefariaSlice1Command().catch((error) => {
-    console.error("Fatal error:", error);
-    process.exit(1);
-  });
-  } else if (command === "ingest-sefaria-tanakh-rest") {
-    ingestSefariaTanakhRestCommand().catch((error) => {
-      console.error("Fatal error:", error);
-      process.exit(1);
-    });
-} else if (command === "ingest-sefaria-mishnah-all") {
+} else if (command === "ingest-mishnah") {
   ingestSefariaMishnahAllCommand().catch((error) => {
     console.error("Fatal error:", error);
     process.exit(1);
@@ -1318,16 +1075,6 @@ if (command === "qdrant-smoke") {
   });
 } else if (command === "qdrant:delete-by-filter") {
   qdrantDeleteByFilterCommand().catch((error) => {
-    console.error("Fatal error:", error);
-    process.exit(1);
-  });
-} else if (command === "sqlite-ingest") {
-  sqliteIngestCommand().catch((error) => {
-    console.error("Fatal error:", error);
-    process.exit(1);
-  });
-} else if (command === "sqlite-tanakh-rest") {
-  sqliteTanakhRestCommand().catch((error) => {
     console.error("Fatal error:", error);
     process.exit(1);
   });
@@ -1356,11 +1103,8 @@ if (command === "qdrant-smoke") {
   console.error("Available commands:");
   console.error("  qdrant-smoke");
   console.error("  ask");
-  console.error("  ingest-sefaria-taste");
-  console.error("  ingest-sefaria-slice1");
-  console.error("  ingest-sefaria-tanakh-rest");
-  console.error("  ingest-sefaria-mishnah-all");
-  console.error("  sqlite-ingest");
+  console.error("  ingest-tanakh");
+  console.error("  ingest-mishnah");
   console.error("  lex-find");
   console.error("  get-ref");
   console.error("  debug-ids");

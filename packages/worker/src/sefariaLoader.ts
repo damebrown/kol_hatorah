@@ -201,32 +201,3 @@ export async function loadSefariaSegmentsFromMerged(
   });
 }
 
-export const SLICE1_TARGETS: WorkTarget[] = [
-  // Torah
-  { type: "tanakh", work: "Genesis", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Exodus", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Leviticus", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Numbers", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Deuteronomy", categoryGuess: "Tanakh" },
-  // Nevi'im (~50%)
-  { type: "tanakh", work: "Joshua", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Judges", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Isaiah", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Kings", categoryGuess: "Tanakh" },
-  // Ketuvim (~50%)
-  { type: "tanakh", work: "Psalms", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Proverbs", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Job", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Ruth", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Esther", categoryGuess: "Tanakh" },
-  { type: "tanakh", work: "Ecclesiastes", categoryGuess: "Tanakh" },
-  // Mishnah (all base tractates; filtered by availability)
-  { type: "mishnah", work: "Avot", categoryGuess: "Mishnah" },
-  { type: "mishnah", work: "Berakhot", categoryGuess: "Mishnah" },
-  { type: "mishnah", work: "Shabbat", categoryGuess: "Mishnah" },
-  { type: "mishnah", work: "Sanhedrin", categoryGuess: "Mishnah" },
-  // Bavli slice
-  { type: "bavli", work: "Berakhot", categoryGuess: "Talmud/Bavli" },
-  { type: "bavli", work: "Shabbat", categoryGuess: "Talmud/Bavli" },
-  { type: "bavli", work: "Sanhedrin", categoryGuess: "Talmud/Bavli" },
-];
