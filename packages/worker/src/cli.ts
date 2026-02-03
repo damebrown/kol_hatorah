@@ -1,10 +1,33 @@
 import { getConfig, createLogger, createQdrantClient, ensureCollection, upsertChunksWithVectors, searchByVector, TextType, OpenAIService, buildRagPrompt, shouldAnswer, deduplicateCitations, formatCitations, Chunk, createChunkId, Citation, displayCitation } from "@kol-hatorah/core";
-import { getFakeChunks } from "./fakeCorpus";
 import minimist from "minimist";
 import path from "path";
 import fs from "fs/promises";
+import { FindResult, findHebrewMergedFile, loadSefariaSegmentsFromMerged, SLICE1_TARGETS } from "./sefariaLoader";
+import { qdrantDeleteByFilterCommand } from "./cli-extra";
+import { getSQLiteManager } from "./sqlite";
+import { normalizeText } from "@kol-hatorah/core";
+import { randomUUID } from "crypto";
 
 const SEFARIA_CHECKPOINT_FILE = ".checkpoints/sefaria-taste.json";
+const SEFARIA_SLICE1_CHECKPOINT_FILE = ".checkpoints/sefaria-slice1.json";
+const SEFARIA_TANAKH_REST_CHECKPOINT_FILE = ".checkpoints/sefaria-tanakh-rest.json";
+const SEFARIA_MISHNAH_ALL_CHECKPOINT_FILE = ".checkpoints/sefaria-mishnah-all.json";
+const ID_TEST_SAMPLES = [
+  { type: "tanakh", work: "Genesis", normalizedRef: "Genesis 1:1", lang: "he", versionTitle: "merged", source: "sefaria-merged" },
+  { type: "mishnah", work: "Avot", normalizedRef: "Avot 1:1", lang: "he", versionTitle: "merged", source: "sefaria-merged" },
+  { type: "bavli", work: "Berakhot", normalizedRef: "Berakhot 3:1", lang: "he", versionTitle: "merged", source: "sefaria-merged" },
+];
+
+interface AskOnceResult {
+  answer: string;
+  citations: string[];
+  formattedCitations: string;
+  usedChunks: Array<{ id: string; work: string; ref: string; textPreview: string }>;
+  model: string;
+  tokens: number;
+  latencyMs: number;
+  refused: boolean;
+}
 
 async function qdrantSmokeTest() {
   const config = getConfig();
@@ -55,13 +78,87 @@ async function qdrantSmokeTest() {
   }
 }
 
-async function ingestFakeEmbCommand() {
-  const argv = minimist(process.argv.slice(3));
-  const limit = parseInt(argv.limit || argv.l || "40", 10);
-  const checkpointPath = path.join(process.cwd(), "packages/worker/.checkpoints/ingest-fake-emb.json");
-
+async function askOnce(params: { query: string; limit: number; type?: TextType; work?: string; jsonOutput?: boolean }): Promise<AskOnceResult> {
+  const { query, limit, type, work } = params;
   const config = getConfig();
   const logger = createLogger(config);
+
+  // Lightweight router: exact ref or keyword "where appears" → skip embeddings and use SQLite
+  const exactRefMatch = /^([A-Za-zא-ת ]+)\s+\d+:\d+/.test(query.trim());
+  const keywordPattern = /(מופיעה|מופיעים|מופיע|מקומות שבהם מופיעה|היכן מופיעה|הבא את כל המופעים)/;
+
+  if (exactRefMatch || keywordPattern.test(query)) {
+    const sqlite = await getSQLiteManager();
+    try {
+      if (exactRefMatch) {
+        const refNorm = query.trim();
+        const row = sqlite.getRef(refNorm);
+        if (!row) {
+          return {
+            answer: "לא נמצא טקסט עבור ההפניה המבוקשת.",
+            citations: [],
+            formattedCitations: "",
+            usedChunks: [],
+            model: "lexical",
+            tokens: 0,
+            latencyMs: 0,
+            refused: true,
+          };
+        }
+        return {
+          answer: row.textPlain,
+          citations: [`${row.work} ${row.ref}`],
+          formattedCitations: `${row.work} ${row.ref}`,
+          usedChunks: [{ id: row.id, work: row.work, ref: row.ref, textPreview: row.textPlain.substring(0, 100) + "..." }],
+          model: "lexical",
+          tokens: 0,
+          latencyMs: 0,
+          refused: false,
+        };
+      } else {
+        const norm = normalizeText(query);
+        const rows = sqlite.findTerm(norm.textNorm, { type, work }, limit);
+        if (!rows.length) {
+          return {
+            answer: "לא נמצאו מופעים למונח המבוקש.",
+            citations: [],
+            formattedCitations: "",
+            usedChunks: [],
+            model: "lexical",
+            tokens: 0,
+            latencyMs: 0,
+            refused: true,
+          };
+        }
+        const hits = rows.map((r: any) => {
+          const termPlain = query.trim().split(" ")[0];
+          const idx = r.textPlain.indexOf(termPlain);
+          const start = Math.max(0, idx >= 0 ? idx - 40 : 0);
+          const end = Math.min(r.textPlain.length, start + 80);
+          const snippet = r.textPlain.slice(start, end);
+          return {
+            ref: r.ref,
+            work: r.work,
+            type: r.type,
+            snippet,
+          };
+        });
+        return {
+          answer: hits.map((h, i) => `[${i + 1}] ${h.work} ${h.ref}: ${h.snippet}`).join("\n"),
+          citations: hits.map((h) => `${h.work} ${h.ref}`),
+          formattedCitations: hits.map((h, i) => `[${i + 1}] ${h.work} ${h.ref}`).join(", "),
+          usedChunks: hits.map((h) => ({ id: "", work: h.work, ref: h.ref, textPreview: h.snippet })),
+          model: "lexical",
+          tokens: 0,
+          latencyMs: 0,
+          refused: false,
+        };
+      }
+    } finally {
+      sqlite.close();
+    }
+  }
+
   const qdrantClient = createQdrantClient({
     url: config.qdrant.url,
     apiKey: config.qdrant.apiKey,
@@ -69,67 +166,54 @@ async function ingestFakeEmbCommand() {
   const openaiService = new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel);
 
   const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
-  logger.info({ collectionName, limit }, "Generating embeddings for fake chunks and ingesting into Qdrant...");
-
-  logger.info("Generating fake chunks...");
-  const fakeChunks = getFakeChunks();
-  logger.info({ count: fakeChunks.length }, "Generated fake chunks.");
-
-  // Load checkpoint
-  let checkpoint: { doneIds: Record<string, boolean> } = { doneIds: {} };
-  try {
-    const raw = await fs.readFile(checkpointPath, "utf8");
-    checkpoint = JSON.parse(raw);
-    checkpoint.doneIds = checkpoint.doneIds || {};
-    logger.info({ done: Object.keys(checkpoint.doneIds).length }, "Loaded existing checkpoint for ingest-fake-emb.");
-  } catch {
-    logger.info("No existing checkpoint for ingest-fake-emb. Starting fresh.");
+  logger.info("Embedding question...");
+  const queryEmbedding = (await openaiService.embedTexts([query]))[0];
+  if (!queryEmbedding) {
+    throw new Error("Failed to embed query.");
   }
 
-  const limitedChunks = limit > 0 ? fakeChunks.slice(0, limit) : fakeChunks;
-  const pendingChunks = limitedChunks.filter((c) => !checkpoint.doneIds[c.id]);
+  logger.info({ collectionName, limit, type, work }, "Searching Qdrant chunks collection...");
+  const searchResults = await searchByVector(qdrantClient, collectionName, queryEmbedding, { limit, type, work, source: undefined, lang: "he" });
 
-  logger.info({ pending: pendingChunks.length, skipped: limitedChunks.length - pendingChunks.length }, "Pending chunks after checkpoint and limit.");
+  const chunks = searchResults.map((r) => r.chunk);
+  const scores = searchResults.map((r) => r.score);
 
-  if (pendingChunks.length === 0) {
-    logger.info("No pending chunks to ingest. Exiting.");
-    process.exit(0);
+  const refused = !shouldAnswer(chunks, scores, config);
+  if (refused) {
+    const refusalMessage = "אני מצטער, אך אין לי מספיק מידע רלוונטי כדי לענות על שאלתך מהמקורות הזמינים לי. אנא נסה שאלה אחרת או הרחב את החיפוש שלך.";
+    return {
+      answer: refusalMessage,
+      citations: [],
+      formattedCitations: "",
+      usedChunks: [],
+      model: config.openai.chatModel,
+      tokens: 0,
+      latencyMs: 0,
+      refused: true,
+    };
   }
 
-  // Embed all pending chunks (small batch size handled inside OpenAIService). Also obtain vector size from first embedding.
-  const firstEmbedding = await openaiService.embedTexts([pendingChunks[0].text]);
-  if (!firstEmbedding[0]) {
-    logger.error("Failed to embed sample chunk.");
-    process.exit(1);
-  }
-  const vectorSize = firstEmbedding[0].length;
+  logger.info({ count: chunks.length }, "Building RAG prompt...");
+  const { instructions, input } = buildRagPrompt(query, chunks);
 
-  // Embed remaining (excluding the first, already embedded)
-  const remainingTexts = pendingChunks.slice(1).map((c) => c.text);
-  const remainingEmbeddings = remainingTexts.length > 0 ? await openaiService.embedTexts(remainingTexts) : [];
-  const embeddings = [firstEmbedding[0], ...remainingEmbeddings];
-  logger.info({ count: embeddings.length }, "Embeddings generated.");
+  logger.info({ model: config.openai.chatModel }, "Getting response from OpenAI...");
+  const startTime = Date.now();
+  const openaiResponse = await openaiService.getResponse({ model: config.openai.chatModel, instructions, input });
+  const latencyMs = Date.now() - startTime;
 
-  await ensureCollection(qdrantClient, collectionName, vectorSize);
-  logger.info("✓ Chunks collection ensured.");
+  const citations = deduplicateCitations(chunks);
+  const formattedCitations = formatCitations(citations);
 
-  // Upsert in small batches and checkpoint progress
-  const UPSERT_BATCH_SIZE = 16;
-  for (let i = 0; i < pendingChunks.length; i += UPSERT_BATCH_SIZE) {
-    const chunkBatch = pendingChunks.slice(i, i + UPSERT_BATCH_SIZE);
-    const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
-    logger.info({ batch: `${i / UPSERT_BATCH_SIZE + 1}/${Math.ceil(pendingChunks.length / UPSERT_BATCH_SIZE)}`, size: chunkBatch.length }, "Upserting batch...");
-    await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
-    for (const c of chunkBatch) {
-      checkpoint.doneIds[c.id] = true;
-    }
-    await fs.mkdir(path.dirname(checkpointPath), { recursive: true });
-    await fs.writeFile(checkpointPath, JSON.stringify(checkpoint, null, 2));
-    logger.info("Checkpoint saved for batch.");
-  }
-
-  logger.info({ count: pendingChunks.length }, "✓ Chunks upserted successfully.");
-  process.exit(0);
+  return {
+    answer: openaiResponse.text,
+    citations: citations.map((c: Citation) => displayCitation(c)),
+    formattedCitations,
+    usedChunks: chunks.map((c: Chunk) => ({ id: c.id, work: c.work, ref: c.ref, textPreview: c.text.substring(0, 100) + "..." })),
+    model: config.openai.chatModel,
+    tokens: openaiResponse.usage?.total_tokens || 0,
+    latencyMs,
+    refused: false,
+  };
 }
 
 async function askCommand() {
@@ -145,64 +229,25 @@ async function askCommand() {
     process.exit(1);
   }
 
-  const config = getConfig();
-  const logger = createLogger(config);
-  const qdrantClient = createQdrantClient({
-    url: config.qdrant.url,
-    apiKey: config.qdrant.apiKey,
-  });
-  const openaiService = new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel);
-
-  const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
-  logger.info("Embedding question...");
-  const queryEmbedding = (await openaiService.embedTexts([query]))[0];
-  if (!queryEmbedding) {
-    logger.error("Failed to embed query.");
-    process.exit(1);
-  }
-
-  logger.info({ collectionName, limit, type, work }, "Searching Qdrant chunks collection...");
-  const searchResults = await searchByVector(qdrantClient, collectionName, queryEmbedding, { limit, type, work, source: "fake", lang: "he" });
-
-  const chunks = searchResults.map(r => r.chunk);
-  const scores = searchResults.map(r => r.score);
-
-  if (!shouldAnswer(chunks, scores, config)) {
-    const refusalMessage = "אני מצטער, אך אין לי מספיק מידע רלוונטי כדי לענות על שאלתך מהמקורות הזמינים לי. אנא נסה שאלה אחרת או הרחב את החיפוש שלך.";
+  try {
+    const result = await askOnce({
+      query,
+      limit,
+      type,
+      work,
+      jsonOutput,
+    });
     if (jsonOutput) {
-      console.log(JSON.stringify({ answer: refusalMessage, citations: [], usedChunks: [], model: config.openai.chatModel, tokens: 0, latencyMs: 0 }, null, 2));
+      console.log(JSON.stringify(result, null, 2));
     } else {
-      console.log(refusalMessage);
-      console.log("ציטוטים: אין");
+      console.log(`תשובה:\n${result.answer}\n`);
+      console.log(`ציטוטים: ${result.formattedCitations || "אין"}\n`);
     }
     process.exit(0);
+  } catch (error) {
+    console.error("Fatal error:", error);
+    process.exit(1);
   }
-
-  logger.info({ count: chunks.length }, "Building RAG prompt...");
-  const { instructions, input } = buildRagPrompt(query, chunks);
-
-  logger.info({ model: config.openai.chatModel }, "Getting response from OpenAI...");
-  const startTime = Date.now();
-  const openaiResponse = await openaiService.getResponse({ model: config.openai.chatModel, instructions, input });
-  const latencyMs = Date.now() - startTime;
-
-  const citations = deduplicateCitations(chunks);
-  const formattedCitations = formatCitations(citations);
-
-  if (jsonOutput) {
-    console.log(JSON.stringify({
-      answer: openaiResponse.text,
-      citations: citations.map((c: Citation) => displayCitation(c)),
-      usedChunks: chunks.map((c: Chunk) => ({ id: c.id, work: c.work, ref: c.ref, textPreview: c.text.substring(0, 100) + "..." })),
-      model: config.openai.chatModel,
-      tokens: openaiResponse.usage?.total_tokens || 0,
-      latencyMs,
-    }, null, 2));
-  } else {
-    console.log(`תשובה:\n${openaiResponse.text}\n`);
-    console.log(`ציטוטים: ${formattedCitations || "אין"}\n`);
-  }
-  process.exit(0);
 }
 
 async function ingestSefariaTasteCommand() {
@@ -289,7 +334,7 @@ async function ingestSefariaTasteCommand() {
                       url: sefariaData.url || `https://www.sefaria.org/${work}.${currentRef.join(".")}`,
                     };
                     // Update ID after all other fields are set
-                    chunk.id = createChunkId({ source: chunk.source, ref: chunk.ref, lang: chunk.lang, text: chunk.text });
+                    chunk.id = createChunkId({ type: chunk.type, work: chunk.work, normalizedRef: chunk.normalizedRef, ref: chunk.ref, lang: chunk.lang, versionTitle: chunk.versionTitle, source: chunk.source });
                     chunksToUpsert.push(chunk);
                     textsToEmbed.push(chunkText);
                     ingestedCount++;
@@ -314,7 +359,7 @@ async function ingestSefariaTasteCommand() {
                     attribution: sefariaData.attribution || "Sefaria",
                     url: sefariaData.url || `https://www.sefaria.org/${work}.${currentRef.join(".")}`,
                   };
-                  chunk.id = createChunkId({ source: chunk.source, ref: chunk.ref, lang: chunk.lang, text: chunk.text });
+                  chunk.id = createChunkId({ type: chunk.type, work: chunk.work, normalizedRef: chunk.normalizedRef, ref: chunk.ref, lang: chunk.lang, versionTitle: chunk.versionTitle, source: chunk.source });
                   chunksToUpsert.push(chunk);
                   textsToEmbed.push(chunk.text);
                   ingestedCount++;
@@ -355,7 +400,7 @@ async function ingestSefariaTasteCommand() {
                   attribution: sefariaData.attribution || "Sefaria",
                   url: sefariaData.url || `https://www.sefaria.org/${work}.${chapter}.${verseNum}`,
                 };
-                chunk.id = createChunkId({ source: chunk.source, ref: chunk.ref, lang: chunk.lang, text: chunk.text });
+                chunk.id = createChunkId({ type: chunk.type, work: chunk.work, normalizedRef: chunk.normalizedRef, ref: chunk.ref, lang: chunk.lang, versionTitle: chunk.versionTitle, source: chunk.source });
                 chunksToUpsert.push(chunk);
                 textsToEmbed.push(verseText);
                 ingestedCount++;
@@ -391,7 +436,7 @@ async function ingestSefariaTasteCommand() {
                   attribution: sefariaData.attribution || "Sefaria",
                   url: sefariaData.url || `https://www.sefaria.org/${work}.${chapter}.${mishnahNum}`,
                 };
-                chunk.id = createChunkId({ source: chunk.source, ref: chunk.ref, lang: chunk.lang, text: chunk.text });
+                chunk.id = createChunkId({ type: chunk.type, work: chunk.work, normalizedRef: chunk.normalizedRef, ref: chunk.ref, lang: chunk.lang, versionTitle: chunk.versionTitle, source: chunk.source });
                 chunksToUpsert.push(chunk);
                 textsToEmbed.push(mishnahText);
                 ingestedCount++;
@@ -433,7 +478,7 @@ async function ingestSefariaTasteCommand() {
                     attribution: sefariaData.attribution || "Sefaria",
                     url: sefariaData.url || `https://www.sefaria.org/${work}.${chapter}a.${segmentNum}`,
                   };
-                  chunk.id = createChunkId({ source: chunk.source, ref: chunk.ref, lang: chunk.lang, text: chunk.text });
+                  chunk.id = createChunkId({ type: chunk.type, work: chunk.work, normalizedRef: chunk.normalizedRef, ref: chunk.ref, lang: chunk.lang, versionTitle: chunk.versionTitle, source: chunk.source });
                   chunksToUpsert.push(chunk);
                   textsToEmbed.push(segmentText);
                   ingestedCount++;
@@ -480,7 +525,689 @@ async function ingestSefariaTasteCommand() {
   process.exit(0);
 }
 
+async function ingestSefariaSlice1Command() {
+  const argv = minimist(process.argv.slice(2));
+  const limit = parseInt(argv.limit || "0", 10);
+  const reset = !!argv.reset;
+  const resetWork = argv["reset-work"] ? String(argv["reset-work"]).split(",").map((s: string) => s.trim()) : [];
+
+  const config = getConfig();
+  const logger = createLogger(config);
+
+  if (!config.sefariaExportPath) {
+    logger.error("SEFARIA_EXPORT_PATH is not configured in .env. Cannot ingest Sefaria slice 1.");
+    process.exit(1);
+  }
+
+  const qdrantClient = createQdrantClient({
+    url: config.qdrant.url,
+    apiKey: config.qdrant.apiKey,
+  });
+  const openaiService = new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel);
+
+  const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
+  logger.info({ collectionName, limit }, "Ingesting Sefaria Slice 1...");
+
+  const checkpointFilePath = path.join(process.cwd(), SEFARIA_SLICE1_CHECKPOINT_FILE);
+  let checkpoint: Record<string, boolean> = {};
+  if (!reset) {
+    try {
+      const checkpointData = await fs.readFile(checkpointFilePath, "utf8");
+      checkpoint = JSON.parse(checkpointData);
+      logger.info({ done: Object.keys(checkpoint).length }, "Loaded slice1 checkpoint.");
+    } catch {
+      logger.info("No slice1 checkpoint found; starting fresh.");
+    }
+  }
+
+  let ingestedCount = 0;
+  for (const target of SLICE1_TARGETS) {
+    if (limit > 0 && ingestedCount >= limit) break;
+    if (resetWork.includes(target.work)) {
+      delete checkpoint[target.work];
+    }
+    if (checkpoint[target.work]) {
+      logger.info({ work: target.work }, "Skipping (already ingested in checkpoint).");
+      continue;
+    }
+
+    logger.info({ work: target.work, type: target.type }, "Resolving Hebrew merged file...");
+    const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target);
+    if (!findResult.filePath) {
+      logger.warn({ work: target.work }, "No Hebrew merged file found in category root; skipping.");
+      if (findResult.candidates.length) {
+        logger.info({ candidates: findResult.candidates.slice(0, 5) }, "Closest candidates");
+      }
+      checkpoint[target.work] = true;
+      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
+      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+      continue;
+    }
+
+    logger.info({ work: target.work, mergedPath: findResult.filePath }, "Loading Sefaria segments...");
+    const segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target);
+    if (!segments.length) {
+      logger.warn({ work: target.work }, "No segments loaded; skipping.");
+      checkpoint[target.work] = true;
+      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
+      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+      continue;
+    }
+
+    const textsToEmbed = segments.map((c) => c.text);
+    const embeddings = await openaiService.embedTexts(textsToEmbed);
+    if (!embeddings.length) {
+      logger.warn({ work: target.work }, "No embeddings generated; skipping.");
+      continue;
+    }
+    const vectorSize = embeddings[0].length;
+    await ensureCollection(qdrantClient, collectionName, vectorSize);
+
+    const sqlite = await getSQLiteManager();
+    try {
+      sqlite.insertSegments(segments);
+    } finally {
+      sqlite.close();
+    }
+
+    const UPSERT_BATCH_SIZE = 32;
+    for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
+      const chunkBatch = segments.slice(i, i + UPSERT_BATCH_SIZE);
+      const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
+      await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
+    }
+
+    ingestedCount += segments.length;
+    checkpoint[target.work] = true;
+    await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
+    await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+    logger.info({ work: target.work, added: segments.length, totalIngested: ingestedCount }, "Ingested work and checkpoint saved.");
+
+    if (limit > 0 && ingestedCount >= limit) break;
+  }
+
+  logger.info({ ingestedCount }, "✅ Sefaria Slice 1 ingestion complete.");
+  process.exit(0);
+}
+
+async function evalQueriesCommand() {
+  const argv = minimist(process.argv.slice(2));
+  const file = argv.file || argv.f || path.join(process.cwd(), "packages/worker/eval/queries.slice1.json");
+  const limit = parseInt(argv.k || argv.limit || getConfig().rag.topK.toString(), 10);
+  const outPath = argv.out || argv.o;
+
+  let queries: Array<{ q: string; expectedRefs?: string[]; shouldRefuse?: boolean }> = [];
+  try {
+    const raw = await fs.readFile(file, "utf8");
+    queries = JSON.parse(raw);
+  } catch (e) {
+    console.error("Failed to read queries file:", file, e);
+    process.exit(1);
+  }
+
+  const results: any[] = [];
+  for (const q of queries) {
+    const started = Date.now();
+    const res = await askOnce({ query: q.q, limit, jsonOutput: true });
+    const latencyMs = Date.now() - started;
+
+    let matchedRefs: string[] = [];
+    if (q.expectedRefs && res.citations) {
+      const citeSet = new Set(res.citations);
+      matchedRefs = q.expectedRefs.filter((r) => citeSet.has(r));
+    }
+
+    results.push({
+      query: q.q,
+      expectedRefs: q.expectedRefs || [],
+      shouldRefuse: q.shouldRefuse || false,
+      refused: res.refused,
+      answer: res.answer,
+      citations: res.citations,
+      usedChunks: res.usedChunks,
+      model: res.model,
+      tokens: res.tokens,
+      latencyMs: res.latencyMs || latencyMs,
+      matchedRefs,
+    });
+  }
+
+  const report = { count: results.length, results };
+  if (outPath) {
+    await fs.mkdir(path.dirname(outPath), { recursive: true });
+    await fs.writeFile(outPath, JSON.stringify(report, null, 2));
+  } else {
+    console.log(JSON.stringify(report, null, 2));
+  }
+  process.exit(0);
+}
+
+async function sqliteIngestCommand() {
+  const argv = minimist(process.argv.slice(2));
+  const reset = !!argv.reset; // currently unused; upsert is idempotent
+
+  const config = getConfig();
+  const logger = createLogger(config);
+
+  if (!config.sefariaExportPath) {
+    logger.error("SEFARIA_EXPORT_PATH is not configured in .env. Cannot ingest to SQLite.");
+    process.exit(1);
+  }
+
+  const sqlite = await getSQLiteManager();
+
+  // Discover Prophets/Writings
+  const listDirs = async (p: string) => {
+    try {
+      const entries = await fs.readdir(p, { withFileTypes: true });
+      return entries.filter((e) => e.isDirectory()).map((e) => e.name);
+    } catch {
+      return [];
+    }
+  };
+  const prophetsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Prophets");
+  const writingsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Writings");
+  const prophets = await listDirs(prophetsRoot);
+  const writings = await listDirs(writingsRoot);
+  const dynamicTanakh = [...new Set([...prophets, ...writings])].map((w) => ({ type: "tanakh", work: w, categoryGuess: "Tanakh" as const }));
+
+  // Fixed targets (Slice1)
+  const fixedTargets = SLICE1_TARGETS;
+
+  // Union
+  const allTargets = [
+    ...fixedTargets,
+    ...dynamicTanakh.filter((t) => !fixedTargets.find((f) => f.work === t.work && f.type === t.type)),
+  ];
+
+  logger.info({ totalTargets: allTargets.length }, "Starting SQLite ingest (idempotent upsert)...");
+
+  for (const target of allTargets) {
+    logger.info({ work: target.work, type: target.type }, "Resolving merged file...");
+    const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target as any);
+    if (!findResult.filePath) {
+      logger.warn({ work: target.work }, "No merged file found; skipping.");
+      continue;
+    }
+    logger.info({ work: target.work, mergedPath: findResult.filePath }, "Loading segments...");
+    let segments: Chunk[] = [];
+    try {
+      segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target as any);
+    } catch (e) {
+      logger.error({ work: target.work, error: e }, "Failed to load segments; skipping.");
+      continue;
+    }
+    if (!segments.length) {
+      logger.warn({ work: target.work }, "No segments loaded; skipping.");
+      continue;
+    }
+    try {
+      sqlite.insertSegments(segments);
+      logger.info({ work: target.work, count: segments.length }, "Inserted into SQLite.");
+    } catch (e) {
+      logger.error({ work: target.work, error: e }, "SQLite insert failed; aborting.");
+      sqlite.close();
+      process.exit(1);
+    }
+  }
+
+  sqlite.close();
+  logger.info("✅ SQLite ingest complete.");
+  process.exit(0);
+}
+
+async function lexFindCommand() {
+  const argv = minimist(process.argv.slice(2));
+  const term = argv.term || argv.t;
+  const scope = argv.scope;
+  const work = argv.work;
+  const limit = parseInt(argv.limit || "50", 10);
+  const context = parseInt(argv.context || "80", 10);
+
+  if (!term) {
+    console.error("Error: --term is required");
+    process.exit(1);
+  }
+
+  const sqlite = await getSQLiteManager();
+  try {
+    const norm = normalizeText(term);
+    const rows = sqlite.findTerm(norm.textNorm, { type: scope, work }, limit);
+    const total = sqlite.countTerm(norm.textNorm, { type: scope, work });
+    const hits = rows.map((r: any, idx: number) => {
+      const idxTerm = r.textPlain.indexOf(term);
+      const start = Math.max(0, idxTerm >= 0 ? idxTerm - Math.floor(context / 2) : 0);
+      const end = Math.min(r.textPlain.length, start + context);
+      const snippet = r.textPlain.slice(start, end);
+      return {
+        idx: idx + 1,
+        work: r.work,
+        ref: r.ref,
+        type: r.type,
+        snippet,
+      };
+    });
+    console.log(JSON.stringify({ total, hits }, null, 2));
+  } finally {
+    sqlite.close();
+  }
+}
+
+async function getRefCommand() {
+  const argv = minimist(process.argv.slice(2));
+  const ref = argv.ref;
+  if (!ref) {
+    console.error("Error: --ref is required");
+    process.exit(1);
+  }
+  const sqlite = await getSQLiteManager();
+  try {
+    const row = sqlite.getRef(ref.trim());
+    if (!row) {
+      console.log(JSON.stringify({ found: false }));
+    } else {
+      console.log(JSON.stringify({ found: true, row }, null, 2));
+    }
+  } finally {
+    sqlite.close();
+  }
+}
+
+async function debugIdsCommand() {
+  const ids1 = ID_TEST_SAMPLES.map((s) => createChunkId(s as any));
+  const ids2 = ID_TEST_SAMPLES.map((s) => createChunkId(s as any));
+  const same = ids1.every((id, idx) => id === ids2[idx]);
+  console.log({ ids1, ids2, deterministic: same });
+  if (!same) {
+    throw new Error("ID generation is not deterministic across runs");
+  }
+}
+
+async function sqliteTanakhRestCommand() {
+  const config = getConfig();
+  const logger = createLogger(config);
+
+  if (!config.sefariaExportPath) {
+    logger.error("SEFARIA_EXPORT_PATH is not configured in .env. Cannot ingest Tanakh rest into SQLite.");
+    process.exit(1);
+  }
+
+  const listDirs = async (p: string) => {
+    try {
+      const entries = await fs.readdir(p, { withFileTypes: true });
+      return entries.filter((e) => e.isDirectory()).map((e) => e.name);
+    } catch {
+      return [];
+    }
+  };
+
+  const prophetsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Prophets");
+  const writingsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Writings");
+  const prophets = await listDirs(prophetsRoot);
+  const writings = await listDirs(writingsRoot);
+  const allWorks = [...new Set([...prophets, ...writings])];
+  const torah = new Set(["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"]);
+  const targets: { type: TextType; work: string; categoryGuess: "Tanakh" }[] = allWorks
+    .filter((w) => !torah.has(w))
+    .map((w) => ({ type: "tanakh", work: w, categoryGuess: "Tanakh" }));
+
+  if (!targets.length) {
+    logger.info("No Tanakh Prophets/Writings works discovered; nothing to ingest into SQLite.");
+    process.exit(0);
+  }
+
+  const sqlite = await getSQLiteManager();
+  try {
+    for (const target of targets) {
+      logger.info({ work: target.work }, "Resolving merged file for SQLite ingest (Tanakh rest)...");
+      const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target);
+      if (!findResult.filePath) {
+        logger.warn({ work: target.work }, "No merged file found; skipping.");
+        continue;
+      }
+      let segments: Chunk[] = [];
+      try {
+        segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target);
+      } catch (e) {
+        logger.error({ work: target.work, error: e }, "Failed to load segments; skipping.");
+        continue;
+      }
+      if (!segments.length) {
+        logger.warn({ work: target.work }, "No segments loaded; skipping.");
+        continue;
+      }
+      try {
+        sqlite.insertSegments(segments);
+        logger.info({ work: target.work, count: segments.length }, "Inserted into SQLite.");
+      } catch (e) {
+        logger.error({ work: target.work, error: e }, "SQLite insert failed; aborting.");
+        throw e;
+      }
+    }
+  } finally {
+    sqlite.close();
+  }
+
+  logger.info("✅ SQLite ingest (Tanakh rest) complete.");
+  process.exit(0);
+}
+
+async function ingestSefariaTanakhRestCommand() {
+  const argv = minimist(process.argv.slice(2));
+  const limit = parseInt(argv.limit || "0", 10);
+  const reset = !!argv.reset;
+  const resetWork = argv["reset-work"] ? String(argv["reset-work"]).split(",").map((s: string) => s.trim()) : [];
+
+  const config = getConfig();
+  const logger = createLogger(config);
+
+  if (!config.sefariaExportPath) {
+    logger.error("SEFARIA_EXPORT_PATH is not configured in .env. Cannot ingest Tanakh rest.");
+    process.exit(1);
+  }
+
+  // Discover works from filesystem under Prophets and Writings
+  const tanakhProphetsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Prophets");
+  const tanakhWritingsRoot = path.join(config.sefariaExportPath, "json", "Tanakh", "Writings");
+
+  const listDirs = async (p: string) => {
+    try {
+      const entries = await fs.readdir(p, { withFileTypes: true });
+      return entries.filter((e) => e.isDirectory()).map((e) => e.name);
+    } catch {
+      return [];
+    }
+  };
+
+  const prophets = await listDirs(tanakhProphetsRoot);
+  const writings = await listDirs(tanakhWritingsRoot);
+  const allTanakhNonTorah = new Set<string>([...prophets, ...writings]);
+
+  const torah = new Set(["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"]);
+
+  // Load slice1 checkpoint to avoid re-ingesting works already done there
+  const slice1CheckpointPath = path.join(process.cwd(), SEFARIA_SLICE1_CHECKPOINT_FILE);
+  const slice1Done = new Set<string>();
+  try {
+    const raw = await fs.readFile(slice1CheckpointPath, "utf8");
+    const data = JSON.parse(raw);
+    Object.keys(data).forEach((w) => slice1Done.add(w));
+  } catch {
+    // ignore
+  }
+  // Normalize Kings from slice1 to I/II Kings for comparison only
+  if (slice1Done.has("Kings")) {
+    slice1Done.add("I Kings");
+    slice1Done.add("II Kings");
+  }
+
+  const ingestedWorks = new Set<string>();
+  slice1Done.forEach((w) => ingestedWorks.add(w));
+
+  // Remove Torah from discovered
+  torah.forEach((w) => allTanakhNonTorah.delete(w));
+
+  const remainingWorks = [...allTanakhNonTorah].filter((w) => !ingestedWorks.has(w));
+
+  logger.info({
+    discovered: allTanakhNonTorah.size,
+    ingestedSlice1: ingestedWorks.size,
+    remaining: remainingWorks.length,
+    remainingWorks,
+  }, "Tanakh rest discovery summary");
+
+  if (remainingWorks.length === 0) {
+    logger.info("No remaining Tanakh works to ingest (all done or excluded).");
+    process.exit(0);
+  }
+
+  const qdrantClient = createQdrantClient({
+    url: config.qdrant.url,
+    apiKey: config.qdrant.apiKey,
+  });
+  const openaiService = new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel);
+
+  const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
+  logger.info({ collectionName, limit }, "Ingesting Sefaria Tanakh rest...");
+
+  const checkpointFilePath = path.join(process.cwd(), SEFARIA_TANAKH_REST_CHECKPOINT_FILE);
+  let checkpoint: Record<string, boolean> = {};
+  if (!reset) {
+    try {
+      const checkpointData = await fs.readFile(checkpointFilePath, "utf8");
+      checkpoint = JSON.parse(checkpointData);
+      logger.info({ done: Object.keys(checkpoint).length }, "Loaded tanakh-rest checkpoint.");
+    } catch {
+      logger.info("No tanakh-rest checkpoint found; starting fresh.");
+    }
+  }
+
+  let ingestedCount = 0;
+  for (const work of remainingWorks) {
+    if (limit > 0 && ingestedCount >= limit) break;
+    if (resetWork.includes(work)) {
+      delete checkpoint[work];
+    }
+    if (checkpoint[work]) {
+      logger.info({ work }, "Skipping (already ingested in checkpoint).");
+      continue;
+    }
+
+    const target: any = { type: "tanakh", work, categoryGuess: "Tanakh" };
+    const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target);
+    if (!findResult.filePath) {
+      logger.warn({ work }, "No Hebrew merged file found in category root; skipping.");
+      if (findResult.candidates.length) {
+        logger.info({ candidates: findResult.candidates.slice(0, 5) }, "Closest candidates");
+      }
+      checkpoint[work] = true;
+      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
+      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+      continue;
+    }
+
+    logger.info({ work, mergedPath: findResult.filePath }, "Loading Sefaria segments...");
+    const segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target);
+    if (!segments.length) {
+      logger.warn({ work }, "No segments loaded; skipping.");
+      checkpoint[work] = true;
+      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
+      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+      continue;
+    }
+
+    const textsToEmbed = segments.map((c) => c.text);
+    const embeddings = await openaiService.embedTexts(textsToEmbed);
+    if (!embeddings.length) {
+      logger.warn({ work: target.work }, "No embeddings generated; skipping.");
+      continue;
+    }
+    const vectorSize = embeddings[0].length;
+    await ensureCollection(qdrantClient, collectionName, vectorSize);
+
+    const UPSERT_BATCH_SIZE = 32;
+    for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
+      const chunkBatch = segments.slice(i, i + UPSERT_BATCH_SIZE);
+      const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
+      await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
+    }
+
+    ingestedCount += segments.length;
+    checkpoint[work] = true;
+    await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
+    await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+    logger.info({ work, added: segments.length, totalIngested: ingestedCount }, "Ingested work and checkpoint saved.");
+
+    if (limit > 0 && ingestedCount >= limit) break;
+  }
+
+  logger.info({ ingestedCount }, "✅ Sefaria Tanakh rest ingestion complete.");
+  process.exit(0);
+}
+
+async function ingestSefariaMishnahAllCommand() {
+  const argv = minimist(process.argv.slice(2));
+  const limit = parseInt(argv.limit || "0", 10);
+  const reset = !!argv.reset;
+  const resetWork = argv["reset-work"] ? String(argv["reset-work"]).split(",").map((s: string) => s.trim()) : [];
+
+  const config = getConfig();
+  const logger = createLogger(config);
+
+  if (!config.sefariaExportPath) {
+    logger.error("SEFARIA_EXPORT_PATH is not configured in .env. Cannot ingest Mishnah.");
+    process.exit(1);
+  }
+
+  const listDirs = async (p: string) => {
+    try {
+      const entries = await fs.readdir(p, { withFileTypes: true });
+      return entries.filter((e) => e.isDirectory()).map((e) => e.name);
+    } catch {
+      return [];
+    }
+  };
+
+  const mishnahRoot = path.join(config.sefariaExportPath, "json", "Mishnah");
+  const allowedSeders = new Set([
+    "Seder Zeraim",
+    "Seder Moed",
+    "Seder Nashim",
+    "Seder Nezikin",
+    "Seder Kodashim",
+    "Seder Tahorot",
+  ]);
+  const seders = (await listDirs(mishnahRoot)).filter((s) => allowedSeders.has(s));
+  const tractateSet = new Set<string>();
+  for (const seder of seders) {
+    const sederPath = path.join(mishnahRoot, seder);
+    const tractatesInSeder = await listDirs(sederPath);
+    tractatesInSeder.forEach((t) => tractateSet.add(t));
+  }
+  const tractates = [...tractateSet];
+  if (!tractates.length) {
+    logger.warn("No Mishnah tractates discovered under json/Mishnah; nothing to ingest.");
+    process.exit(0);
+  }
+
+  const qdrantClient = createQdrantClient({
+    url: config.qdrant.url,
+    apiKey: config.qdrant.apiKey,
+  });
+  const openaiService = new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel);
+  const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
+
+  const checkpointFilePath = path.join(process.cwd(), SEFARIA_MISHNAH_ALL_CHECKPOINT_FILE);
+  let checkpoint: Record<string, boolean> = {};
+  if (!reset) {
+    try {
+      const checkpointData = await fs.readFile(checkpointFilePath, "utf8");
+      checkpoint = JSON.parse(checkpointData);
+      logger.info({ done: Object.keys(checkpoint).length }, "Loaded mishnah-all checkpoint.");
+    } catch {
+      logger.info("No mishnah-all checkpoint found; starting fresh.");
+    }
+  }
+
+  let ingestedCount = 0;
+  for (const work of tractates) {
+    if (limit > 0 && ingestedCount >= limit) break;
+    if (resetWork.includes(work)) {
+      delete checkpoint[work];
+    }
+    if (checkpoint[work]) {
+      logger.info({ work }, "Skipping (already ingested in checkpoint).");
+      continue;
+    }
+
+    const target: any = { type: "mishnah", work, categoryGuess: "Mishnah" };
+    const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target);
+    if (!findResult.filePath) {
+      logger.warn({ work }, "No Hebrew merged file found in Mishnah root; skipping.");
+      if (findResult.candidates.length) {
+        logger.info({ candidates: findResult.candidates.slice(0, 5) }, "Closest candidates");
+      }
+      checkpoint[work] = true;
+      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
+      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+      continue;
+    }
+
+    logger.info({ work, mergedPath: findResult.filePath }, "Loading Mishnah segments...");
+    const segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target);
+    if (!segments.length) {
+      logger.warn({ work }, "No segments loaded; skipping.");
+      checkpoint[work] = true;
+      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
+      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+      continue;
+    }
+
+    const textsToEmbed = segments.map((c) => c.text);
+    const embeddings = await openaiService.embedTexts(textsToEmbed);
+    if (!embeddings.length) {
+      logger.warn({ work }, "No embeddings generated; skipping.");
+      continue;
+    }
+    const vectorSize = embeddings[0].length;
+    await ensureCollection(qdrantClient, collectionName, vectorSize);
+
+    const sqlite = await getSQLiteManager();
+    try {
+      sqlite.insertSegments(segments);
+    } finally {
+      sqlite.close();
+    }
+
+    const UPSERT_BATCH_SIZE = 32;
+    for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
+      const chunkBatch = segments.slice(i, i + UPSERT_BATCH_SIZE);
+      const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
+      await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
+    }
+
+    ingestedCount += segments.length;
+    checkpoint[work] = true;
+    await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
+    await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
+    logger.info({ work, added: segments.length, totalIngested: ingestedCount }, "Ingested work and checkpoint saved.");
+
+    if (limit > 0 && ingestedCount >= limit) break;
+  }
+
+  logger.info({ ingestedCount }, "✅ Mishnah all ingestion complete.");
+  process.exit(0);
+}
+
+function flattenForInspect(text: any, work: string, type: TextType, pathParts: number[] = []): Array<{ ref: string; normalizedText: string }> {
+  const out: Array<{ ref: string; normalizedText: string }> = [];
+  if (Array.isArray(text)) {
+    for (let i = 0; i < text.length; i++) {
+      out.push(...flattenForInspect(text[i], work, type, [...pathParts, i + 1]));
+    }
+  } else if (typeof text === "string") {
+    const t = text.trim();
+    if (t.length > 0) {
+      const ref =
+        pathParts.length === 0
+          ? work
+          : pathParts.length === 1
+          ? `${work} ${pathParts[0]}`
+          : pathParts.length === 2
+          ? `${work} ${pathParts[0]}:${pathParts[1]}`
+          : `${work} ${pathParts.join(":")}`;
+      out.push({ ref, normalizedText: t.replace(/<[^>]*>/g, "").trim() });
+    }
+  }
+  return out;
+}
+
 async function sefariaInspectCommand() {
+  const argv = minimist(process.argv.slice(2));
+  const work = argv.work || argv.w || "Genesis";
+  const category = argv.category || argv.c || "tanakh";
+  const customPath = argv.path || argv.p;
+
   const config = getConfig();
   const logger = createLogger(config);
 
@@ -489,46 +1216,64 @@ async function sefariaInspectCommand() {
     process.exit(1);
   }
 
-  logger.info(`Inspecting Sefaria export at: ${config.sefariaExportPath}`);
+  const target = { work, type: category as TextType, categoryGuess: category as any };
+  let findResult: FindResult;
+  if (customPath) {
+    findResult = { filePath: customPath, candidates: [] };
+  } else {
+    findResult = await findHebrewMergedFile(config.sefariaExportPath, target as any);
+  }
 
-  const textsToInspect: { filePath: string; work: string; type: TextType }[] = [
-    { filePath: path.join(config.sefariaExportPath, "Tanakh", "Genesis.json"), work: "Genesis", type: "tanakh" },
-    { filePath: path.join(config.sefariaExportPath, "Mishnah", "Avot.json"), work: "Avot", type: "mishnah" },
-    { filePath: path.join(config.sefariaExportPath, "Talmud", "Bavli", "Berakhot.json"), work: "Berakhot", type: "bavli" },
-  ];
-
-  for (const { filePath, work, type } of textsToInspect) {
-    logger.info(`\n--- Inspecting ${type}: ${work} (${filePath}) ---`);
-    try {
-      const fileContent = await fs.readFile(filePath, "utf8");
-      const sefariaData = JSON.parse(fileContent);
-      logger.info("Discovered Sefaria data structure:");
-      console.log(JSON.stringify(sefariaData, null, 2).substring(0, 500) + "..."); // Print first 500 chars
-
-      // Simple sample parsing and preview
-      if (sefariaData.text) {
-        logger.info("Sample parsed chunks:");
-        let sampleCount = 0;
-        // This is a very basic example; actual parsing will need to be robust.
-        if (type === "tanakh" && work === "Genesis" && sefariaData.text[0] && sefariaData.text[0][0]) {
-          console.log(`- Ref: Genesis 1:1, Text: ${sefariaData.text[0][0].substring(0, 100)}...`);
-          sampleCount++;
-        }
-        if (type === "mishnah" && work === "Avot" && sefariaData.text[0] && sefariaData.text[0][0]) {
-          console.log(`- Ref: Avot 1:1, Text: ${sefariaData.text[0][0].substring(0, 100)}...`);
-          sampleCount++;
-        }
-        if (type === "bavli" && work === "Berakhot" && sefariaData.text[1] && typeof sefariaData.text[1][0] === "string") {
-          console.log(`- Ref: Berakhot 2a:1 (sample), Text: ${sefariaData.text[1][0].substring(0, 100)}...`);
-          sampleCount++;
-        }
-        if (sampleCount === 0) {
-          logger.info("Could not extract sample chunks with current basic parser. Adjust parsing logic for inspection.");
-        }
-      }
-    } catch (error) {
-      logger.error({ error }, `Error inspecting ${filePath}`);
+  if (!findResult.filePath) {
+    logger.error("Could not find a Hebrew/merged.(json|txt) JSON for the requested work under the specified category root.");
+    if (findResult.candidates.length) {
+      console.error("Closest candidates:");
+      console.error(findResult.candidates.slice(0, 5).join("\n"));
     }
+    console.error("Provide --path to override if needed.");
+    process.exit(1);
+  }
+
+  const mergedPath = findResult.filePath;
+
+  logger.info(`Inspecting file: ${mergedPath}`);
+  try {
+    const raw = await fs.readFile(mergedPath, "utf8");
+    let parsed: any;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      console.error("Failed to parse as JSON. First 200 chars:");
+      console.log(raw.slice(0, 200));
+      process.exit(1);
+    }
+
+    const title = parsed?.title;
+    const language = parsed?.language;
+    const versionTitle = parsed?.versionTitle;
+    const versionSource = parsed?.versionSource;
+    const text = parsed?.text;
+
+    console.log({ title, language, versionTitle, versionSource });
+
+    const shape: number[] = [];
+    function inspectShape(node: any, depth = 0) {
+      if (Array.isArray(node)) {
+        shape[depth] = Math.max(shape[depth] || 0, node.length);
+        if (node.length > 0) inspectShape(node[0], depth + 1);
+      }
+    }
+    inspectShape(text);
+    console.log("Shape (max sizes per level):", shape);
+
+    const flattened = text ? flattenForInspect(text, work as string, target.type) : [];
+    console.log("First 5 leaf segments (ref + preview):");
+    flattened.slice(0, 5).forEach((seg) => {
+      console.log({ ref: seg.ref, preview: seg.normalizedText.slice(0, 120) });
+    });
+  } catch (error) {
+    logger.error({ error }, "Error inspecting file");
+    process.exit(1);
   }
   process.exit(0);
 }
@@ -538,11 +1283,6 @@ const command = process.argv[2];
 
 if (command === "qdrant-smoke") {
   qdrantSmokeTest().catch((error) => {
-    console.error("Fatal error:", error);
-    process.exit(1);
-  });
-} else if (command === "ingest-fake-emb") {
-  ingestFakeEmbCommand().catch((error) => {
     console.error("Fatal error:", error);
     process.exit(1);
   });
@@ -556,6 +1296,56 @@ if (command === "qdrant-smoke") {
     console.error("Fatal error:", error);
     process.exit(1);
   });
+} else if (command === "ingest-sefaria-slice1") {
+  ingestSefariaSlice1Command().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+  } else if (command === "ingest-sefaria-tanakh-rest") {
+    ingestSefariaTanakhRestCommand().catch((error) => {
+      console.error("Fatal error:", error);
+      process.exit(1);
+    });
+} else if (command === "ingest-sefaria-mishnah-all") {
+  ingestSefariaMishnahAllCommand().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+} else if (command === "eval-queries") {
+  evalQueriesCommand().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+} else if (command === "qdrant:delete-by-filter") {
+  qdrantDeleteByFilterCommand().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+} else if (command === "sqlite-ingest") {
+  sqliteIngestCommand().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+} else if (command === "sqlite-tanakh-rest") {
+  sqliteTanakhRestCommand().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+} else if (command === "lex-find") {
+  lexFindCommand().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+} else if (command === "get-ref") {
+  getRefCommand().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+} else if (command === "debug-ids") {
+  debugIdsCommand().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
 } else if (command === "sefaria-inspect") {
   sefariaInspectCommand().catch((error) => {
     console.error("Fatal error:", error);
@@ -564,10 +1354,18 @@ if (command === "qdrant-smoke") {
 } else {
   console.error(`Unknown command: ${command || "(none)"}`);
   console.error("Available commands:");
-  console.error("  qdrant-smoke        - Test Qdrant Cloud connection");
-  console.error("  ingest-fake-emb     - Ingest fake corpus with real embeddings into Qdrant");
-  console.error("  ask                 - Query Qdrant with RAG answering");
-  console.error("  ingest-sefaria-taste - Ingest Sefaria taste data into Qdrant");
-  console.error("  sefaria-inspect     - Inspect Sefaria export data structure");
+  console.error("  qdrant-smoke");
+  console.error("  ask");
+  console.error("  ingest-sefaria-taste");
+  console.error("  ingest-sefaria-slice1");
+  console.error("  ingest-sefaria-tanakh-rest");
+  console.error("  ingest-sefaria-mishnah-all");
+  console.error("  sqlite-ingest");
+  console.error("  lex-find");
+  console.error("  get-ref");
+  console.error("  debug-ids");
+  console.error("  eval-queries");
+  console.error("  qdrant:delete-by-filter");
+  console.error("  sefaria-inspect");
   process.exit(1);
 }

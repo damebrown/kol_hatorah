@@ -8,3 +8,4 @@ export * from "./utils";
 export * from "./vectors";
 export * from "./rag";
 export * from "./citations";
+export * from "./text";
