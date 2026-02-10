@@ -137,3 +137,43 @@ export const makeListWorks = (db: Database.Database) => (): WorkRow[] => {
     `);
   return stmt.all().map((r: any) => ({ type: r.type, work: r.work, count: Number(r.count) }));
 };
+
+export const makeGetSegments = (db: Database.Database) => (scope?: ScopeFilter, limit = 200, offset = 0) => {
+  const { clause, params } = buildScopeWhere(scope);
+  const where = clause ? `WHERE ${clause}` : "";
+  const stmt = db.prepare(`
+      SELECT id, type, work, ref, normalizedRef, lang, source, textPlain
+      FROM segments
+      ${where}
+      ORDER BY work, ref
+      LIMIT @limit OFFSET @offset;
+    `);
+  return stmt.all({ limit, offset, ...params });
+};
+
+export const makeCountSegments = (db: Database.Database) => (scope?: ScopeFilter) => {
+  const { clause, params } = buildScopeWhere(scope);
+  const where = clause ? `WHERE ${clause}` : "";
+  const stmt = db.prepare(`
+      SELECT COUNT(*) as cnt
+      FROM segments
+      ${where};
+    `);
+  const row = stmt.get({ ...params }) as any;
+  return Number(row?.cnt || 0);
+};
+
+export const makeSearchByMatch = (db: Database.Database) => (match: string, scope?: ScopeFilter, limit = 20) => {
+  const { clause, params } = buildScopeWhere(scope);
+  const andClause = clause ? `AND ${clause}` : "";
+  const stmt = db.prepare(`
+      SELECT id, type, work, ref, normalizedRef, lang, source, textPlain
+      FROM segments
+      WHERE rowid IN (
+        SELECT rowid FROM segments_fts WHERE segments_fts MATCH @match
+      )
+      ${andClause}
+      LIMIT @limit;
+    `);
+  return stmt.all({ match, limit, ...params });
+};

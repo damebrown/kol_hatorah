@@ -4,6 +4,7 @@ export enum QueryIntent {
   CHAPTER_ABOUT = "CHAPTER_ABOUT",
   QUOTE_ENTITY = "QUOTE_ENTITY",
   LIST_WORKS_MENTIONING_ENTITY = "LIST_WORKS_MENTIONING_ENTITY",
+  CORPUS_QUOTE_QUERY = "CORPUS_QUOTE_QUERY",
   GENERAL_QA = "GENERAL_QA",
 }
 
@@ -50,10 +51,11 @@ export type PlanResult =
   | {
       kind: "OK";
       answer: string;
-      rows?: { ref: string; text: string }[];
+      rows?: { ref: string; text: string; quoteCandidates?: any[] }[];
       citations?: string[];
       formattedCitations?: string;
       works?: { work: string; count?: number }[];
+      totals?: { scanned: number; withCandidates: number; confirmed: number; unconfirmed: number; limited?: boolean };
       plan: QueryPlan;
     };
 

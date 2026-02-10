@@ -179,6 +179,45 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
   }
 
   // fallback GENERAL QA
+
+  // Corpus quote query (e.g., מסכת סוטה שמצטטים פסוק מהתנ\"ך)
+  const quotePattern = /(מצטט|מצטטים|ציטוט)/;
+  const pasukPattern = /(פסוק|פסוקים)/;
+  const tanakhPattern = /(תנ\"ך|מהתנ\"ך|מן התנ\"ך)/;
+  if (quotePattern.test(normalized) && pasukPattern.test(normalized) && tanakhPattern.test(normalized)) {
+    let scope: ScopeConstraint = {};
+    const workMatch = normalized.match(/במסכת\s+([^\s]+)/);
+    if (workMatch) {
+      const res = resolveScopeNode(workMatch[1], reg);
+      if (res.node) scope.node = res.node;
+      if (res.workName) scope.work = res.workName;
+      if (scope.node && !scope.work && scope.node.type === ScopeNodeType.WORK) {
+        scope.work = scope.node.name;
+      }
+    }
+    if (!scope.work) {
+      return {
+        intent: QueryIntent.CORPUS_QUOTE_QUERY,
+        scope,
+        strategy: "SQL_ONLY",
+        limits: { maxResults: 50, maxSegmentsForSynthesis: 0 },
+        disambiguation: {
+          required: true,
+          reason: MESSAGES.DISAMBIG_BOOK_OR_MASEKHET,
+          suggestions: ["תן לי את כל המשניות במסכת סוטה שמצטטים פסוק מהתנ\"ך"],
+        },
+        debug: { matchedRule: "CORPUS_QUOTE_QUERY", notes },
+      };
+    }
+    return {
+      intent: QueryIntent.CORPUS_QUOTE_QUERY,
+      scope,
+      strategy: "SQL_ONLY",
+      limits: { maxResults: 100, maxSegmentsForSynthesis: 0 },
+      debug: { matchedRule: "CORPUS_QUOTE_QUERY", notes },
+    };
+  }
+
   return {
     intent: QueryIntent.GENERAL_QA,
     scope: {},

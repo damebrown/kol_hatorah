@@ -5,6 +5,8 @@ import { QueryIntent, QueryPlan, PlanResult, ScopeNodeType } from "./types";
 import { ensureRegistry } from "./scope/registry";
 import { getWorkInForNode } from "./scope/resolver";
 import { formatRef } from "./utils/formatRef";
+import { detectQuotesWithLinks } from "../quotes/detectQuotes";
+import { QUOTE_MESSAGES } from "../quotes/messages";
 
 function findTypeForWork(work: string | undefined, registry: Map<string, Set<string>>): string | undefined {
   if (!work) return undefined;
@@ -92,6 +94,44 @@ export async function executePlan(
           return opts.generalQaHandler(query);
         }
         return { kind: "REFUSAL", message: MESSAGES.REFUSAL_INSUFFICIENT };
+      }
+      case QueryIntent.CORPUS_QUOTE_QUERY: {
+        const scope = buildScopeFilter(plan, registry);
+        if (!scope.type) {
+          // assume mishnah default if work provided
+          if (plan.scope.work) scope.type = "mishnah";
+        }
+        const total = sqlite.countSegments(scope);
+        const segments = sqlite.getSegments(scope, plan.limits.maxResults, 0);
+        let withCandidates = 0;
+        let confirmed = 0;
+        let unconfirmed = 0;
+        const rows = segments
+          .map((seg) => {
+            const det = detectQuotesWithLinks(seg.textPlain, { type: seg.type, sqlite });
+            if (!det.length) return null;
+            withCandidates += 1;
+            det.forEach((d) => {
+              if (d.status === "CONFIRMED") confirmed += 1;
+              else unconfirmed += 1;
+            });
+            return {
+              ref: formatRef(seg.work, seg.ref),
+              text: seg.textPlain,
+              quoteCandidates: det,
+            };
+          })
+          .filter(Boolean) as any[];
+        if (!rows.length) {
+          return { kind: "REFUSAL", message: MESSAGES.REFUSAL_INSUFFICIENT };
+        }
+        return {
+          kind: "OK",
+          answer: "מקורות שמכילים ציטוטים מהתנ\"ך",
+          rows,
+          totals: { scanned: total, withCandidates, confirmed, unconfirmed, limited: total > plan.limits.maxResults },
+          plan,
+        };
       }
       default:
         return { kind: "REFUSAL", message: "שגיאת תכנון שאילתה" };

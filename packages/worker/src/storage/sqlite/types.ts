@@ -23,5 +23,8 @@ export interface SQLiteManager {
   getByPrefix: (prefix: string, scope?: ScopeFilter, limit?: number) => Array<any>;
   findTermByWork: (termNorm: string, scope?: ScopeFilter, limit?: number) => Array<{ work: string; count: number }>;
   listWorks: () => WorkRow[];
+  getSegments: (scope?: ScopeFilter, limit?: number, offset?: number) => Array<any>;
+  countSegments: (scope?: ScopeFilter) => number;
+  searchByMatch: (match: string, scope?: ScopeFilter, limit?: number) => Array<any>;
   close: () => void;
 }

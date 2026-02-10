@@ -12,6 +12,9 @@ import {
   makeGetRef,
   makeFindTermByWork,
   makeListWorks,
+  makeGetSegments,
+  makeCountSegments,
+  makeSearchByMatch,
 } from "./queries";
 import { SQLiteManager, ScopeFilter, WorkRow } from "./types";
 
@@ -35,6 +38,9 @@ export async function getSQLiteManager(dbPath: string = DEFAULT_SQLITE_PATH): Pr
   const getRef = makeGetRef(db);
   const findTermByWork = makeFindTermByWork(db);
   const listWorks = makeListWorks(db);
+  const getSegments = makeGetSegments(db);
+  const countSegments = makeCountSegments(db);
+  const searchByMatch = makeSearchByMatch(db);
 
   return {
     db,
@@ -45,6 +51,9 @@ export async function getSQLiteManager(dbPath: string = DEFAULT_SQLITE_PATH): Pr
     getByPrefix,
     findTermByWork,
     listWorks,
+    getSegments,
+    countSegments,
+    searchByMatch,
     close: () => db.close(),
   };
 }
