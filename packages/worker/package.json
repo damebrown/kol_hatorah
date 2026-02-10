@@ -15,7 +15,8 @@
     "debug:ids": "npx tsx src/cli.ts debug-ids",
     "eval:queries": "npx tsx src/cli.ts eval-queries",
     "qdrant:delete-by-filter": "npx tsx src/cli.ts qdrant:delete-by-filter",
-    "sefaria:inspect": "npx tsx src/cli.ts sefaria-inspect"
+    "sefaria:inspect": "npx tsx src/cli.ts sefaria-inspect",
+    "test": "npx tsx test/queryPlanner.test.ts"
   },
   "dependencies": {
     "@kol-hatorah/core": "*",

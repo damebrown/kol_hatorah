@@ -1,0 +1,16 @@
+export const CANONICAL_TO_HEB_OVERRIDE: Record<string, string> = {
+  Bekhorot: "בכורות",
+  Bekhoroth: "בכורות",
+  Bekhoros: "בכורות",
+  Niddah: "נדה",
+  Nidah: "נדה",
+  Makshirin: "מכשירין",
+  Makhshirin: "מכשירין",
+  Oktzin: "עוקצים",
+  Uktzin: "עוקצים",
+  Tahorot: "טהרות",
+  "Ta'anit": "תענית",
+  Taanit: "תענית",
+  "Pirkei Avot": "אבות",
+  Zavim: "זבים",
+};
