@@ -58,7 +58,7 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
   // WORD OCCURRENCES
   const occRegex = /(איפה מופיעה|היכן מופיע|היכן כתוב|הבא את כל המופעים|מופיע הביטוי|מופיעה המילה)/;
   if (occRegex.test(normalized)) {
-    const quoted = normalized.match(/["“”](.+?)["“”]/);
+    const quoted = normalized.match(/["“”'׳‘’](.+?)["“”'׳‘’]/);
     const term = quoted ? quoted[1] : normalized.replace(occRegex, "").trim().split(/\s+/)[0];
     let scope: ScopeConstraint = {};
     const scopeMatch = normalized.match(/ב([^ ]+)/);

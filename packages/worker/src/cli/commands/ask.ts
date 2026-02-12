@@ -14,7 +14,7 @@ import {
 } from "@kol-hatorah/core";
 import { normalizeText, OpenAIService, searchByVector } from "@kol-hatorah/core";
 import { getSQLiteManager } from "../../storage/sqlite";
-import { planQuery, executePlan, renderResult } from "../../queryPlanner";
+import { planQuery, executePlan, renderResult, QueryIntent } from "../../queryPlanner";
 
 export interface AskOnceResult {
   answer: string;
@@ -168,6 +168,9 @@ export async function askCommand() {
   const argv = minimist(process.argv.slice(2));
   const query = argv.q || argv.query;
   const limit = parseInt(argv.k || argv.limit || getConfig().rag.topK.toString(), 10);
+  const offset = parseInt(argv.offset || "0", 10);
+  const showTanakhText = argv["show-tanakh-text"] === true || argv["show-tanakh-text"] === "true";
+  const showMishnahText = argv["show-mishnah-text"] === true || argv["show-mishnah-text"] === "true";
   const type = argv.type as TextType | undefined;
   const work = argv.work as string | undefined;
   const jsonOutput = !!argv.json;
@@ -181,7 +184,11 @@ export async function askCommand() {
   try {
     const plan = await planQuery(query);
 
+    if (plan.intent === QueryIntent.CORPUS_QUOTE_QUERY) {
+      plan.limits.maxResults = limit;
+    }
     const execResult = await executePlan(plan, query, {
+      pagination: { limit, offset },
       generalQaHandler: async (q: string) => {
         const result = await askOnce({
           query: q,
@@ -205,7 +212,13 @@ export async function askCommand() {
     if (jsonOutput) {
       console.log(JSON.stringify(execResult, null, 2));
     } else {
-      console.log(renderResult(execResult));
+      if (plan.intent === QueryIntent.CORPUS_QUOTE_QUERY) {
+        const { renderQuoteResultsPretty } = await import("../../quotes/renderQuoteResults");
+        const pretty = renderQuoteResultsPretty(execResult, { showTanakhText, showMishnahText, limit, offset });
+        console.log(pretty);
+      } else {
+        console.log(renderResult(execResult));
+      }
     }
     process.exit(0);
   } catch (error) {

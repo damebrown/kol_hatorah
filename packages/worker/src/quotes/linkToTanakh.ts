@@ -25,6 +25,7 @@ export function linkToTanakh(candidate: QuoteCandidate, opts: { topK?: number },
         score,
         sharedWords: shared.length,
         totalWords: words.length,
+      tanakhText: row.textPlain,
       });
     }
   }

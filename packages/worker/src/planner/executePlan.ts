@@ -36,7 +36,7 @@ function buildScopeFilter(plan: QueryPlan, registry: Map<string, Set<string>>): 
 export async function executePlan(
   plan: QueryPlan,
   query: string,
-  opts?: { generalQaHandler?: (q: string) => Promise<PlanResult> }
+  opts?: { generalQaHandler?: (q: string) => Promise<PlanResult>; pagination?: { limit?: number; offset?: number } }
 ): Promise<PlanResult> {
   if (plan.disambiguation?.required) {
     return { kind: "DISAMBIGUATION_REQUIRED", message: plan.disambiguation.reason, suggestions: plan.disambiguation.suggestions };
@@ -101,8 +101,10 @@ export async function executePlan(
           // assume mishnah default if work provided
           if (plan.scope.work) scope.type = "mishnah";
         }
+        const limit = opts?.pagination?.limit ?? plan.limits.maxResults;
+        const offset = opts?.pagination?.offset ?? 0;
         const total = sqlite.countSegments(scope);
-        const segments = sqlite.getSegments(scope, plan.limits.maxResults, 0);
+        const segments = sqlite.getSegments(scope, limit, offset);
         let withCandidates = 0;
         let confirmed = 0;
         let unconfirmed = 0;
@@ -129,7 +131,7 @@ export async function executePlan(
           kind: "OK",
           answer: "מקורות שמכילים ציטוטים מהתנ\"ך",
           rows,
-          totals: { scanned: total, withCandidates, confirmed, unconfirmed, limited: total > plan.limits.maxResults },
+          totals: { scanned: total, withCandidates, confirmed, unconfirmed, limited: total > limit + offset },
           plan,
         };
       }

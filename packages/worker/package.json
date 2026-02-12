@@ -2,6 +2,9 @@
   "name": "@kol-hatorah/worker",
   "version": "1.0.0",
   "private": true,
+  "bin": {
+    "kt": "dist/bin/kt.js"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "npx tsx watch src/cli.ts",

@@ -4,4 +4,5 @@ export interface QuoteLink {
   score: number;
   sharedWords: number;
   totalWords: number;
+  tanakhText?: string;
 }

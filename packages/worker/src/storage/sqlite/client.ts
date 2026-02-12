@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import fs from "fs/promises";
 import path from "path";
 import { Chunk } from "@kol-hatorah/core";
-import { DEFAULT_SQLITE_PATH } from "./constants";
+import { resolveSqlitePath } from "./constants";
 import { ensureSchema } from "./schema";
 import {
   makeInsertSegments,
@@ -18,7 +18,7 @@ import {
 } from "./queries";
 import { SQLiteManager, ScopeFilter, WorkRow } from "./types";
 
-export async function getSQLiteManager(dbPath: string = DEFAULT_SQLITE_PATH): Promise<SQLiteManager> {
+export async function getSQLiteManager(dbPath: string = resolveSqlitePath()): Promise<SQLiteManager> {
   await fs.mkdir(path.dirname(dbPath), { recursive: true });
   const db = new Database(dbPath);
   ensureSchema(db);
@@ -58,7 +58,7 @@ export async function getSQLiteManager(dbPath: string = DEFAULT_SQLITE_PATH): Pr
   };
 }
 
-export async function listWorks(dbPath: string = DEFAULT_SQLITE_PATH): Promise<WorkRow[]> {
+export async function listWorks(dbPath: string = resolveSqlitePath()): Promise<WorkRow[]> {
   const mgr = await getSQLiteManager(dbPath);
   try {
     return mgr.listWorks();
