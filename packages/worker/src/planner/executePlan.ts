@@ -62,13 +62,22 @@ export async function executePlan(
       case QueryIntent.QUOTE_ENTITY: {
         const termNorm = normalizeText(plan.term || "").textNorm;
         const scope = buildScopeFilter(plan, registry);
-        const rows = sqlite.findTerm(termNorm, scope, plan.limits.maxResults);
+        const limit = opts?.pagination?.limit ?? plan.limits.maxResults;
+        const offset = opts?.pagination?.offset ?? 0;
+        const rows = sqlite.findTerm(termNorm, scope, limit, offset);
         const count = sqlite.countTerm(termNorm, scope);
         if (!rows.length) {
           return { kind: "REFUSAL", message: MESSAGES.REFUSAL_INSUFFICIENT };
         }
         const mapped = rows.map((r) => ({ ref: formatRef(r.work, r.ref), text: r.textPlain }));
-        return { kind: "OK", answer: `נמצאו ${count} מופעים`, rows: mapped, citations: rows.map((r) => r.ref), plan };
+        return {
+          kind: "OK",
+          answer: `נמצאו ${count} מופעים`,
+          rows: mapped,
+          citations: rows.map((r) => r.ref),
+          totals: { scanned: count, withCandidates: rows.length, confirmed: 0, unconfirmed: 0, limited: count > limit + offset },
+          plan,
+        };
       }
       case QueryIntent.LIST_WORKS_MENTIONING_ENTITY: {
         const termNorm = normalizeText(plan.term || "").textNorm;

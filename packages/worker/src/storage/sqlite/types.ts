@@ -17,7 +17,7 @@ export interface WorkRow {
 export interface SQLiteManager {
   db: Database.Database;
   insertSegments: (segments: Chunk[]) => void;
-  findTerm: (termNorm: string, scope?: ScopeFilter, limit?: number) => Array<any>;
+  findTerm: (termNorm: string, scope?: ScopeFilter, limit?: number, offset?: number) => Array<any>;
   getRef: (normalizedRef: string) => any | null;
   countTerm: (termNorm: string, scope?: ScopeFilter) => number;
   getByPrefix: (prefix: string, scope?: ScopeFilter, limit?: number) => Array<any>;

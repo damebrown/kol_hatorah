@@ -15,6 +15,7 @@ import {
 import { normalizeText, OpenAIService, searchByVector } from "@kol-hatorah/core";
 import { getSQLiteManager } from "../../storage/sqlite";
 import { planQuery, executePlan, renderResult, QueryIntent } from "../../queryPlanner";
+import { normalizeQueryInput } from "../utils/normalizeQuery";
 
 export interface AskOnceResult {
   answer: string;
@@ -166,7 +167,7 @@ export async function askOnce(params: { query: string; limit: number; type?: Tex
 
 export async function askCommand() {
   const argv = minimist(process.argv.slice(2));
-  const query = argv.q || argv.query;
+  const queryRaw = argv.q || argv.query;
   const limit = parseInt(argv.k || argv.limit || getConfig().rag.topK.toString(), 10);
   const offset = parseInt(argv.offset || "0", 10);
   const showTanakhText = argv["show-tanakh-text"] === true || argv["show-tanakh-text"] === "true";
@@ -175,20 +176,27 @@ export async function askCommand() {
   const work = argv.work as string | undefined;
   const jsonOutput = !!argv.json;
   const debug = !!argv.debug;
+  const userProvidedLimit = argv.k !== undefined || argv.limit !== undefined;
 
-  if (!query) {
+  const normalizedQuery = normalizeQueryInput(queryRaw || "");
+
+  if (!normalizedQuery) {
     console.error("Error: --q argument is required for ask command.");
     process.exit(1);
   }
 
   try {
-    const plan = await planQuery(query);
+    const plan = await planQuery(normalizedQuery);
 
-    if (plan.intent === QueryIntent.CORPUS_QUOTE_QUERY) {
-      plan.limits.maxResults = limit;
-    }
-    const execResult = await executePlan(plan, query, {
-      pagination: { limit, offset },
+    const paginationLimit =
+      plan.intent === QueryIntent.WORD_OCCURRENCES || plan.intent === QueryIntent.CORPUS_QUOTE_QUERY
+        ? userProvidedLimit
+          ? limit
+          : plan.limits.maxResults
+        : limit;
+
+    const execResult = await executePlan(plan, normalizedQuery, {
+      pagination: { limit: paginationLimit, offset },
       generalQaHandler: async (q: string) => {
         const result = await askOnce({
           query: q,
@@ -214,7 +222,11 @@ export async function askCommand() {
     } else {
       if (plan.intent === QueryIntent.CORPUS_QUOTE_QUERY) {
         const { renderQuoteResultsPretty } = await import("../../quotes/renderQuoteResults");
-        const pretty = renderQuoteResultsPretty(execResult, { showTanakhText, showMishnahText, limit, offset });
+        const pretty = renderQuoteResultsPretty(execResult, { showTanakhText, showMishnahText, limit: paginationLimit, offset });
+        console.log(pretty);
+      } else if (plan.intent === QueryIntent.WORD_OCCURRENCES) {
+        const { renderWordOccurrencesPretty } = await import("../../planner/renderers/renderWordOccurrences");
+        const pretty = renderWordOccurrencesPretty(execResult, { term: plan.term, limit: paginationLimit, offset });
         console.log(pretty);
       } else {
         console.log(renderResult(execResult));

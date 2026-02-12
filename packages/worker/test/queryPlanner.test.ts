@@ -33,6 +33,12 @@ async function testWordOccurrencesSingleQuotes() {
   assert.strictEqual(plan.term, "אור");
 }
 
+async function testWordOccurrencesSmartQuotes() {
+  const plan = await planQuery('איפה מופיעה המילה ״אור״ בנביאים', registry);
+  assert.strictEqual(plan.intent, QueryIntent.WORD_OCCURRENCES);
+  assert.strictEqual(plan.term, "אור");
+}
+
 async function testChapterAbout() {
   const plan = await planQuery("על מה מדבר פרק 3 בברכות", registry);
   assert.strictEqual(plan.intent, QueryIntent.CHAPTER_ABOUT);
@@ -80,6 +86,7 @@ async function run() {
   await testExactRef();
   await testWordOccurrences();
   await testWordOccurrencesSingleQuotes();
+  await testWordOccurrencesSmartQuotes();
   await testChapterAbout();
   await testDisambiguation();
   await testListWorksMishnah();

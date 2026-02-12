@@ -56,7 +56,9 @@ export const makeInsertSegments =
     batch(segments);
   };
 
-export const makeFindTerm = (db: Database.Database) => (termNorm: string, scope?: ScopeFilter, limit = 50) => {
+export const makeFindTerm =
+  (db: Database.Database) =>
+  (termNorm: string, scope?: ScopeFilter, limit = 50, offset = 0) => {
   const { clause, params } = buildScopeWhere(scope);
   const andClause = clause ? `AND ${clause}` : "";
   const stmt = db.prepare(`
@@ -66,10 +68,10 @@ export const makeFindTerm = (db: Database.Database) => (termNorm: string, scope?
         SELECT rowid FROM segments_fts WHERE segments_fts MATCH @match
       )
       ${andClause}
-      LIMIT @limit;
+      LIMIT @limit OFFSET @offset;
     `);
   const match = expandTermForPrefixes(termNorm);
-  return stmt.all({ match, limit, ...params });
+  return stmt.all({ match, limit, offset, ...params });
 };
 
 export const makeCountTerm = (db: Database.Database) => (termNorm: string, scope?: ScopeFilter) => {
