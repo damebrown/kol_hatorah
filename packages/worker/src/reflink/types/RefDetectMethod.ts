@@ -1,0 +1,5 @@
+export enum RefDetectMethod {
+  INTRO_SPAN = "INTRO_SPAN",
+  QUOTATION_MARKS = "QUOTATION_MARKS",
+  EXPLICIT_REF = "EXPLICIT_REF",
+}

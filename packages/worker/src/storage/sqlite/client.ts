@@ -18,7 +18,11 @@ import {
 } from "./queries";
 import { SQLiteManager, ScopeFilter, WorkRow } from "./types";
 
+let cachedManager: { path: string; mgr: SQLiteManager } | null = null;
+
 export async function getSQLiteManager(dbPath: string = resolveSqlitePath()): Promise<SQLiteManager> {
+  const p = dbPath;
+  if (cachedManager && cachedManager.path === p) return cachedManager.mgr;
   await fs.mkdir(path.dirname(dbPath), { recursive: true });
   const db = new Database(dbPath);
   ensureSchema(db);
@@ -42,7 +46,7 @@ export async function getSQLiteManager(dbPath: string = resolveSqlitePath()): Pr
   const countSegments = makeCountSegments(db);
   const searchByMatch = makeSearchByMatch(db);
 
-  return {
+  const mgr: SQLiteManager = {
     db,
     insertSegments,
     findTerm,
@@ -54,17 +58,18 @@ export async function getSQLiteManager(dbPath: string = resolveSqlitePath()): Pr
     getSegments,
     countSegments,
     searchByMatch,
-    close: () => db.close(),
+    close: () => {
+      if (cachedManager?.path === p) cachedManager = null;
+      db.close();
+    },
   };
+  cachedManager = { path: p, mgr };
+  return mgr;
 }
 
 export async function listWorks(dbPath: string = resolveSqlitePath()): Promise<WorkRow[]> {
   const mgr = await getSQLiteManager(dbPath);
-  try {
-    return mgr.listWorks();
-  } finally {
-    mgr.close();
-  }
+  return mgr.listWorks();
 }
 
 export type { SQLiteManager, ScopeFilter, WorkRow } from "./types";

@@ -1,5 +1,6 @@
 import { PlanResult } from "../planner/types";
 import { displayWorkName } from "../planner/utils/displayWorkName";
+import { formatHebrewRef } from "../planner/utils/hebrewNumerals";
 
 interface RenderOptions {
   showTanakhText?: boolean;
@@ -38,7 +39,8 @@ export function renderQuoteResultsPretty(result: PlanResult, opts: RenderOptions
       const intro = `${item.ref} — ${c.candidate.signal || "ציטוט"}: ${clip(c.candidate.quoteTextRaw, 120)}`;
       const lines = [intro];
       if (match) {
-        lines.push(`שויך ל: ${displayWorkName(match.tanakhRef.split(" ")[0] || "")} ${match.tanakhRef.split(" ").slice(1).join(" ")} (ציון ${match.score.toFixed(2)})`);
+        const hebRef = formatHebrewRef(match.tanakhRef, { singleWithoutGeresh: true });
+        lines.push(`שויך ל: ${hebRef} (ציון ${match.score.toFixed(2)})`);
         if (opts.showTanakhText && match.tanakhText) {
           lines.push(`פסוק: ${clip(match.tanakhText, 90)}`);
         }

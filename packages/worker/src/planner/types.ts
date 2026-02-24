@@ -3,6 +3,8 @@ export enum QueryIntent {
   WORD_OCCURRENCES = "WORD_OCCURRENCES",
   CHAPTER_ABOUT = "CHAPTER_ABOUT",
   QUOTE_ENTITY = "QUOTE_ENTITY",
+  QUOTE_QUERY = "QUOTE_QUERY",
+  FIND_REFERENCES = "FIND_REFERENCES",
   LIST_WORKS_MENTIONING_ENTITY = "LIST_WORKS_MENTIONING_ENTITY",
   CORPUS_QUOTE_QUERY = "CORPUS_QUOTE_QUERY",
   GENERAL_QA = "GENERAL_QA",
@@ -30,6 +32,8 @@ export interface QueryPlan {
   scope: ScopeConstraint;
   ref?: { raw: string; normalizedRef: string; work?: string; chapter?: number; verse?: number };
   term?: string;
+  targetTypes?: string[];
+  grouping?: "BY_TARGET" | "BY_SOURCE";
   strategy: "SQL_ONLY" | "VECTOR_ONLY" | "HYBRID_SQL_THEN_LLM";
   limits: { maxResults: number; maxSegmentsForSynthesis: number };
   disambiguation?:

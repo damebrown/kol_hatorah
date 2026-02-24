@@ -18,7 +18,15 @@ function resolveWorkAgainstRegistry(input: string, registry: WorkRegistry): stri
   }
   const heMaps = [TANAKH_HEB_TO_CANONICAL, MISHNAH_TRACTATES_HEB_TO_CANONICAL, BAVLI_TRACTATES_HEB_TO_CANONICAL];
   for (const m of heMaps) {
-    if (m[input]) return m[input];
+    if (m[input]) {
+      const canon = m[input];
+      // If registry contains a prefixed Mishnah form, prefer it.
+      const prefixed = `Mishnah ${canon}`;
+      for (const [, works] of registry.entries()) {
+        if (works.has(prefixed)) return prefixed;
+      }
+      return canon;
+    }
   }
   return undefined;
 }

@@ -3,6 +3,9 @@ import { MESSAGES } from "../config/messages";
 import { QueryIntent, ScopeConstraint, QueryPlan, ScopeNodeType, WorkRegistry } from "./types";
 import { ensureRegistry } from "./scope/registry";
 import { resolveScopeNode } from "./scope/resolver";
+import { normalizeQueryForPlanning } from "./utils/normalizeQueryForPlanning";
+import { parseRefFromQuery } from "./utils/parseRefFromQuery";
+import { MISHNAH_TRACTATES_HEB_TO_CANONICAL } from "./scope/mappings/mishnahTractates";
 
 const chapterRegex = /פרק\s+(\d+)/;
 
@@ -20,36 +23,26 @@ function hebrewPreferredNote(q: string): string | undefined {
 
 export async function planQuery(query: string, registryOverride?: WorkRegistry): Promise<QueryPlan> {
   const reg = registryOverride || (await ensureRegistry());
-  const normalized = query.trim();
+  const normalized = normalizeQueryForPlanning(query);
   const notes: string[] = [];
   const note = hebrewPreferredNote(normalized);
   if (note) notes.push(note);
 
-  // EXACT REF
-  const exactMatch = normalized.match(/([^\s]+)\s+(\d+):(\d+)/);
-  if (exactMatch) {
-    const workRaw = exactMatch[1];
-    const chapter = parseInt(exactMatch[2], 10);
-    const verse = parseInt(exactMatch[3], 10);
-    const resolved = resolveScopeNode(workRaw, reg);
-    const work = resolved.workName || workRaw;
+  // EXACT REF (digits or Hebrew numerals / phrasing)
+  const parsedRef = parseRefFromQuery(normalized, reg);
+  if (parsedRef) {
     const plan: QueryPlan = {
       intent: QueryIntent.EXACT_REF,
-      scope: { work },
-      ref: work ? { raw: `${workRaw} ${chapter}:${verse}`, normalizedRef: `${work} ${chapter}:${verse}`, work, chapter, verse } : undefined,
+      scope: { work: parsedRef.work },
+      ref: {
+        raw: `${parsedRef.rawWork} ${parsedRef.chapter}:${parsedRef.verse}`,
+        normalizedRef: parsedRef.normalizedRef,
+        work: parsedRef.work,
+        chapter: parsedRef.chapter,
+        verse: parsedRef.verse,
+      },
       strategy: "SQL_ONLY",
       limits: { maxResults: DEFAULT_LIMITS.EXACT_REF_MAX_RESULTS, maxSegmentsForSynthesis: DEFAULT_LIMITS.EXACT_REF_MAX_SEGMENTS },
-      disambiguation: !resolved.workName
-        ? {
-            required: true,
-            reason: MESSAGES.DISAMBIG_BOOK_OR_MASEKHET,
-            suggestions: [
-              'נסה לכתוב את שם הספר בעברית מלאה, למשל: "בראשית 1:1"',
-              'לפרק בתנ"ך כתוב: "ישעיה 40:1"',
-              'למסכת משנה כתוב: "ברכות 3:1"',
-            ],
-          }
-        : undefined,
       debug: { matchedRule: "EXACT_REF", notes },
     };
     return plan;
@@ -59,7 +52,17 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
   const occRegex = /(איפה מופיעה|היכן מופיע|היכן כתוב|הבא את כל המופעים|מופיע הביטוי|מופיעה המילה)/;
   if (occRegex.test(normalized)) {
     const quoted = normalized.match(/["“”'׳‘’](.+?)["“”'׳‘’]/);
-    const term = quoted ? quoted[1] : normalized.replace(occRegex, "").trim().split(/\s+/)[0];
+    let term: string | undefined;
+    if (quoted) {
+      term = quoted[1];
+    } else {
+      const remainder = normalized.replace(occRegex, "").trim();
+      const tokens = remainder.split(/\s+/).filter(Boolean);
+      const stopwords = new Set(["המילה", "מילה", "הביטוי", "ביטוי", "מופיעה", "מופיע"]);
+      const found = tokens.find((t) => !stopwords.has(t));
+      term = found || tokens[0] || remainder;
+    }
+    term = term?.trim();
     let scope: ScopeConstraint = {};
     const scopeMatch = normalized.match(/ב([^ ]+)/);
     if (scopeMatch) {
@@ -178,6 +181,56 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
     };
   }
 
+  // Generalized reference linking intent
+  const refLinkPattern = /(מצוטט|מצטט|מצטטים|מצוטטים|ציטוט|ציטוטים|מאיפה|מה המקור|מקור|רפרנס)/;
+  if (refLinkPattern.test(normalized)) {
+    let scope: ScopeConstraint = {};
+    const hebrewTractatesRef = Object.keys(MISHNAH_TRACTATES_HEB_TO_CANONICAL).sort((a, b) => b.length - a.length);
+    for (const name of hebrewTractatesRef) {
+      if (normalized.includes(`מסכת ${name}`) || normalized.includes(`במסכת ${name}`)) {
+        const res = resolveScopeNode(name, reg);
+        if (res.node) scope.node = res.node;
+        if (res.workName) scope.work = res.workName;
+        break;
+      }
+    }
+    if (!scope.work) {
+      const tractateMatch = normalized.match(/מסכת\s+([^\s]+)/);
+      if (tractateMatch) {
+        const res = resolveScopeNode(tractateMatch[1], reg);
+        if (res.node) scope.node = res.node;
+        if (res.workName) scope.work = res.workName;
+      }
+    }
+    const byBook = normalized.match(/ב(?:ספר|מסכת)\s+([^\s]+)/);
+    if (!scope.work && byBook) {
+      const res = resolveScopeNode(byBook[1], reg);
+      if (res.node) scope.node = res.node;
+      if (res.workName) scope.work = res.workName;
+    }
+    const targetTypes: string[] = [];
+    if (/(פסוק|פסוקים|תנ\"ך|מקרא)/.test(normalized)) targetTypes.push("tanakh");
+    if (/(משנה|משניות)/.test(normalized)) targetTypes.push("mishnah");
+    if (/(גמרא|בבלי|תלמוד)/.test(normalized)) targetTypes.push("bavli");
+    const hasTractateMention = /מסכת\s+\S+/.test(normalized);
+    const disambigNeeded = !scope.work && hasTractateMention;
+    return {
+      intent: QueryIntent.FIND_REFERENCES,
+      scope,
+      targetTypes: targetTypes.length ? targetTypes : undefined,
+      strategy: "SQL_ONLY",
+      limits: { maxResults: 200, maxSegmentsForSynthesis: 0 },
+      disambiguation: disambigNeeded
+        ? {
+            required: true,
+            reason: MESSAGES.DISAMBIG_BOOK_OR_MASEKHET,
+            suggestions: ["לדוגמה: איזה פסוקים מצוטטים במסכת סוטה?"],
+          }
+        : undefined,
+      debug: { matchedRule: "FIND_REFERENCES", notes },
+    };
+  }
+
   // fallback GENERAL QA
 
   // Corpus quote query (e.g., מסכת סוטה שמצטטים פסוק מהתנ\"ך)
@@ -186,14 +239,28 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
   const tanakhPattern = /(תנ\"ך|מהתנ\"ך|מן התנ\"ך)/;
   if (quotePattern.test(normalized) && pasukPattern.test(normalized) && tanakhPattern.test(normalized)) {
     let scope: ScopeConstraint = {};
-    const workMatch = normalized.match(/במסכת\s+([^\s]+)/);
-    if (workMatch) {
-      const res = resolveScopeNode(workMatch[1], reg);
+    const hebrewTractatesCorpus = Object.keys(MISHNAH_TRACTATES_HEB_TO_CANONICAL).sort((a, b) => b.length - a.length);
+    let tractateHebCorpus: string | null = null;
+    for (const name of hebrewTractatesCorpus) {
+      if (normalized.includes(`במסכת ${name}`) || normalized.includes(`מסכת ${name}`)) {
+        tractateHebCorpus = name;
+        break;
+      }
+    }
+    if (tractateHebCorpus) {
+      const res = resolveScopeNode(tractateHebCorpus, reg);
       if (res.node) scope.node = res.node;
       if (res.workName) scope.work = res.workName;
-      if (scope.node && !scope.work && scope.node.type === ScopeNodeType.WORK) {
-        scope.work = scope.node.name;
+    } else {
+      const workMatch = normalized.match(/במסכת\s+([^\s]+)/);
+      if (workMatch) {
+        const res = resolveScopeNode(workMatch[1], reg);
+        if (res.node) scope.node = res.node;
+        if (res.workName) scope.work = res.workName;
       }
+    }
+    if (scope.node && !scope.work && scope.node.type === ScopeNodeType.WORK) {
+      scope.work = scope.node.name;
     }
     if (!scope.work) {
       return {
@@ -215,6 +282,53 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
       strategy: "SQL_ONLY",
       limits: { maxResults: 100, maxSegmentsForSynthesis: 0 },
       debug: { matchedRule: "CORPUS_QUOTE_QUERY", notes },
+    };
+  }
+
+  // Mishnah quote query (tractate-specific)
+  const quoteTractatePattern = /(מצוטט|מצוטטים|מצטט|מצטטות|ציטוט|ציטוטים)/;
+  const tanakhHintPattern = /(פסוק|פסוקים|תנ\"ך|מקרא|מהתנ\"ך|מן התנ\"ך)/;
+  const mishnahHintPattern = /(משנה|משניות|מסכת|במסכת)/;
+  if (quoteTractatePattern.test(normalized) && tanakhHintPattern.test(normalized) && mishnahHintPattern.test(normalized)) {
+    let scope: ScopeConstraint = { node: { type: ScopeNodeType.CORPUS, name: "mishnah" } };
+    const hebrewTractates = Object.keys(MISHNAH_TRACTATES_HEB_TO_CANONICAL).sort((a, b) => b.length - a.length);
+    let tractateHeb: string | null = null;
+    for (const name of hebrewTractates) {
+      if (normalized.includes(`מסכת ${name}`) || normalized.includes(`במסכת ${name}`)) {
+        tractateHeb = name;
+        break;
+      }
+    }
+    if (tractateHeb) {
+      const res = resolveScopeNode(tractateHeb, reg);
+      if (res.workName) scope.work = res.workName;
+    } else {
+      const tractateMatch = normalized.match(/מסכת\s+([^\s]+)/);
+      if (tractateMatch) {
+        const res = resolveScopeNode(tractateMatch[1], reg);
+        if (res.workName) scope.work = res.workName;
+      }
+    }
+    if (!scope.work) {
+      return {
+        intent: QueryIntent.QUOTE_QUERY,
+        scope,
+        strategy: "SQL_ONLY",
+        limits: { maxResults: 200, maxSegmentsForSynthesis: 0 },
+        disambiguation: {
+          required: true,
+          reason: MESSAGES.DISAMBIG_BOOK_OR_MASEKHET,
+          suggestions: ["ציין מסכת, למשל: \"איזה פסוקים מצוטטים במסכת סוטה?\""],
+        },
+        debug: { matchedRule: "QUOTE_QUERY", notes },
+      };
+    }
+    return {
+      intent: QueryIntent.QUOTE_QUERY,
+      scope,
+      strategy: "SQL_ONLY",
+      limits: { maxResults: 200, maxSegmentsForSynthesis: 0 },
+      debug: { matchedRule: "QUOTE_QUERY", notes },
     };
   }
 

@@ -39,6 +39,27 @@ async function testWordOccurrencesSmartQuotes() {
   assert.strictEqual(plan.term, "אור");
 }
 
+async function testWordOccurrencesQuestionMark() {
+  const plan = await planQuery('איפה מופיעה המילה "אור" בנביאים?', registry);
+  assert.strictEqual(plan.intent, QueryIntent.WORD_OCCURRENCES);
+  assert.strictEqual(plan.term, "אור");
+  assert.strictEqual(plan.scope.node?.type, ScopeNodeType.SUBCORPUS);
+}
+
+async function testWordOccurrencesNoQuotes() {
+  const plan = await planQuery("איפה מופיע אור בנביאים?", registry);
+  assert.strictEqual(plan.intent, QueryIntent.WORD_OCCURRENCES);
+  assert.strictEqual(plan.term, "אור");
+  assert.strictEqual(plan.scope.node?.type, ScopeNodeType.SUBCORPUS);
+}
+
+async function testQuoteQueryTractate() {
+  const plan = await planQuery("איזה פסוקים מצוטטים במשנה במסכת סוטה?", registry);
+  assert.strictEqual(plan.intent, QueryIntent.QUOTE_QUERY);
+  assert.strictEqual(plan.scope.work, undefined); // registry doesn't have Sotah in mock
+  assert.ok(plan.disambiguation?.required);
+}
+
 async function testChapterAbout() {
   const plan = await planQuery("על מה מדבר פרק 3 בברכות", registry);
   assert.strictEqual(plan.intent, QueryIntent.CHAPTER_ABOUT);
@@ -87,6 +108,9 @@ async function run() {
   await testWordOccurrences();
   await testWordOccurrencesSingleQuotes();
   await testWordOccurrencesSmartQuotes();
+  await testWordOccurrencesQuestionMark();
+  await testWordOccurrencesNoQuotes();
+  await testQuoteQueryTractate();
   await testChapterAbout();
   await testDisambiguation();
   await testListWorksMishnah();

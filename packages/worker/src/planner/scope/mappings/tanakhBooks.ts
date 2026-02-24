@@ -1,3 +1,11 @@
+/** Common Mishnah-style abbreviations and variants. */
+const TANAKH_ALIASES: Record<string, string> = {
+  "דהי״א": "דברי הימים א",
+  "דהיא": "דברי הימים א",
+  "דהי״ב": "דברי הימים ב",
+  "דהיב": "דברי הימים ב",
+};
+
 export const TANAKH_HEB_TO_CANONICAL: Record<string, string> = {
   "בראשית": "Genesis",
   "שמות": "Exodus",
@@ -39,3 +47,14 @@ export const TANAKH_HEB_TO_CANONICAL: Record<string, string> = {
   "דברי הימים א": "I Chronicles",
   "דברי הימים ב": "II Chronicles",
 };
+
+/** Expand Mishnah-style abbreviations before lookup. */
+export function expandTanakhAlias(inner: string): string {
+  let s = inner.trim();
+  for (const [alias, full] of Object.entries(TANAKH_ALIASES)) {
+    if (s.startsWith(alias)) {
+      return full + s.slice(alias.length);
+    }
+  }
+  return s;
+}

@@ -172,10 +172,12 @@ export async function askCommand() {
   const offset = parseInt(argv.offset || "0", 10);
   const showTanakhText = argv["show-tanakh-text"] === true || argv["show-tanakh-text"] === "true";
   const showMishnahText = argv["show-mishnah-text"] === true || argv["show-mishnah-text"] === "true";
+  const clip = argv.clip === true || argv.clip === "true";
   const type = argv.type as TextType | undefined;
   const work = argv.work as string | undefined;
   const jsonOutput = !!argv.json;
   const debug = !!argv.debug;
+  const debugReflink = !!argv["debug-reflink"];
   const userProvidedLimit = argv.k !== undefined || argv.limit !== undefined;
 
   const normalizedQuery = normalizeQueryInput(queryRaw || "");
@@ -197,6 +199,8 @@ export async function askCommand() {
 
     const execResult = await executePlan(plan, normalizedQuery, {
       pagination: { limit: paginationLimit, offset },
+      debug,
+      debugReflink,
       generalQaHandler: async (q: string) => {
         const result = await askOnce({
           query: q,
@@ -220,14 +224,45 @@ export async function askCommand() {
     if (jsonOutput) {
       console.log(JSON.stringify(execResult, null, 2));
     } else {
-      if (plan.intent === QueryIntent.CORPUS_QUOTE_QUERY) {
-        const { renderQuoteResultsPretty } = await import("../../quotes/renderQuoteResults");
-        const pretty = renderQuoteResultsPretty(execResult, { showTanakhText, showMishnahText, limit: paginationLimit, offset });
-        console.log(pretty);
-      } else if (plan.intent === QueryIntent.WORD_OCCURRENCES) {
+      if (plan.intent === QueryIntent.WORD_OCCURRENCES) {
         const { renderWordOccurrencesPretty } = await import("../../planner/renderers/renderWordOccurrences");
-        const pretty = renderWordOccurrencesPretty(execResult, { term: plan.term, limit: paginationLimit, offset });
+        const pretty = renderWordOccurrencesPretty(execResult, { term: plan.term, limit: paginationLimit, offset, clip });
         console.log(pretty);
+      } else if (
+        plan.intent === QueryIntent.QUOTE_QUERY ||
+        plan.intent === QueryIntent.FIND_REFERENCES ||
+        plan.intent === QueryIntent.CORPUS_QUOTE_QUERY
+      ) {
+        const rows = (execResult.kind === "OK" ? execResult.rows : []) as any[];
+        const isMishnahParenRefs = rows[0]?.mishnahRefHeb != null;
+        const isQuoteCandidates = rows[0]?.quoteCandidates != null;
+        if (isMishnahParenRefs) {
+          const { renderMishnahParenRefsPretty } = await import("../../reflink/render/renderMishnahParenRefs");
+          const { MISHNAH_PAREN_REFS } = await import("../../config/mishnahParenRefs");
+          const groupBy = normalizedQuery.includes("והמיקום") || normalizedQuery.includes("מיקום") ? "TANAKH" : "MISHNAH";
+          const pretty = renderMishnahParenRefsPretty(rows, {
+            groupBy,
+            showTanakhText: true,
+            limit: userProvidedLimit ? limit : MISHNAH_PAREN_REFS.DISPLAY_LIMIT,
+            debugReflink,
+            debug,
+          });
+          console.log(pretty);
+        } else if (isQuoteCandidates) {
+          const { renderQuoteResultsPretty } = await import("../../quotes/renderQuoteResults");
+          const pretty = renderQuoteResultsPretty(execResult, {
+            showTanakhText,
+            showMishnahText,
+            limit: paginationLimit,
+            offset,
+          });
+          console.log(pretty);
+        } else {
+          const { renderRefLinksPretty } = await import("../../reflink/render/renderRefLinks");
+          const refs = rows.flatMap((r) => r.refLinks || []);
+          const pretty = renderRefLinksPretty(refs, { showSourceText: showMishnahText, showTargetText: showTanakhText });
+          console.log(pretty);
+        }
       } else {
         console.log(renderResult(execResult));
       }

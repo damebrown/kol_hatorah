@@ -29,7 +29,7 @@ const hundreds: Record<number, string> = {
   400: "ת",
 };
 
-export function numberToHebrew(num: number): string {
+export function numberToHebrew(num: number, opts: { singleWithoutGeresh?: boolean; noGershayim?: boolean } = {}): string {
   if (num <= 0) return num.toString();
   if (num === 15) return "טו";
   if (num === 16) return "טז";
@@ -55,17 +55,35 @@ export function numberToHebrew(num: number): string {
     }
   }
   if (n > 0) res += ones[n] || "";
-  if (res.length === 1) return `${res}'`;
+  if (res.length === 1) {
+    if (opts.singleWithoutGeresh) return res;
+    return `${res}'`;
+  }
+  if (opts.noGershayim) return res;
   const last = res.slice(-1);
   const body = res.slice(0, -1);
   return `${body}״${last}`;
 }
 
-export function formatHebrewRef(ref: string): string {
+/**
+ * Convert number to Hebrew numeral for display.
+ * Single letter (1-9, 10): no geresh. Two+ letters: gershayim (e.g. ט״ז, כ״ג, מ״ח).
+ * Uses noGershayim so we add gershayim only once (numberToHebrew also adds it).
+ */
+export function toHebrewNumeralDisplay(num: number): string {
+  if (num <= 0) return num.toString();
+  const raw = numberToHebrew(num, { singleWithoutGeresh: true, noGershayim: true });
+  if (raw.length <= 1) return raw;
+  const last = raw.slice(-1);
+  const body = raw.slice(0, -1);
+  return `${body}״${last}`;
+}
+
+export function formatHebrewRef(ref: string, opts: { singleWithoutGeresh?: boolean } = {}): string {
   const m = ref.match(/^(.*?)[\s]+(\d+):(\d+)$/);
   if (!m) return ref;
   const work = m[1];
   const chapter = parseInt(m[2], 10);
   const verse = parseInt(m[3], 10);
-  return `${work} ${numberToHebrew(chapter)}:${numberToHebrew(verse)}`;
+  return `${work} ${numberToHebrew(chapter, opts)}:${numberToHebrew(verse, opts)}`;
 }

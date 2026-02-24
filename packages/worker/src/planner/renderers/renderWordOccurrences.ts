@@ -1,11 +1,9 @@
 import { PlanResult, ScopeNodeType } from "../types";
 import { formatHebrewRef } from "../utils/hebrewNumerals";
 
-const MAX_CHARS = 160;
-
-function clipText(text: string, max: number = MAX_CHARS): string {
+function clipText(text: string, max = 200): string {
   if (text.length <= max) return text;
-  return `${text.slice(0, max)}… (מקוצר)`;
+  return `${text.slice(0, max)}…`;
 }
 
 function sanitizeDisplayText(text: string): string {
@@ -32,7 +30,7 @@ function scopeText(planScope: any): string {
 
 export function renderWordOccurrencesPretty(
   result: PlanResult,
-  opts: { term?: string; limit?: number; offset?: number }
+  opts: { term?: string; limit?: number; offset?: number; clip?: boolean }
 ): string {
   if (!isOk(result)) return (result as any).message || "";
   const ok = result;
@@ -51,8 +49,9 @@ export function renderWordOccurrencesPretty(
 
   const body = (ok.rows || [])
     .map((r) => {
-      const ref = formatHebrewRef(r.ref);
-      const text = clipText(sanitizeDisplayText(r.text));
+      const ref = formatHebrewRef(r.ref, { singleWithoutGeresh: true });
+      const clean = sanitizeDisplayText(r.text);
+      const text = opts.clip ? clipText(clean) : clean;
       return `${ref} — ${text}`;
     })
     .join("\n");

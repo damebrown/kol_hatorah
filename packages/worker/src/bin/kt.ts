@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { runCli } from "../cli/index";
 import { normalizeQueryInput } from "../cli/utils/normalizeQuery";
+import { parseAskArgs } from "../cli/utils/parseAskArgs";
 
 function readStdin(): Promise<string> {
   return new Promise((resolve) => {
@@ -23,13 +24,12 @@ function main() {
     process.exit(1);
   }
 
-  const hasStdinFlag = args.includes("--stdin");
-  const queryArg = args[1] && !args[1].startsWith("-");
-  const rest = queryArg ? args.slice(2) : args.slice(1);
+  const { flags, queryRaw, useStdin } = parseAskArgs(args.slice(1));
+  const hasDebug = flags.includes("--debug");
 
   const proceed = async () => {
-    let query = queryArg ? args[1] : "";
-    if ((!query || hasStdinFlag) && process.stdin.isTTY === false) {
+    let query = queryRaw;
+    if ((!query || useStdin) && process.stdin.isTTY === false) {
       const fromStdin = await readStdin();
       query = fromStdin;
     }
@@ -38,7 +38,10 @@ function main() {
       console.error("חסר טקסט שאלה. דוגמא: kt ask '...' או echo '...' | kt ask --stdin");
       process.exit(1);
     }
-    process.argv = [process.argv[0], process.argv[1], "ask", "--q", query, ...rest];
+    if (hasDebug && query.includes(`"`)) {
+      console.error("טיפ: עדיף לעטוף את השאלה בגרשיים בודדים: kt ask '...\"...\"...'");
+    }
+    process.argv = [process.argv[0], process.argv[1], "ask", "--q", query, ...flags];
     runCli();
   };
 
