@@ -119,7 +119,7 @@ export async function executePlan(
         const direct = plan.ref?.normalizedRef ? sqlite.getRef(plan.ref.normalizedRef) : null;
         const rows = direct ? [direct] : sqlite.getByPrefix(refStr, scope, plan.limits.maxResults);
         if (!rows.length) {
-          return { kind: "REFUSAL", message: `לא נמצא: ${plan.ref?.raw || refStr}` };
+          return { kind: "REFUSAL", message: "לא נמצא" };
         }
         const mapped = rows.map((r: any) => {
           const isMishnah = r.type === "mishnah" || (r.work || "").startsWith("Mishnah");
@@ -152,7 +152,7 @@ export async function executePlan(
         }
         const count = sqlite.countTerm(termNorm, scope);
         if (!rows.length) {
-          return { kind: "REFUSAL", message: MESSAGES.REFUSAL_INSUFFICIENT };
+          return { kind: "REFUSAL", message: "לא נמצא" };
         }
         const mapped = rows.map((r: any) => ({ ref: formatRef(r.work, r.ref), text: r.textPlain }));
         return {
@@ -169,7 +169,7 @@ export async function executePlan(
         const scope: ScopeFilter = { type: "mishnah" };
         const works = sqlite.findTermByWork(termNorm, scope, plan.limits.maxResults);
         if (!works.length) {
-          return { kind: "REFUSAL", message: MESSAGES.REFUSAL_INSUFFICIENT };
+          return { kind: "REFUSAL", message: "לא נמצא" };
         }
         return { kind: "OK", answer: "מסכתות שנמצאו:", works: works.map((w: any) => ({ work: w.work, count: w.count })), plan };
       }
@@ -178,7 +178,7 @@ export async function executePlan(
         const scope = buildScopeFilter(plan, registry);
         const rows = prefix ? sqlite.getByPrefix(prefix, scope, plan.limits.maxResults) : [];
         if (!rows.length) {
-          return { kind: "REFUSAL", message: MESSAGES.REFUSAL_INSUFFICIENT };
+          return { kind: "REFUSAL", message: "לא נמצא" };
         }
         const mapped = rows.map((r: any) => ({ ref: formatRef(r.work, r.ref), text: r.textPlain }));
         return { kind: "OK", answer: `תוצאות לפרק ${plan.scope.chapter}`, rows: mapped, citations: rows.map((r: any) => r.ref), plan };
