@@ -41,6 +41,16 @@ export function parseRefFromQuery(query: string, registry: WorkRegistry): Parsed
     }
   }
 
+  // Chapter-only: "פרק X במשנה במסכת Y" / "תן לי את פרק X במשנה במסכת Y" (requires במשנה or במסכת)
+  const chapterOnly = q.match(/(?:תן\s+לי\s+את\s+)?פרק\s+([0-9א-ת\"״׳'‎]+)\s+במשנה\s+(?:במסכת\s+)?([^\s]+)/);
+  if (chapterOnly) {
+    const ch = parseNumber(chapterOnly[1]);
+    const work = resolveWork(chapterOnly[2], registry);
+    if (work && ch) {
+      return { work, chapter: ch, verse: 0, normalizedRef: `${work} ${ch}:`, rawWork: chapterOnly[2] };
+    }
+  }
+
   // Phrasing: "משנה X בפרק Y במסכת Z"
   const phrasingPatterns: Array<{ re: RegExp; order: { mishnah: number; chapter: number; work: number } }> = [
     { re: /משנה\s+([^\s]+)\s+בפרק\s+([^\s]+)\s+במסכת\s+([^\s]+)/, order: { mishnah: 1, chapter: 2, work: 3 } },
