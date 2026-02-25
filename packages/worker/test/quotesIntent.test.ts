@@ -13,7 +13,7 @@ const registry = makeRegistry({
 });
 
 async function testQuoteIntent() {
-  const plan = await planQuery('תן לי את כל המשניות במסכת סוטה שמצטטים פסוק מהתנ"ת', registry);
+  const plan = await planQuery('תן לי את כל המשניות במסכת סוטה שמצטטים פסוק מהתנ"ך', registry);
   assert.strictEqual(plan.intent, QueryIntent.CORPUS_QUOTE_QUERY);
   assert.strictEqual(plan.scope.work, "Sotah");
 }
