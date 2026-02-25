@@ -11,7 +11,7 @@ const makeRegistry = (data: Record<string, string[]>): WorkRegistry => {
 
 const registry = makeRegistry({
   tanakh: ["Genesis", "Exodus", "Isaiah", "Ezekiel", "Psalms"],
-  mishnah: ["Berakhot", "Peah", "Yevamot"],
+  mishnah: ["Berakhot", "Peah", "Yevamot", "Sotah"],
   bavli: ["Berakhot", "Shabbat"],
 });
 
@@ -53,11 +53,53 @@ async function testWordOccurrencesNoQuotes() {
   assert.strictEqual(plan.scope.node?.type, ScopeNodeType.SUBCORPUS);
 }
 
+async function testWordOccurrencesWordOrder() {
+  const plan = await planQuery("איפה בנביאים מופיעה המילה אור", registry);
+  assert.strictEqual(plan.intent, QueryIntent.WORD_OCCURRENCES);
+  assert.strictEqual(plan.term, "אור");
+  assert.strictEqual(plan.scope.node?.type, ScopeNodeType.SUBCORPUS);
+}
+
+async function testWordOccurrencesHaBitui() {
+  const plan = await planQuery("היכן מופיע הביטוי חסד בנביאים", registry);
+  assert.strictEqual(plan.intent, QueryIntent.WORD_OCCURRENCES);
+  assert.strictEqual(plan.term, "חסד");
+}
+
+async function testQuoteEntityMishnayotShamechirot() {
+  const plan = await planQuery("משניות שמזכירות רבי עקיבא", registry);
+  assert.strictEqual(plan.intent, QueryIntent.QUOTE_ENTITY);
+  assert.strictEqual(plan.term, "רבי עקיבא");
+}
+
+async function testQuoteEntityBaEiluMishnayot() {
+  const plan = await planQuery("באילו משניות במסכת סוטה מופיע רבי עקיבא", registry);
+  assert.strictEqual(plan.intent, QueryIntent.QUOTE_ENTITY);
+  assert.strictEqual(plan.term, "רבי עקיבא");
+  assert.strictEqual(plan.scope.work, "Sotah");
+}
+
+async function testQuoteEntityRabbiBamishnah() {
+  const plan = await planQuery("רבי מאיר במשנה", registry);
+  assert.strictEqual(plan.intent, QueryIntent.QUOTE_ENTITY);
+  assert.strictEqual(plan.term, "רבי מאיר");
+  assert.strictEqual(plan.scope.node?.type, ScopeNodeType.CORPUS);
+  assert.strictEqual(plan.scope.node?.name, "mishnah");
+}
+
+async function testChapterOnlyMishnah() {
+  const plan = await planQuery("תן לי את פרק ז במשנה במסכת סוטה", registry);
+  assert.strictEqual(plan.intent, QueryIntent.EXACT_REF);
+  assert.strictEqual(plan.strategy, "SQL_ONLY");
+  assert.strictEqual(plan.ref?.chapter, 7);
+  assert.strictEqual(plan.ref?.verse, 0);
+  assert.strictEqual(plan.scope.work, "Sotah");
+}
+
 async function testQuoteQueryTractate() {
   const plan = await planQuery("איזה פסוקים מצוטטים במשנה במסכת סוטה?", registry);
   assert.strictEqual(plan.intent, QueryIntent.QUOTE_QUERY);
-  assert.strictEqual(plan.scope.work, undefined); // registry doesn't have Sotah in mock
-  assert.ok(plan.disambiguation?.required);
+  assert.strictEqual(plan.scope.work, "Sotah");
 }
 
 async function testChapterAbout() {
@@ -110,6 +152,12 @@ async function run() {
   await testWordOccurrencesSmartQuotes();
   await testWordOccurrencesQuestionMark();
   await testWordOccurrencesNoQuotes();
+  await testWordOccurrencesWordOrder();
+  await testWordOccurrencesHaBitui();
+  await testQuoteEntityMishnayotShamechirot();
+  await testQuoteEntityBaEiluMishnayot();
+  await testQuoteEntityRabbiBamishnah();
+  await testChapterOnlyMishnah();
   await testQuoteQueryTractate();
   await testChapterAbout();
   await testDisambiguation();

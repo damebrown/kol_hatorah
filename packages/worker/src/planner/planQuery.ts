@@ -31,11 +31,12 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
   // EXACT REF (digits or Hebrew numerals / phrasing)
   const parsedRef = parseRefFromQuery(normalized, reg);
   if (parsedRef) {
+    const isChapterOnly = parsedRef.verse === 0;
     const plan: QueryPlan = {
       intent: QueryIntent.EXACT_REF,
-      scope: { work: parsedRef.work },
+      scope: { work: parsedRef.work, ...(isChapterOnly && { chapter: parsedRef.chapter }) },
       ref: {
-        raw: `${parsedRef.rawWork} ${parsedRef.chapter}:${parsedRef.verse}`,
+        raw: isChapterOnly ? `${parsedRef.rawWork} פרק ${parsedRef.chapter}` : `${parsedRef.rawWork} ${parsedRef.chapter}:${parsedRef.verse}`,
         normalizedRef: parsedRef.normalizedRef,
         work: parsedRef.work,
         chapter: parsedRef.chapter,
@@ -49,18 +50,26 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
   }
 
   // WORD OCCURRENCES
-  const occRegex = /(איפה מופיעה|היכן מופיע|היכן כתוב|הבא את כל המופעים|מופיע הביטוי|מופיעה המילה)/;
+  const occRegex = /(איפה מופיעה|איפה מופיע|היכן מופיע|היכן כתוב|הבא את כל המופעים|מופיע הביטוי|מופיעה המילה)/;
   if (occRegex.test(normalized)) {
     const quoted = normalized.match(/["“”'׳‘’](.+?)["“”'׳‘’]/);
     let term: string | undefined;
     if (quoted) {
       term = quoted[1];
     } else {
-      const remainder = normalized.replace(occRegex, "").trim();
-      const tokens = remainder.split(/\s+/).filter(Boolean);
-      const stopwords = new Set(["המילה", "מילה", "הביטוי", "ביטוי", "מופיעה", "מופיע"]);
-      const found = tokens.find((t) => !stopwords.has(t));
-      term = found || tokens[0] || remainder;
+      const wordOrPhraseMatch = normalized.match(/(?:המילה|הביטוי|מילה|ביטוי)\s+(\S+)/);
+      if (wordOrPhraseMatch) {
+        term = wordOrPhraseMatch[1].trim();
+      } else {
+        const remainder = normalized.replace(occRegex, "").trim();
+        const tokens = remainder.split(/\s+/).filter(Boolean);
+        const stopwords = new Set([
+          "המילה", "מילה", "הביטוי", "ביטוי", "מופיעה", "מופיע",
+          "איפה", "היכן", "באילו", "איזה", "מה", "איך", "מתי", "למה", "כמה",
+        ]);
+        const found = tokens.find((t) => !stopwords.has(t));
+        term = found || tokens[0] || remainder;
+      }
     }
     term = term?.trim();
     let scope: ScopeConstraint = {};
@@ -121,15 +130,31 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
   }
 
   // QUOTE ENTITY
-  const quoteEntity = normalized.match(/משניות שמזכירות\s+(.+)/);
+  const quoteEntity1 = normalized.match(/משניות שמזכירות\s+(.+)/);
+  const quoteEntity2 = normalized.match(/(?:באילו|אילו)\s+משניות(?:\s+במסכת\s+([^\s]+))?\s+(?:מופיע|מוזכר)\s+(.+)/);
+  const quoteEntity3 = normalized.match(/(?:איפה|היכן)\s+במשנה(?:\s+במסכת\s+([^\s]+))?\s+(?:מופיע|מוזכר)\s+(.+)/);
+  const quoteEntity4 = normalized.match(/.*?(רבי\s+\S+(?:\s+\S+)?)\s+במשנה(?:\s|$)/);
+  const quoteEntity =
+    quoteEntity1
+      ? { term: quoteEntity1[1].trim(), tractate: null as string | null }
+      : quoteEntity2
+        ? { term: quoteEntity2[2].trim(), tractate: quoteEntity2[1]?.trim() ?? null }
+        : quoteEntity3
+          ? { term: quoteEntity3[2].trim(), tractate: quoteEntity3[1]?.trim() ?? null }
+          : quoteEntity4
+            ? { term: quoteEntity4[1].trim(), tractate: null as string | null }
+            : null;
   if (quoteEntity) {
-    const name = quoteEntity[1].trim();
+    const name = quoteEntity.term.replace(/^את\s+/, "");
     let scope: ScopeConstraint = {};
-    const mScope = normalized.match(/במסכת\s+([^\s]+)/);
-    if (mScope) {
-      const res = resolveScopeNode(mScope[1], reg);
+    const tractateRaw = quoteEntity.tractate ?? normalized.match(/במסכת\s+([^\s]+)/)?.[1];
+    if (tractateRaw) {
+      const res = resolveScopeNode(tractateRaw, reg);
       if (res.node) scope.node = res.node;
       if (res.workName) scope.work = res.workName;
+    }
+    if (!scope.node && !scope.work && (quoteEntity4 || /במשנה/.test(normalized))) {
+      scope.node = { type: ScopeNodeType.CORPUS, name: "mishnah" };
     }
     const sederScope = normalized.match(/בסדר\s+([^\s]+)/);
     if (sederScope) {
@@ -181,59 +206,7 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
     };
   }
 
-  // Generalized reference linking intent
-  const refLinkPattern = /(מצוטט|מצטט|מצטטים|מצוטטים|ציטוט|ציטוטים|מאיפה|מה המקור|מקור|רפרנס)/;
-  if (refLinkPattern.test(normalized)) {
-    let scope: ScopeConstraint = {};
-    const hebrewTractatesRef = Object.keys(MISHNAH_TRACTATES_HEB_TO_CANONICAL).sort((a, b) => b.length - a.length);
-    for (const name of hebrewTractatesRef) {
-      if (normalized.includes(`מסכת ${name}`) || normalized.includes(`במסכת ${name}`)) {
-        const res = resolveScopeNode(name, reg);
-        if (res.node) scope.node = res.node;
-        if (res.workName) scope.work = res.workName;
-        break;
-      }
-    }
-    if (!scope.work) {
-      const tractateMatch = normalized.match(/מסכת\s+([^\s]+)/);
-      if (tractateMatch) {
-        const res = resolveScopeNode(tractateMatch[1], reg);
-        if (res.node) scope.node = res.node;
-        if (res.workName) scope.work = res.workName;
-      }
-    }
-    const byBook = normalized.match(/ב(?:ספר|מסכת)\s+([^\s]+)/);
-    if (!scope.work && byBook) {
-      const res = resolveScopeNode(byBook[1], reg);
-      if (res.node) scope.node = res.node;
-      if (res.workName) scope.work = res.workName;
-    }
-    const targetTypes: string[] = [];
-    if (/(פסוק|פסוקים|תנ\"ך|מקרא)/.test(normalized)) targetTypes.push("tanakh");
-    if (/(משנה|משניות)/.test(normalized)) targetTypes.push("mishnah");
-    if (/(גמרא|בבלי|תלמוד)/.test(normalized)) targetTypes.push("bavli");
-    const hasTractateMention = /מסכת\s+\S+/.test(normalized);
-    const disambigNeeded = !scope.work && hasTractateMention;
-    return {
-      intent: QueryIntent.FIND_REFERENCES,
-      scope,
-      targetTypes: targetTypes.length ? targetTypes : undefined,
-      strategy: "SQL_ONLY",
-      limits: { maxResults: 200, maxSegmentsForSynthesis: 0 },
-      disambiguation: disambigNeeded
-        ? {
-            required: true,
-            reason: MESSAGES.DISAMBIG_BOOK_OR_MASEKHET,
-            suggestions: ["לדוגמה: איזה פסוקים מצוטטים במסכת סוטה?"],
-          }
-        : undefined,
-      debug: { matchedRule: "FIND_REFERENCES", notes },
-    };
-  }
-
-  // fallback GENERAL QA
-
-  // Corpus quote query (e.g., מסכת סוטה שמצטטים פסוק מהתנ\"ך)
+  // Corpus quote query (e.g., מסכת סוטה שמצטטים פסוק מהתנ\"ך) - check before FIND_REFERENCES
   const quotePattern = /(מצטט|מצטטים|ציטוט)/;
   const pasukPattern = /(פסוק|פסוקים)/;
   const tanakhPattern = /(תנ\"ך|מהתנ\"ך|מן התנ\"ך)/;
@@ -285,8 +258,8 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
     };
   }
 
-  // Mishnah quote query (tractate-specific)
-  const quoteTractatePattern = /(מצוטט|מצוטטים|מצטט|מצטטות|ציטוט|ציטוטים)/;
+  // Mishnah quote query (tractate-specific) - check before FIND_REFERENCES
+  const quoteTractatePattern = /(מצוטט|מצטטים|מצטט|מצטטות|ציטוט|ציטוטים)/;
   const tanakhHintPattern = /(פסוק|פסוקים|תנ\"ך|מקרא|מהתנ\"ך|מן התנ\"ך)/;
   const mishnahHintPattern = /(משנה|משניות|מסכת|במסכת)/;
   if (quoteTractatePattern.test(normalized) && tanakhHintPattern.test(normalized) && mishnahHintPattern.test(normalized)) {
@@ -329,6 +302,56 @@ export async function planQuery(query: string, registryOverride?: WorkRegistry):
       strategy: "SQL_ONLY",
       limits: { maxResults: 200, maxSegmentsForSynthesis: 0 },
       debug: { matchedRule: "QUOTE_QUERY", notes },
+    };
+  }
+
+  // Generalized reference linking intent
+  const refLinkPattern = /(מצוטט|מצטט|מצטטים|מצוטטים|ציטוט|ציטוטים|מאיפה|מה המקור|מקור|רפרנס)/;
+  if (refLinkPattern.test(normalized)) {
+    let scope: ScopeConstraint = {};
+    const hebrewTractatesRef = Object.keys(MISHNAH_TRACTATES_HEB_TO_CANONICAL).sort((a, b) => b.length - a.length);
+    for (const name of hebrewTractatesRef) {
+      if (normalized.includes(`מסכת ${name}`) || normalized.includes(`במסכת ${name}`)) {
+        const res = resolveScopeNode(name, reg);
+        if (res.node) scope.node = res.node;
+        if (res.workName) scope.work = res.workName;
+        break;
+      }
+    }
+    if (!scope.work) {
+      const tractateMatch = normalized.match(/מסכת\s+([^\s]+)/);
+      if (tractateMatch) {
+        const res = resolveScopeNode(tractateMatch[1], reg);
+        if (res.node) scope.node = res.node;
+        if (res.workName) scope.work = res.workName;
+      }
+    }
+    const byBook = normalized.match(/ב(?:ספר|מסכת)\s+([^\s]+)/);
+    if (!scope.work && byBook) {
+      const res = resolveScopeNode(byBook[1], reg);
+      if (res.node) scope.node = res.node;
+      if (res.workName) scope.work = res.workName;
+    }
+    const targetTypes: string[] = [];
+    if (/(פסוק|פסוקים|תנ\"ך|מקרא)/.test(normalized)) targetTypes.push("tanakh");
+    if (/(משנה|משניות)/.test(normalized)) targetTypes.push("mishnah");
+    if (/(גמרא|בבלי|תלמוד)/.test(normalized)) targetTypes.push("bavli");
+    const hasTractateMention = /מסכת\s+\S+/.test(normalized);
+    const disambigNeeded = !scope.work && hasTractateMention;
+    return {
+      intent: QueryIntent.FIND_REFERENCES,
+      scope,
+      targetTypes: targetTypes.length ? targetTypes : undefined,
+      strategy: "SQL_ONLY",
+      limits: { maxResults: 200, maxSegmentsForSynthesis: 0 },
+      disambiguation: disambigNeeded
+        ? {
+            required: true,
+            reason: MESSAGES.DISAMBIG_BOOK_OR_MASEKHET,
+            suggestions: ["לדוגמה: איזה פסוקים מצוטטים במסכת סוטה?"],
+          }
+        : undefined,
+      debug: { matchedRule: "FIND_REFERENCES", notes },
     };
   }
 
