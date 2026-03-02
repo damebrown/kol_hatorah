@@ -11,11 +11,99 @@ import {
   TextType,
   Chunk,
   Citation,
+  parseSplitRef,
+  compareSplitRefs,
 } from "@kol-hatorah/core";
 import { normalizeText, OpenAIService, searchByVector } from "@kol-hatorah/core";
 import { getSQLiteManager } from "../../storage/sqlite";
-import { planQuery, executePlan, renderResult, QueryIntent } from "../../queryPlanner";
+import { askOnce as askOnceApi } from "../../askOnce";
 import { normalizeQueryInput } from "../utils/normalizeQuery";
+
+const MAX_EXPANDED_UNITS = 8;
+const MAX_TOTAL_CHARS = 30000;
+
+interface SQLiteManagerLike {
+  getSegmentsByBaseRef: (baseRef: string, type: string) => Array<{ ref: string; textPlain: string; work: string; type: string; [k: string]: unknown }>;
+}
+
+export function expandSplitChunks(
+  chunks: Chunk[],
+  scores: number[],
+  sqlite: SQLiteManagerLike
+): { expandedChunks: Chunk[]; expandedScores: number[] } {
+  const nonSplit: { chunk: Chunk; score: number }[] = [];
+  const baseRefGroups = new Map<string, { chunks: Chunk[]; scores: number[] }>();
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    const score = scores[i];
+    const parsed = parseSplitRef(chunk.ref);
+    if (!parsed.isSplit) {
+      nonSplit.push({ chunk, score });
+      continue;
+    }
+    const existing = baseRefGroups.get(parsed.baseRef) ?? { chunks: [], scores: [] };
+    existing.chunks.push(chunk);
+    existing.scores.push(score);
+    baseRefGroups.set(parsed.baseRef, existing);
+  }
+
+  const merged: { chunk: Chunk; score: number }[] = [];
+
+  for (const [_baseRef, { chunks: groupChunks, scores: groupScores }] of baseRefGroups) {
+    const firstChunk = groupChunks[0];
+    const baseRef = parseSplitRef(firstChunk.ref).baseRef;
+
+    const rows = sqlite.getSegmentsByBaseRef(baseRef, firstChunk.type);
+    if (rows.length === 0) {
+      for (let i = 0; i < groupChunks.length; i++) {
+        merged.push({ chunk: groupChunks[i], score: groupScores[i] });
+      }
+      continue;
+    }
+
+    const sorted = [...rows].sort((a, b) => compareSplitRefs(a.ref, b.ref));
+    const mergedText = sorted.map((r) => r.textPlain).join("\n\n");
+
+    const mergedChunk: Chunk = {
+      ...firstChunk,
+      ref: baseRef,
+      normalizedRef: baseRef,
+      text: mergedText,
+    };
+    const maxScore = Math.max(...groupScores);
+    merged.push({ chunk: mergedChunk, score: maxScore });
+  }
+
+  let result = [...nonSplit, ...merged];
+  result.sort((a, b) => b.score - a.score);
+
+  if (result.length > MAX_EXPANDED_UNITS) {
+    result = result.slice(0, MAX_EXPANDED_UNITS);
+  }
+
+  let totalChars = 0;
+  const capped: typeof result = [];
+  for (const item of result) {
+    if (totalChars + item.chunk.text.length > MAX_TOTAL_CHARS) {
+      const remaining = MAX_TOTAL_CHARS - totalChars;
+      if (remaining <= 0) break;
+      capped.push({
+        chunk: { ...item.chunk, text: item.chunk.text.slice(0, remaining) },
+        score: item.score,
+      });
+      totalChars = MAX_TOTAL_CHARS;
+      break;
+    }
+    capped.push(item);
+    totalChars += item.chunk.text.length;
+  }
+
+  return {
+    expandedChunks: capped.map((r) => r.chunk),
+    expandedScores: capped.map((r) => r.score),
+  };
+}
 
 export interface AskOnceResult {
   answer: string;
@@ -124,8 +212,17 @@ export async function askOnce(params: { query: string; limit: number; type?: Tex
   logger.info({ collectionName, limit, type, work }, "Searching Qdrant chunks collection...");
   const searchResults = await searchByVector(qdrantClient, collectionName, queryEmbedding, { limit, type, work, source: undefined, lang: "he" });
 
-  const chunks = searchResults.map((r) => r.chunk);
-  const scores = searchResults.map((r) => r.score);
+  let chunks = searchResults.map((r) => r.chunk);
+  let scores = searchResults.map((r) => r.score);
+
+  const sqlite = await getSQLiteManager();
+  try {
+    const expanded = expandSplitChunks(chunks, scores, sqlite);
+    chunks = expanded.expandedChunks;
+    scores = expanded.expandedScores;
+  } finally {
+    sqlite.close();
+  }
 
   const refused = !shouldAnswer(chunks, scores, config);
   if (refused) {
@@ -168,17 +265,8 @@ export async function askOnce(params: { query: string; limit: number; type?: Tex
 export async function askCommand() {
   const argv = minimist(process.argv.slice(2));
   const queryRaw = argv.q || argv.query;
-  const limit = parseInt(argv.k || argv.limit || getConfig().rag.topK.toString(), 10);
-  const offset = parseInt(argv.offset || "0", 10);
-  const showTanakhText = argv["show-tanakh-text"] === true || argv["show-tanakh-text"] === "true";
-  const showMishnahText = argv["show-mishnah-text"] === true || argv["show-mishnah-text"] === "true";
-  const clip = argv.clip === true || argv.clip === "true";
-  const type = argv.type as TextType | undefined;
-  const work = argv.work as string | undefined;
   const jsonOutput = !!argv.json;
-  const debug = !!argv.debug;
-  const debugReflink = !!argv["debug-reflink"];
-  const userProvidedLimit = argv.k !== undefined || argv.limit !== undefined;
+  const debug = !!argv.debug || !!argv["debug-reflink"];
 
   const normalizedQuery = normalizeQueryInput(queryRaw || "");
 
@@ -188,83 +276,13 @@ export async function askCommand() {
   }
 
   try {
-    const plan = await planQuery(normalizedQuery);
-
-    const paginationLimit =
-      plan.intent === QueryIntent.WORD_OCCURRENCES || plan.intent === QueryIntent.CORPUS_QUOTE_QUERY
-        ? userProvidedLimit
-          ? limit
-          : plan.limits.maxResults
-        : limit;
-
-    const execResult = await executePlan(plan, normalizedQuery, {
-      pagination: { limit: paginationLimit, offset },
-      debug,
-      debugReflink,
-      generalQaHandler: async (q: string) => {
-        const result = await askOnce({
-          query: q,
-          limit,
-          type,
-          work,
-          jsonOutput,
-        });
-        return {
-          kind: "OK",
-          answer: result.answer,
-          citations: result.citations,
-          formattedCitations: result.formattedCitations,
-          plan,
-        };
-      },
-    });
-    if (debug) {
-      console.error("Plan:", JSON.stringify(plan, null, 2));
-    }
+    const result = await askOnceApi({ q: normalizedQuery, debug });
     if (jsonOutput) {
-      console.log(JSON.stringify(execResult, null, 2));
+      console.log(JSON.stringify({ text: result.text, ...(result.debug != null ? { debug: result.debug } : {}) }, null, 2));
     } else {
-      if (plan.intent === QueryIntent.WORD_OCCURRENCES) {
-        const { renderWordOccurrencesPretty } = await import("../../planner/renderers/renderWordOccurrences");
-        const pretty = renderWordOccurrencesPretty(execResult, { term: plan.term, limit: paginationLimit, offset, clip });
-        console.log(pretty);
-      } else if (
-        plan.intent === QueryIntent.QUOTE_QUERY ||
-        plan.intent === QueryIntent.FIND_REFERENCES ||
-        plan.intent === QueryIntent.CORPUS_QUOTE_QUERY
-      ) {
-        const rows = (execResult.kind === "OK" ? execResult.rows : []) as any[];
-        const isMishnahParenRefs = rows[0]?.mishnahRefHeb != null;
-        const isQuoteCandidates = rows[0]?.quoteCandidates != null;
-        if (isMishnahParenRefs) {
-          const { renderMishnahParenRefsPretty } = await import("../../reflink/render/renderMishnahParenRefs");
-          const { MISHNAH_PAREN_REFS } = await import("../../config/mishnahParenRefs");
-          const groupBy = normalizedQuery.includes("והמיקום") || normalizedQuery.includes("מיקום") ? "TANAKH" : "MISHNAH";
-          const pretty = renderMishnahParenRefsPretty(rows, {
-            groupBy,
-            showTanakhText: true,
-            limit: userProvidedLimit ? limit : MISHNAH_PAREN_REFS.DISPLAY_LIMIT,
-            debugReflink,
-            debug,
-          });
-          console.log(pretty);
-        } else if (isQuoteCandidates) {
-          const { renderQuoteResultsPretty } = await import("../../quotes/renderQuoteResults");
-          const pretty = renderQuoteResultsPretty(execResult, {
-            showTanakhText,
-            showMishnahText,
-            limit: paginationLimit,
-            offset,
-          });
-          console.log(pretty);
-        } else {
-          const { renderRefLinksPretty } = await import("../../reflink/render/renderRefLinks");
-          const refs = rows.flatMap((r) => r.refLinks || []);
-          const pretty = renderRefLinksPretty(refs, { showSourceText: showMishnahText, showTargetText: showTanakhText });
-          console.log(pretty);
-        }
-      } else {
-        console.log(renderResult(execResult));
+      console.log(result.text);
+      if (debug && result.debug) {
+        console.error("\n[Debug]", JSON.stringify(result.debug, null, 2));
       }
     }
     process.exit(0);

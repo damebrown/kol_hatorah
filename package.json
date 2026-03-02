@@ -11,12 +11,16 @@
   },
   "scripts": {
     "build": "npm run -ws build",
-    "dev": "npm run -ws --if-present dev",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:ui\"",
+    "dev:web": "npm run dev -w packages/web",
+    "dev:ui": "npm run dev -w packages/ui",
     "lint": "npm run -ws lint",
     "ci": "npm ci && npm run build && npm run lint",
-    "start": "npm --workspace packages/worker run"
+    "start": "npm --workspace packages/worker run",
+    "ingest:tanakh-commentaries": "npm run ingest:tanakh-commentaries -w packages/worker"
   },
   "devDependencies": {
+    "concurrently": "^9.1.0",
     "@types/node": "^20.11.0",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",

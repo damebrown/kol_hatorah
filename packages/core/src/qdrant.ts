@@ -6,6 +6,8 @@ import { setTimeout } from "timers/promises";
 export interface QdrantClientOptions {
   url: string;
   apiKey: string;
+  /** Timeout in ms (default 300000). Use 60000–120000 for upsert-heavy ingest. */
+  timeout?: number;
 }
 
 export interface CreateCollectionOptions {
@@ -18,6 +20,7 @@ export function createQdrantClient(options: QdrantClientOptions): QdrantClient {
   return new QdrantClient({
     url: options.url,
     apiKey: options.apiKey,
+    timeout: options.timeout,
     // Suppress server version check warning
     checkCompatibility: false,
   });
@@ -80,102 +83,174 @@ async function areIndexesReady(client: QdrantClient, collectionName: string): Pr
   }
 }
 
+const ENSURE_COLLECTION_MAX_RETRIES = 5;
+
 export async function ensureCollection(
   client: QdrantClient,
   collectionName: string,
   vectorSize: number,
   distance: "Cosine" | "Euclid" | "Dot" = "Cosine"
 ): Promise<void> {
-  const exists = await collectionExists(client, collectionName);
-  if (exists) {
-    const collectionInfo = await client.getCollection(collectionName);
-    const currentVectorSize = (collectionInfo.config as any)?.params?.vectors?.size;
+  const run = async (): Promise<void> => {
+    const exists = await collectionExists(client, collectionName);
+    if (exists) {
+      const collectionInfo = await client.getCollection(collectionName);
+      const currentVectorSize = (collectionInfo.config as any)?.params?.vectors?.size;
 
-    if (currentVectorSize !== vectorSize) {
-      throw new Error(
-        `Collection '${collectionName}' already exists with a different vector size (` +
-          `${currentVectorSize} instead of ${vectorSize}). Please delete the collection manually ` +
-          `or use a different collection name.`
-      );
-    }
-    console.log(`Collection '${collectionName}' already exists and has matching vector size.`);
-  } else {
-    console.log(`Creating collection ${collectionName} with vector size ${vectorSize}...`);
-    await createCollection(client, {
-      name: collectionName,
-      vectorSize,
-      distance,
-    });
-    console.log(`Collection ${collectionName} created.`);
-
-    // Create indexes for filtering
-    console.log(`Creating payload index for 'type' in ${collectionName}...`);
-    await client.createPayloadIndex(collectionName, {
-      field_name: "type",
-      field_schema: "keyword",
-    });
-    console.log(`Payload index for 'type' created.`);
-
-    console.log(`Creating payload index for 'work' in ${collectionName}...`);
-    await client.createPayloadIndex(collectionName, {
-      field_name: "work",
-      field_schema: "keyword",
-    });
-    console.log(`Payload index for 'work' created.`);
-
-    console.log(`Creating payload index for 'source' in ${collectionName}...`);
-    await client.createPayloadIndex(collectionName, {
-      field_name: "source",
-      field_schema: "keyword",
-    });
-    console.log(`Payload index for 'source' created.`);
-
-    console.log(`Creating payload index for 'lang' in ${collectionName}...`);
-    await client.createPayloadIndex(collectionName, {
-      field_name: "lang",
-      field_schema: "keyword",
-    });
-    console.log(`Payload index for 'lang' created.`);
-
-    // Poll until indexes are ready
-    const maxAttempts = 10;
-    const retryDelayMs = 2000; // 2 seconds
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      console.log(`Checking index readiness (Attempt ${attempt}/${maxAttempts})...`);
-      if (await areIndexesReady(client, collectionName)) {
-        console.log("All required indexes are ready.");
-        return;
+      if (currentVectorSize !== vectorSize) {
+        throw new Error(
+          `Collection '${collectionName}' already exists with a different vector size (` +
+            `${currentVectorSize} instead of ${vectorSize}). Please delete the collection manually ` +
+            `or use a different collection name.`
+        );
       }
-      await setTimeout(retryDelayMs);
+      console.log(`Collection '${collectionName}' already exists and has matching vector size.`);
+    } else {
+      console.log(`Creating collection ${collectionName} with vector size ${vectorSize}...`);
+      await createCollection(client, {
+        name: collectionName,
+        vectorSize,
+        distance,
+      });
+      console.log(`Collection ${collectionName} created.`);
+
+      // Create indexes for filtering
+      console.log(`Creating payload index for 'type' in ${collectionName}...`);
+      await client.createPayloadIndex(collectionName, {
+        field_name: "type",
+        field_schema: "keyword",
+      });
+      console.log(`Payload index for 'type' created.`);
+
+      console.log(`Creating payload index for 'work' in ${collectionName}...`);
+      await client.createPayloadIndex(collectionName, {
+        field_name: "work",
+        field_schema: "keyword",
+      });
+      console.log(`Payload index for 'work' created.`);
+
+      console.log(`Creating payload index for 'source' in ${collectionName}...`);
+      await client.createPayloadIndex(collectionName, {
+        field_name: "source",
+        field_schema: "keyword",
+      });
+      console.log(`Payload index for 'source' created.`);
+
+      console.log(`Creating payload index for 'lang' in ${collectionName}...`);
+      await client.createPayloadIndex(collectionName, {
+        field_name: "lang",
+        field_schema: "keyword",
+      });
+      console.log(`Payload index for 'lang' created.`);
+
+      // Poll until indexes are ready
+      const maxAttempts = 10;
+      const retryDelayMs = 2000; // 2 seconds
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        console.log(`Checking index readiness (Attempt ${attempt}/${maxAttempts})...`);
+        if (await areIndexesReady(client, collectionName)) {
+          console.log("All required indexes are ready.");
+          return;
+        }
+        await setTimeout(retryDelayMs);
+      }
+      throw new Error("Qdrant indexes did not become ready within the expected time.");
     }
-    throw new Error("Qdrant indexes did not become ready within the expected time.");
+  };
+
+  for (let attempt = 1; attempt <= ENSURE_COLLECTION_MAX_RETRIES; attempt++) {
+    try {
+      await run();
+      return;
+    } catch (err) {
+      if (attempt < ENSURE_COLLECTION_MAX_RETRIES && isRetryableError(err)) {
+        const delayMs = backoffMs(attempt);
+        console.warn(
+          `[Qdrant] ensureCollection retry ${attempt}/${ENSURE_COLLECTION_MAX_RETRIES} after ${(delayMs / 1000).toFixed(1)}s:`,
+          err instanceof Error ? err.message : err
+        );
+        await setTimeout(delayMs);
+      } else {
+        throw err;
+      }
+    }
   }
+}
+
+function isRetryableError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  const cause = err instanceof Error ? String((err as any).cause ?? "") : "";
+  return (
+    msg.includes("aborted") ||
+    msg.includes("timeout") ||
+    msg.includes("Timeout") ||
+    msg.includes("ECONNRESET") ||
+    msg.includes("ETIMEDOUT") ||
+    msg.includes("fetch failed") ||
+    cause.includes("ConnectTimeoutError") ||
+    cause.includes("Connect Timeout")
+  );
+}
+
+/** Exponential backoff with jitter. */
+function backoffMs(attempt: number): number {
+  const base = 2000;
+  const exp = base * Math.pow(2, attempt - 1);
+  const jitter = Math.random() * 0.3 * exp;
+  return Math.round(exp + jitter);
+}
+
+export interface UpsertOptions {
+  maxRetries?: number;
+  onRetry?: (opts: { collection: string; batchSize: number; attempt: number; error: string; firstId: string; lastId: string }) => void;
 }
 
 export async function upsertChunksWithVectors(
   client: QdrantClient,
   collectionName: string,
   chunks: Chunk[],
-  vectors: number[][]
+  vectors: number[][],
+  opts: UpsertOptions = {}
 ): Promise<void> {
   if (chunks.length !== vectors.length) {
     throw new Error("Number of chunks and vectors must be equal.");
   }
 
+  const { maxRetries = 3, onRetry } = opts;
   const points = chunks.map((chunk, index) => ({
     id: chunk.id,
     vector: vectors[index],
     payload: chunk,
   }));
 
-  await client.upsert(collectionName, {
-    wait: true,
-    batch: {
-      ids: points.map((p) => p.id),
-      vectors: points.map((p) => p.vector),
-      payloads: points.map((p) => p.payload),
-    },
-  });
+  const firstId = points[0]?.id ?? "";
+  const lastId = points[points.length - 1]?.id ?? "";
+
+  const doUpsert = () =>
+    client.upsert(collectionName, {
+      wait: true,
+      batch: {
+        ids: points.map((p) => p.id),
+        vectors: points.map((p) => p.vector),
+        payloads: points.map((p) => p.payload),
+      },
+    });
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await doUpsert();
+      return;
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (attempt < maxRetries && isRetryableError(err)) {
+        onRetry?.({ collection: collectionName, batchSize: chunks.length, attempt, error: errMsg, firstId, lastId });
+        const delayMs = backoffMs(attempt);
+        await setTimeout(delayMs);
+      } else {
+        throw err;
+      }
+    }
+  }
 }
 
 export async function searchByVector(

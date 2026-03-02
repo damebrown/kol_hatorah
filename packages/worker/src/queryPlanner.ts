@@ -1,4 +1,5 @@
 export { planQuery } from "./planner/planQuery";
+export { planQueryWithLLMRouter } from "./planner/llmRouter";
 export { executePlan } from "./planner/executePlan";
 export { renderResult } from "./planner/renderResult";
 export { expandHebrewPrefixes } from "./planner/utils/prefixes";

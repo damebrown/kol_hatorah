@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export type TextType = "tanakh" | "mishnah" | "bavli";
+export type TextType = "tanakh" | "mishnah" | "bavli" | "tanakh_commentary";
 
 export interface Chunk extends Record<string, unknown> {
   id: string;
@@ -10,7 +10,7 @@ export interface Chunk extends Record<string, unknown> {
   work: string;
   ref: string;
   normalizedRef: string;
-  lang: "he";
+  lang: "he" | "en";
   section?: string;
   segment?: string;
   versionTitle?: string;
@@ -24,11 +24,11 @@ export const ChunkZod = z.object({
   id: z.string(),
   text: z.string(),
   source: z.string(),
-  type: z.union([z.literal("tanakh"), z.literal("mishnah"), z.literal("bavli")]),
+  type: z.union([z.literal("tanakh"), z.literal("mishnah"), z.literal("bavli"), z.literal("tanakh_commentary")]),
   work: z.string(),
   ref: z.string(),
   normalizedRef: z.string(),
-  lang: z.literal("he"),
+  lang: z.union([z.literal("he"), z.literal("en")]),
   section: z.string().optional(),
   segment: z.string().optional(),
   versionTitle: z.string().optional(),

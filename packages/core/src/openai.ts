@@ -1,10 +1,10 @@
 import OpenAI from "openai";
 import { sleep } from "./utils";
 
-const MIN_REQUEST_INTERVAL_MS = parseInt(process.env.OPENAI_MIN_REQUEST_INTERVAL_MS || "800", 10);
-const OPENAI_MAX_ATTEMPTS = parseInt(process.env.OPENAI_MAX_ATTEMPTS || "20", 10);
-const OPENAI_RETRY_TIME_BUDGET_MS = parseInt(process.env.OPENAI_RETRY_TIME_BUDGET_MS || `${8 * 60 * 1000}`, 10); // default 8 minutes
-const OPENAI_EMBED_BATCH_SIZE = parseInt(process.env.OPENAI_EMBED_BATCH_SIZE || "8", 10);
+const MIN_REQUEST_INTERVAL_MS = parseInt(process.env.OPENAI_MIN_REQUEST_INTERVAL_MS || "100", 10);
+const OPENAI_MAX_ATTEMPTS = parseInt(process.env.OPENAI_MAX_ATTEMPTS || "10", 10);
+const OPENAI_RETRY_TIME_BUDGET_MS = parseInt(process.env.OPENAI_RETRY_TIME_BUDGET_MS || "180000", 10);
+const OPENAI_EMBED_BATCH_SIZE = parseInt(process.env.OPENAI_EMBED_BATCH_SIZE || "16", 10);
 const MAX_BACKOFF_MS = 30_000;
 const DEFAULT_RESPONSE_MAX_TOKENS = 500;
 const DEFAULT_TEMPERATURE = 0.2;
@@ -124,11 +124,31 @@ export class OpenAIService {
     });
   }
 
+  private isContextLengthError(error: any): boolean {
+    const msg = String(error?.message || error);
+    return /context length|8192|maximum.*token/i.test(msg);
+  }
+
   private async embedBatchWithSplit(batch: string[]): Promise<number[][]> {
     try {
       return await this.embedBatch(batch);
-    } catch (error) {
+    } catch (error: any) {
       if (batch.length <= 1) {
+        if (this.isContextLengthError(error)) {
+          const text = batch[0] || "";
+          const truncated = text.slice(0, 4000);
+          if (truncated.length < text.length) {
+            console.warn(
+              `[embeddings] Single text exceeded context limit (len=${text.length} chars). Truncating to 4000 chars and retrying. Preview: ${text.slice(0, 200).replace(/\n/g, " ")}...`
+            );
+            return this.embedBatchWithSplit([truncated]);
+          }
+          console.warn(
+            `[embeddings] Single text exceeded context limit (len=${text.length} chars). Skipping with placeholder embedding. Preview: ${text.slice(0, 200).replace(/\n/g, " ")}...`
+          );
+          const placeholder = await this.embedBatch([" "]);
+          return placeholder;
+        }
         throw error;
       }
       const mid = Math.floor(batch.length / 2);

@@ -13,8 +13,10 @@ import {
   makeFindTermByWork,
   makeListWorks,
   makeGetSegments,
+  makeGetSegmentsByBaseRef,
   makeCountSegments,
   makeSearchByMatch,
+  makeDeleteSegmentsByTypeAndLang,
 } from "./queries";
 import { SQLiteManager, ScopeFilter, WorkRow } from "./types";
 
@@ -43,8 +45,10 @@ export async function getSQLiteManager(dbPath: string = resolveSqlitePath()): Pr
   const findTermByWork = makeFindTermByWork(db);
   const listWorks = makeListWorks(db);
   const getSegments = makeGetSegments(db);
+  const getSegmentsByBaseRef = makeGetSegmentsByBaseRef(db);
   const countSegments = makeCountSegments(db);
   const searchByMatch = makeSearchByMatch(db);
+  const deleteSegmentsByTypeAndLang = makeDeleteSegmentsByTypeAndLang(db);
 
   const mgr: SQLiteManager = {
     db,
@@ -56,8 +60,10 @@ export async function getSQLiteManager(dbPath: string = resolveSqlitePath()): Pr
     findTermByWork,
     listWorks,
     getSegments,
+    getSegmentsByBaseRef,
     countSegments,
     searchByMatch,
+    deleteSegmentsByTypeAndLang,
     close: () => {
       if (cachedManager?.path === p) cachedManager = null;
       db.close();

@@ -1,12 +1,13 @@
 import { qdrantSmokeTest } from "./commands/qdrantSmoke";
 import { askCommand } from "./commands/ask";
-import { ingestSefariaTanakhAllCommand, ingestSefariaMishnahAllCommand } from "./commands/ingest";
+import { ingestSefariaTanakhAllCommand, ingestSefariaMishnahAllCommand, ingestTanakhCommentariesCommand } from "./commands/ingest";
 import { evalQueriesCommand } from "./commands/evalQueries";
 import { lexFindCommand } from "./commands/lex";
 import { getRefCommand } from "./commands/getRef";
 import { debugIdsCommand } from "./commands/debugIds";
 import { sefariaInspectCommand } from "./commands/sefariaInspect";
 import { qdrantDeleteByFilterCommand } from "./commands/qdrantDeleteByFilter";
+import { deleteCommentaryEnglishCommand } from "./commands/deleteCommentaryEnglish";
 
 export async function runCli() {
   const command = process.argv[2];
@@ -16,8 +17,10 @@ export async function runCli() {
     ask: askCommand,
     "ingest-tanakh": ingestSefariaTanakhAllCommand,
     "ingest-mishnah": ingestSefariaMishnahAllCommand,
+    "ingest-tanakh-commentaries": ingestTanakhCommentariesCommand,
     "eval-queries": evalQueriesCommand,
     "qdrant:delete-by-filter": qdrantDeleteByFilterCommand,
+    "delete-commentary-english": deleteCommentaryEnglishCommand,
     "lex-find": lexFindCommand,
     "get-ref": getRefCommand,
     "debug-ids": debugIdsCommand,

@@ -33,6 +33,7 @@
 33|   - Get your `OPENAI_API_KEY` from the OpenAI platform
 34|   - Adjust `QDRANT_COLLECTION_PREFIX` if needed (default: `hebrag_dev`)
 35|   - Set `SEFARIA_EXPORT_PATH` to the local path of your Sefaria export data.
+   - Optional for Tanakh commentaries ingest: `QDRANT_UPSERT_TIMEOUT_MS` (default 300000), `QDRANT_UPSERT_BATCH_SIZE` (default 32), `QDRANT_UPSERT_CONCURRENCY` (default 6).
 36|
 37|## Running the Qdrant Smoke Test
 38|
@@ -150,7 +151,22 @@
 150|   - **API Key**: Generate or copy from the API Keys section
 151|4. Add these to your `.env` file
 152|
-153|## Development
+153|## Web UI (Chat)
+
+A minimal React UI for querying Kol HaTorah in the browser, with proper RTL support for Hebrew:
+
+```bash
+npm install
+npm run build   # Build worker first (required for web to import it)
+npm run dev     # Starts web API (port 3000) + UI (port 5173)
+```
+
+Then open http://localhost:5173 in your browser.
+
+- **POST /api/ask** – API endpoint: `{ "q": "שאילתה", "debug": false }` → `{ "text": "...", "debug?": {...} }`
+- **Debug toggle** – When enabled, shows raw JSON from the server in a collapsible section under each response.
+
+## Development
 154|
 155|Each package can be developed independently:
 156|

@@ -12,6 +12,7 @@ import {
 } from "@kol-hatorah/core";
 import { findHebrewMergedFile, loadSefariaSegmentsFromMerged } from "../../sefariaLoader";
 import { getSQLiteManager } from "../../storage/sqlite";
+import { runIngestTanakhCommentaries } from "../../ingest/ingestTanakhCommentaries";
 
 const SEFARIA_TANAKH_ALL_CHECKPOINT_FILE = ".checkpoints/sefaria-tanakh-all.json";
 const SEFARIA_MISHNAH_ALL_CHECKPOINT_FILE = ".checkpoints/sefaria-mishnah-all.json";
@@ -306,5 +307,27 @@ export async function ingestSefariaMishnahAllCommand() {
   }
 
   logger.info({ ingestedCount, ingestedSummary }, "✅ Mishnah ingestion complete.");
+  process.exit(0);
+}
+
+export async function ingestTanakhCommentariesCommand() {
+  const argv = minimist(process.argv.slice(2));
+  const limit = parseInt(argv.limit || argv._?.[0] || "0", 10);
+  const reset = !!argv.reset;
+  const resetPath = argv["reset-path"] ? String(argv["reset-path"]).split(",").map((s: string) => s.trim()) : [];
+  const doQdrant = argv["qdrant"] !== false && argv["no-qdrant"] !== true;
+  const doSqlite = argv["sqlite"] !== false && argv["no-sqlite"] !== true;
+  const qdrantBatchSize = argv["qdrant-batch-size"] ? parseInt(argv["qdrant-batch-size"], 10) : undefined;
+  const qdrantConcurrency = argv["qdrant-concurrency"] ? parseInt(argv["qdrant-concurrency"], 10) : undefined;
+
+  await runIngestTanakhCommentaries({
+    limit: limit || undefined,
+    reset,
+    resetPaths: resetPath,
+    doQdrant,
+    doSqlite,
+    qdrantBatchSize,
+    qdrantConcurrency,
+  });
   process.exit(0);
 }

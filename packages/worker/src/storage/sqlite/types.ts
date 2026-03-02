@@ -24,7 +24,9 @@ export interface SQLiteManager {
   findTermByWork: (termNorm: string, scope?: ScopeFilter, limit?: number) => Array<{ work: string; count: number }>;
   listWorks: () => WorkRow[];
   getSegments: (scope?: ScopeFilter, limit?: number, offset?: number) => Array<any>;
+  getSegmentsByBaseRef: (baseRef: string, type: string) => Array<any>;
   countSegments: (scope?: ScopeFilter) => number;
   searchByMatch: (match: string, scope?: ScopeFilter, limit?: number) => Array<any>;
+  deleteSegmentsByTypeAndLang: (type: string, lang: string) => number;
   close: () => void;
 }

@@ -165,6 +165,32 @@ export const makeCountSegments = (db: Database.Database) => (scope?: ScopeFilter
   return Number(row?.cnt || 0);
 };
 
+export const makeDeleteSegmentsByTypeAndLang =
+  (db: Database.Database) => (type: string, lang: string): number => {
+    return db.transaction(() => {
+      const sel = db.prepare(`SELECT rowid FROM segments WHERE type = @type AND lang = @lang`);
+      const rowids = sel.all({ type, lang }) as { rowid: number }[];
+      if (rowids.length === 0) return 0;
+      const ids = rowids.map((r) => r.rowid);
+      const placeholders = ids.map(() => "?").join(",");
+      db.prepare(`DELETE FROM segments_fts WHERE rowid IN (${placeholders})`).run(...ids);
+      const del = db.prepare(`DELETE FROM segments WHERE type = @type AND lang = @lang`);
+      return (del.run({ type, lang }) as { changes: number }).changes;
+    })();
+  };
+
+export const makeGetSegmentsByBaseRef = (db: Database.Database) => (baseRef: string, type: string) => {
+  const stmt = db.prepare(`
+    SELECT id, type, work, ref, normalizedRef, lang, source, textPlain
+    FROM segments
+    WHERE type = @type
+      AND (ref = @baseRef OR ref LIKE @partPrefix)
+    ORDER BY ref
+  `);
+  const partPrefix = baseRef + " (part %";
+  return stmt.all({ type, baseRef, partPrefix });
+};
+
 export const makeSearchByMatch = (db: Database.Database) => (match: string, scope?: ScopeFilter, limit = 20) => {
   const { clause, params } = buildScopeWhere(scope);
   const andClause = clause ? `AND ${clause}` : "";

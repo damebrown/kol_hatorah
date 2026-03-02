@@ -2,6 +2,8 @@
   "name": "@kol-hatorah/worker",
   "version": "1.0.0",
   "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "kt": "dist/bin/kt.js"
   },
@@ -13,6 +15,8 @@
     "ask": "npx tsx src/cli.ts ask",
     "ingest:tanakh": "npx tsx src/cli.ts ingest-tanakh",
     "ingest:mishnah": "npx tsx src/cli.ts ingest-mishnah",
+    "ingest:tanakh-commentaries": "npx tsx src/cli.ts ingest-tanakh-commentaries",
+    "dev:inspect-commentary": "npx tsx src/dev/inspectCommentary.ts",
     "lex:find": "npx tsx src/cli.ts lex-find",
     "get:ref": "npx tsx src/cli.ts get-ref",
     "debug:ids": "npx tsx src/cli.ts debug-ids",
@@ -25,7 +29,8 @@
     "@kol-hatorah/core": "*",
     "better-sqlite3": "^9.4.3",
     "minimist": "^1.2.8",
-    "openai": "^4.0.0"
+    "openai": "^4.0.0",
+    "p-limit": "^7.3.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
