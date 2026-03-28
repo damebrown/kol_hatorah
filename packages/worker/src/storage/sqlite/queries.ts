@@ -1,6 +1,15 @@
 import Database from "better-sqlite3";
 import { normalizeText } from "@kol-hatorah/core";
-import { ScopeFilter, WorkRow } from "./types";
+import {
+  CorpusWorkRow,
+  EnrichmentSegmentRow,
+  RefLinkRow,
+  ScopeFilter,
+  SegmentEnrichmentUpdate,
+  TanakhCommentaryGraphRow,
+  TanakhCommentaryGraphUpdate,
+  WorkRow,
+} from "./types";
 
 export const buildScopeWhere = (scope?: ScopeFilter) => {
   const clauses: string[] = [];
@@ -204,4 +213,158 @@ export const makeSearchByMatch = (db: Database.Database) => (match: string, scop
       LIMIT @limit;
     `);
   return stmt.all({ match, limit, ...params });
+};
+
+export const makeListSegmentsForEnrichment =
+  (db: Database.Database) =>
+  (opts: { types: string[]; resumeOnly: boolean; afterRowid: number; limit: number }): EnrichmentSegmentRow[] => {
+    if (opts.types.length === 0) return [];
+    const inList = opts.types.map(() => "?").join(", ");
+    const resumeClause = opts.resumeOnly ? "AND enrichedAt IS NULL" : "";
+    const stmt = db.prepare(`
+      SELECT rowid AS rowid, id, type, work, ref, normalizedRef, lang, source
+      FROM segments
+      WHERE type IN (${inList})
+      ${resumeClause}
+      AND rowid > ?
+      ORDER BY rowid
+      LIMIT ?
+    `);
+    return stmt.all(...opts.types, opts.afterRowid, opts.limit) as EnrichmentSegmentRow[];
+  };
+
+export const makeCountSegmentsForEnrichment =
+  (db: Database.Database) =>
+  (opts: { types: string[]; resumeOnly: boolean }): number => {
+    if (opts.types.length === 0) return 0;
+    const inList = opts.types.map(() => "?").join(", ");
+    const resumeClause = opts.resumeOnly ? "AND enrichedAt IS NULL" : "";
+    const stmt = db.prepare(`
+      SELECT COUNT(*) AS cnt
+      FROM segments
+      WHERE type IN (${inList})
+      ${resumeClause}
+    `);
+    const row = stmt.get(...opts.types) as { cnt: number };
+    return Number(row?.cnt ?? 0);
+  };
+
+export const makeUpsertCorpusWork = (db: Database.Database) => {
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO corpus_works (
+      corpus, work, title, he_title, primary_category,
+      categories_json, section_names_json, address_types_json, updated_at
+    ) VALUES (
+      @corpus, @work, @title, @he_title, @primary_category,
+      @categories_json, @section_names_json, @address_types_json, @updated_at
+    )
+  `);
+  return (row: CorpusWorkRow) => {
+    stmt.run(row);
+  };
+};
+
+export const makeApplyEnrichmentBatch = (db: Database.Database) => {
+  const updateStmt = db.prepare(`
+    UPDATE segments SET
+      enrichedAt = @enrichedAt,
+      sefariaCanonicalRef = @sefariaCanonicalRef,
+      sefariaNormalizedRef = @sefariaNormalizedRef,
+      heRef = @heRef,
+      sefariaUrl = @sefariaUrl,
+      primaryCategory = @primaryCategory,
+      categoriesJson = @categoriesJson,
+      sectionNamesJson = @sectionNamesJson,
+      daf = @daf,
+      amud = @amud,
+      enrichSegment = @enrichSegment,
+      hasLinks = @hasLinks,
+      linksCount = @linksCount
+    WHERE id = @id
+  `);
+  const deleteLinksStmt = db.prepare(`DELETE FROM ref_links WHERE segment_id = ?`);
+  const insertLinkStmt = db.prepare(`
+    INSERT OR IGNORE INTO ref_links (id, segment_id, from_ref, to_ref, category, link_type, anchor_ref, source_work)
+    VALUES (@id, @segment_id, @from_ref, @to_ref, @category, @link_type, @anchor_ref, @source_work)
+  `);
+
+  return (items: Array<{ update: SegmentEnrichmentUpdate; links: RefLinkRow[] }>) => {
+    const run = db.transaction((rows: Array<{ update: SegmentEnrichmentUpdate; links: RefLinkRow[] }>) => {
+      for (const item of rows) {
+        updateStmt.run(item.update);
+        deleteLinksStmt.run(item.update.id);
+        for (const link of item.links) {
+          insertLinkStmt.run({ ...link, source_work: link.source_work ?? null });
+        }
+      }
+    });
+    run(items);
+  };
+};
+
+/** Matches {@link isAllowlistedTanakhCommentaryWork} in ingest/tanakhCommentaryAllowlist.ts — keep in sync. */
+export const ALLOWLISTED_COMMENTARY_WORK_SQL = `(
+  work LIKE 'Rashi on %' OR work LIKE 'Ramban on %' OR work LIKE 'Ibn Ezra on %'
+  OR work LIKE 'Sforno on %' OR work LIKE 'Kli Yakar on %' OR work LIKE 'Klei Yakar on %'
+)`;
+
+export const makePruneTanakhCommentaryDisallowed = (db: Database.Database) => (): { deletedSegments: number } => {
+  return db.transaction(() => {
+    const sel = db.prepare(`
+      SELECT rowid, id FROM segments
+      WHERE type = 'tanakh_commentary'
+      AND NOT ${ALLOWLISTED_COMMENTARY_WORK_SQL}
+    `);
+    const rows = sel.all() as { rowid: number; id: string }[];
+    if (rows.length === 0) return { deletedSegments: 0 };
+
+    const deleteLinksStmt = db.prepare(`DELETE FROM ref_links WHERE segment_id = ?`);
+    const ftsDelStmt = db.prepare(`DELETE FROM segments_fts WHERE rowid = ?`);
+    const segDelStmt = db.prepare(`DELETE FROM segments WHERE id = ?`);
+
+    for (const r of rows) {
+      deleteLinksStmt.run(r.id);
+      ftsDelStmt.run(r.rowid);
+      segDelStmt.run(r.id);
+    }
+
+    return { deletedSegments: rows.length };
+  })();
+};
+
+export const makeListTanakhCommentaryGraphEnrichment =
+  (db: Database.Database) =>
+  (opts: { resumeOnly: boolean; afterRowid: number; limit: number }): TanakhCommentaryGraphRow[] => {
+    const resumeClause = opts.resumeOnly ? "AND graphEnrichedAt IS NULL" : "";
+    const stmt = db.prepare(`
+      SELECT rowid AS rowid, id, work, ref, normalizedRef, lang
+      FROM segments
+      WHERE type = 'tanakh_commentary'
+        AND ${ALLOWLISTED_COMMENTARY_WORK_SQL}
+        ${resumeClause}
+        AND rowid > ?
+      ORDER BY rowid
+      LIMIT ?
+    `);
+    return stmt.all(opts.afterRowid, opts.limit) as TanakhCommentaryGraphRow[];
+  };
+
+export const makeApplyTanakhCommentaryGraphBatch = (db: Database.Database) => {
+  const updateStmt = db.prepare(`
+    UPDATE segments SET
+      graphBaseRef = @graphBaseRef,
+      graphBaseNormRef = @graphBaseNormRef,
+      graphTopicsJson = @graphTopicsJson,
+      graphLinkedRefsJson = @graphLinkedRefsJson,
+      graphLinkTypesJson = @graphLinkTypesJson,
+      graphEnrichedAt = @graphEnrichedAt,
+      tanakhCommentatorKey = @tanakhCommentatorKey
+    WHERE id = @id
+  `);
+  return (items: TanakhCommentaryGraphUpdate[]) => {
+    const run = db.transaction((rows: TanakhCommentaryGraphUpdate[]) => {
+      for (const u of rows) updateStmt.run(u);
+    });
+    run(items);
+  };
 };

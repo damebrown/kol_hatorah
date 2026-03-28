@@ -18,6 +18,8 @@ import { normalizeText, OpenAIService, searchByVector } from "@kol-hatorah/core"
 import { getSQLiteManager } from "../../storage/sqlite";
 import { askOnce as askOnceApi } from "../../askOnce";
 import { normalizeQueryInput } from "../utils/normalizeQuery";
+import { SefariaGraphClient } from "../../rag/sefariaGraphClient";
+import { graphAugmentRetrieval, type GraphAugmentationDebug } from "../../rag/graphAugmentRetrieval";
 
 const MAX_EXPANDED_UNITS = 8;
 const MAX_TOTAL_CHARS = 30000;
@@ -105,6 +107,33 @@ export function expandSplitChunks(
   };
 }
 
+export interface RagRetrievalEvalRefRow {
+  work: string;
+  ref: string;
+  normalizedRef: string;
+  score: number;
+  type: TextType;
+}
+
+/** Populated only when `evalCapture: true` on the RAG path (eval harness). */
+export interface RagRetrievalEvalSnapshot {
+  vectorTopK: RagRetrievalEvalRefRow[];
+  afterExpandSplitChunks: RagRetrievalEvalRefRow[];
+  graphAugmentation: GraphAugmentationDebug | null;
+  /** Chunks/scores after vector → expandSplitChunks → optional graph, before shouldAnswer. */
+  contextPool: RagRetrievalEvalRefRow[];
+}
+
+function evalRowFromChunk(chunk: Chunk, score: number): RagRetrievalEvalRefRow {
+  return {
+    work: chunk.work,
+    ref: chunk.ref,
+    normalizedRef: chunk.normalizedRef,
+    score,
+    type: chunk.type,
+  };
+}
+
 export interface AskOnceResult {
   answer: string;
   citations: string[];
@@ -114,17 +143,28 @@ export interface AskOnceResult {
   tokens: number;
   latencyMs: number;
   refused: boolean;
+  retrievalEval?: RagRetrievalEvalSnapshot;
 }
 
-export async function askOnce(params: { query: string; limit: number; type?: TextType; work?: string; jsonOutput?: boolean }): Promise<AskOnceResult> {
-  const { query, limit, type, work } = params;
+export async function askOnce(params: {
+  query: string;
+  limit: number;
+  type?: TextType;
+  work?: string;
+  jsonOutput?: boolean;
+  /** When true, attach `retrievalEval` on the vector RAG path only (for offline eval). */
+  evalCapture?: boolean;
+  /** Skip lexical/ref shortcuts so vector RAG runs (e.g. graph eval harness). */
+  forceRag?: boolean;
+}): Promise<AskOnceResult> {
+  const { query, limit, type, work, evalCapture, forceRag } = params;
   const config = getConfig();
   const logger = createLogger(config);
 
   const exactRefMatch = /^([A-Za-zא-ת ]+)\s+\d+:\d+/.test(query.trim());
   const keywordPattern = /(מופיעה|מופיעים|מופיע|מקומות שבהם מופיעה|היכן מופיעה|הבא את כל המופעים)/;
 
-  if (exactRefMatch || keywordPattern.test(query)) {
+  if (!forceRag && (exactRefMatch || keywordPattern.test(query))) {
     const sqlite = await getSQLiteManager();
     try {
       if (exactRefMatch) {
@@ -215,13 +255,59 @@ export async function askOnce(params: { query: string; limit: number; type?: Tex
   let chunks = searchResults.map((r) => r.chunk);
   let scores = searchResults.map((r) => r.score);
 
+  let retrievalEval: RagRetrievalEvalSnapshot | undefined;
+  if (evalCapture) {
+    retrievalEval = {
+      vectorTopK: searchResults.map((r) => evalRowFromChunk(r.chunk, r.score)),
+      afterExpandSplitChunks: [],
+      graphAugmentation: null,
+      contextPool: [],
+    };
+  }
+
   const sqlite = await getSQLiteManager();
   try {
     const expanded = expandSplitChunks(chunks, scores, sqlite);
     chunks = expanded.expandedChunks;
     scores = expanded.expandedScores;
+
+    if (retrievalEval) {
+      retrievalEval.afterExpandSplitChunks = chunks.map((c, i) => evalRowFromChunk(c, scores[i] ?? 0));
+    }
+
+    if (process.env.KOL_HATORAH_ENABLE_SEFARIA_GRAPH === "1") {
+      try {
+        const graphClient = new SefariaGraphClient(logger);
+        const augmented = await graphAugmentRetrieval(chunks, scores, sqlite, logger, graphClient, {
+          maxUnits: MAX_EXPANDED_UNITS,
+          maxChars: MAX_TOTAL_CHARS,
+        });
+        chunks = augmented.chunks;
+        scores = augmented.scores;
+        if (retrievalEval) {
+          retrievalEval.graphAugmentation = augmented.debug;
+        }
+        if (augmented.debug) {
+          logger.info(
+            {
+              graphAugmentation: augmented.debug,
+            },
+            "Sefaria graph augmentation (rerank + expansion) applied"
+          );
+        }
+      } catch (graphErr) {
+        logger.warn(
+          { err: graphErr instanceof Error ? graphErr.message : String(graphErr) },
+          "Sefaria graph augmentation failed; using vector-expanded retrieval only"
+        );
+      }
+    }
   } finally {
     sqlite.close();
+  }
+
+  if (retrievalEval) {
+    retrievalEval.contextPool = chunks.map((c, i) => evalRowFromChunk(c, scores[i] ?? 0));
   }
 
   const refused = !shouldAnswer(chunks, scores, config);
@@ -236,6 +322,7 @@ export async function askOnce(params: { query: string; limit: number; type?: Tex
       tokens: 0,
       latencyMs: 0,
       refused: true,
+      ...(retrievalEval ? { retrievalEval } : {}),
     };
   }
 
@@ -259,6 +346,7 @@ export async function askOnce(params: { query: string; limit: number; type?: Tex
     tokens: openaiResponse.usage?.total_tokens || 0,
     latencyMs,
     refused: false,
+    ...(retrievalEval ? { retrievalEval } : {}),
   };
 }
 

@@ -288,3 +288,76 @@ export async function searchByVector(
     chunk: ChunkZod.parse(result.payload),
   }));
 }
+
+export interface MergePayloadFieldsResult {
+  applied: number;
+  skippedPointNotFound: number;
+}
+
+export interface MergePayloadFieldsOptions {
+  /** Called when Qdrant has no point for this id (404) — SQLite may still be ahead of vectors. */
+  onPointNotFound?: (info: { id: string; message: string }) => void;
+}
+
+function qdrantErrorTextBlob(err: unknown): string {
+  if (err == null) return "";
+  if (typeof err === "string") return err;
+  if (err instanceof Error) {
+    const any = err as Error & { data?: unknown; status?: number; response?: { data?: unknown } };
+    const parts = [err.message, JSON.stringify(any.data ?? any.response?.data ?? "")];
+    return parts.join(" ");
+  }
+  if (typeof err === "object") {
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return String(err);
+    }
+  }
+  return String(err);
+}
+
+function isQdrantPointMissingError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const o = err as {
+    status?: number | string;
+    data?: { status?: { error?: string } };
+    message?: string;
+    response?: { status?: number };
+  };
+  const httpStatus = o.status ?? o.response?.status;
+  if (httpStatus === 404 || httpStatus === "404") return true;
+  const msg = qdrantErrorTextBlob(err).toLowerCase();
+  return msg.includes("no point with id") || (msg.includes("not found") && msg.includes("point"));
+}
+
+/** Merges fields into existing point payloads without touching vectors. Skips missing point ids (404) instead of failing the batch. */
+export async function mergePayloadFieldsForPoints(
+  client: QdrantClient,
+  collectionName: string,
+  updates: Array<{ id: string; fields: Record<string, unknown> }>,
+  options?: MergePayloadFieldsOptions
+): Promise<MergePayloadFieldsResult> {
+  let applied = 0;
+  let skippedPointNotFound = 0;
+  for (const u of updates) {
+    if (!u.fields || Object.keys(u.fields).length === 0) continue;
+    try {
+      await client.setPayload(collectionName, {
+        wait: true,
+        payload: u.fields,
+        points: [u.id],
+      });
+      applied += 1;
+    } catch (e) {
+      if (isQdrantPointMissingError(e)) {
+        skippedPointNotFound += 1;
+        const message = e instanceof Error ? e.message : String(e);
+        options?.onPointNotFound?.({ id: String(u.id), message });
+      } else {
+        throw e;
+      }
+    }
+  }
+  return { applied, skippedPointNotFound };
+}

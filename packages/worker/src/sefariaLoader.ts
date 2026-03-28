@@ -109,18 +109,41 @@ function stripHtml(input: string): string {
   return input.replace(/<[^>]*>/g, "").trim();
 }
 
-function buildRef(work: string, pathParts: number[]): string {
-  if (pathParts.length === 0) return work;
-  if (pathParts.length === 1) return `${work} ${pathParts[0]}`;
-  if (pathParts.length === 2) return `${work} ${pathParts[0]}:${pathParts[1]}`;
-  return `${work} ${pathParts.join(":")}`;
+/**
+ * Build export-derived refs aligned with common Sefaria shapes:
+ * - Pure indices: `Work 1:2:3`
+ * - Named section + numeric address: `Work, Part 1 5:5` (space before trailing numbers; avoids `::` from empty JSON keys)
+ */
+function buildRefFromPath(work: string, pathParts: Array<string | number>): string {
+  const parts = pathParts.filter((p) => p !== "" && p != null);
+  if (parts.length === 0) return work;
+
+  let splitAt = parts.length;
+  while (splitAt > 0 && typeof parts[splitAt - 1] === "number") {
+    splitAt -= 1;
+  }
+  const numericSuffix = parts.slice(splitAt) as number[];
+  const prefix = parts.slice(0, splitAt);
+
+  if (prefix.length === 0) {
+    const str = numericSuffix.join(":");
+    return numericSuffix.length === 1 ? `${work} ${String(numericSuffix[0])}` : `${work} ${str}`;
+  }
+
+  const prefixStr = prefix.map(String).join(", ");
+  if (numericSuffix.length === 0) {
+    return `${work}, ${prefixStr}`;
+  }
+
+  const numStr = numericSuffix.join(":");
+  return `${work}, ${prefixStr} ${numStr}`;
 }
 
-function flattenVersionText(
+export function flattenVersionText(
   text: any,
   work: string,
   type: TextType,
-  pathParts: number[] = []
+  pathParts: Array<string | number> = []
 ): Array<{
   text: string;
   normalizedText: string;
@@ -134,10 +157,18 @@ function flattenVersionText(
       const nextPath = [...pathParts, i + 1];
       out.push(...flattenVersionText(part, work, type, nextPath));
     }
+  } else if (text !== null && typeof text === "object" && !Array.isArray(text)) {
+    const keys = Object.keys(text as object).sort((a, b) => a.localeCompare(b, "en"));
+    for (const k of keys) {
+      const child = (text as Record<string, unknown>)[k];
+      // Sefaria schema often uses "" as a default node; including it in the path yields invalid `::` refs.
+      const nextPath = k === "" ? pathParts : [...pathParts, k];
+      out.push(...flattenVersionText(child, work, type, nextPath));
+    }
   } else if (typeof text === "string") {
     const trimmed = text.trim();
     if (trimmed.length === 0) return out;
-    const ref = buildRef(work, pathParts);
+    const ref = buildRefFromPath(work, pathParts);
     out.push({
       text: trimmed,
       normalizedText: stripHtml(trimmed),
@@ -146,6 +177,14 @@ function flattenVersionText(
     });
   }
   return out;
+}
+
+/** Flatten a Sefaria merged.json `text` tree to string leaves; refs use `workTitle` + 1-based indices (segment granularity of the export). */
+export function flattenMergedExportText(
+  workTitle: string,
+  text: unknown
+): Array<{ text: string; normalizedText: string; ref: string; normalizedRef: string }> {
+  return flattenVersionText(text, workTitle, "tanakh");
 }
 
 export async function loadSefariaSegmentsFromMerged(

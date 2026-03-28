@@ -1,2 +1,12 @@
 export { getSQLiteManager, listWorks } from "./client";
-export type { SQLiteManager, ScopeFilter, WorkRow } from "./types";
+export type {
+  CorpusWorkRow,
+  EnrichmentSegmentRow,
+  RefLinkRow,
+  SQLiteManager,
+  ScopeFilter,
+  SegmentEnrichmentUpdate,
+  TanakhCommentaryGraphRow,
+  TanakhCommentaryGraphUpdate,
+  WorkRow,
+} from "./types";

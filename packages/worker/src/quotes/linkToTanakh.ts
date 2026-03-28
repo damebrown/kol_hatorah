@@ -4,7 +4,8 @@ import { QuoteCandidate } from "./types/QuoteCandidate";
 import { QuoteLink } from "./types/QuoteLink";
 import { SQLiteManager } from "../storage/sqlite";
 
-const tokenize = (s: string) => normalizeText(s).textPlain.trim().split(/\s+/).filter(Boolean);
+/** Use textNorm so tokens align with segments_fts (indexed on textNorm; final letters e.g. ם→מ). */
+const tokenize = (s: string) => normalizeText(s).textNorm.trim().split(/\s+/).filter(Boolean);
 
 export function linkToTanakh(candidate: QuoteCandidate, opts: { topK?: number }, sqlite: SQLiteManager): QuoteLink[] {
   const words = tokenize(candidate.quoteTextRaw);

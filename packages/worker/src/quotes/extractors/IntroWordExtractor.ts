@@ -12,7 +12,7 @@ export class IntroWordExtractor implements QuoteExtractor {
 
   extract(text: string): QuoteCandidate[] {
     const candidates: QuoteCandidate[] = [];
-    const introList = [...INTRODUCERS.mishnah, ...INTRODUCERS.general];
+    const introList = [...new Set([...INTRODUCERS.mishnah, ...INTRODUCERS.general])];
     for (const intro of introList) {
       let idx = text.indexOf(intro);
       while (idx !== -1) {

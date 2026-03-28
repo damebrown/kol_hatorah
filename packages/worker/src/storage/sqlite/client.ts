@@ -17,6 +17,13 @@ import {
   makeCountSegments,
   makeSearchByMatch,
   makeDeleteSegmentsByTypeAndLang,
+  makeListSegmentsForEnrichment,
+  makeCountSegmentsForEnrichment,
+  makeApplyEnrichmentBatch,
+  makePruneTanakhCommentaryDisallowed,
+  makeListTanakhCommentaryGraphEnrichment,
+  makeApplyTanakhCommentaryGraphBatch,
+  makeUpsertCorpusWork,
 } from "./queries";
 import { SQLiteManager, ScopeFilter, WorkRow } from "./types";
 
@@ -49,6 +56,13 @@ export async function getSQLiteManager(dbPath: string = resolveSqlitePath()): Pr
   const countSegments = makeCountSegments(db);
   const searchByMatch = makeSearchByMatch(db);
   const deleteSegmentsByTypeAndLang = makeDeleteSegmentsByTypeAndLang(db);
+  const listSegmentsForEnrichment = makeListSegmentsForEnrichment(db);
+  const countSegmentsForEnrichment = makeCountSegmentsForEnrichment(db);
+  const applyEnrichmentBatch = makeApplyEnrichmentBatch(db);
+  const pruneTanakhCommentaryDisallowed = makePruneTanakhCommentaryDisallowed(db);
+  const listTanakhCommentaryGraphEnrichment = makeListTanakhCommentaryGraphEnrichment(db);
+  const applyTanakhCommentaryGraphBatch = makeApplyTanakhCommentaryGraphBatch(db);
+  const upsertCorpusWork = makeUpsertCorpusWork(db);
 
   const mgr: SQLiteManager = {
     db,
@@ -64,6 +78,13 @@ export async function getSQLiteManager(dbPath: string = resolveSqlitePath()): Pr
     countSegments,
     searchByMatch,
     deleteSegmentsByTypeAndLang,
+    listSegmentsForEnrichment,
+    countSegmentsForEnrichment,
+    applyEnrichmentBatch,
+    pruneTanakhCommentaryDisallowed,
+    listTanakhCommentaryGraphEnrichment,
+    applyTanakhCommentaryGraphBatch,
+    upsertCorpusWork,
     close: () => {
       if (cachedManager?.path === p) cachedManager = null;
       db.close();

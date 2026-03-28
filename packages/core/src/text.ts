@@ -12,7 +12,7 @@ const FINAL_MAP: Record<string, string> = {
   "ף": "פ",
   "ץ": "צ",
 };
-const PUNCTUATION_RE = /[“”"׳״'’,.–—\-·]/g;
+const PUNCTUATION_RE = /[“”"׳״'’,.–—\-·?!;:]/g;
 
 export function normalizeText(input: string): NormalizedText {
   let textPlain = input.replace(HTML_TAG_RE, "");

@@ -6,7 +6,7 @@ export function buildRagPrompt(question: string, chunks: Chunk[]): { instruction
     .map((chunk) => `Source: ${chunk.work}, Ref: ${chunk.ref}\nText: ${chunk.text}`)
     .join("\n\n");
 
-  const instructions = `אתה עוזר. השב רק על בסיס המידע שסופק בהקשר. צטט את המקורות על ידי ציון העבודה וההפניה (לדוגמה: [בראשית 1:1]). אם המידע המסופק אינו מספיק או סותר, אמור שאינך יודע. השב בעברית.`;
+  const instructions = `אתה עוזר. השב רק על בסיס המידע שסופק בהקשר. צטט את המקורות על ידי ציון העבודה וההפניה (לדוגמה: [בראשית א:א]). אם המידע המסופק אינו מספיק או סותר, אמור שאינך יודע. השב בעברית.`;
 
   const input = `שאלה: ${question}\n\nהקשר:\n${context}`; 
 

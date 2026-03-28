@@ -1,3 +1,4 @@
+import { log } from "console";
 import { normalizeQueryInput } from "../../cli/utils/normalizeQuery";
 
 const TRAILING_PUNCT_RE = /[?!.,:;]+$/;
