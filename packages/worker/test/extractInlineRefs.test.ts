@@ -123,4 +123,58 @@ import { extractInlineRefs } from "../src/ingest/extractInlineRefs";
   console.log("✓ plain text unchanged");
 }
 
+// ─── Ibid (שם): resolves to last extracted book ──────────────────────────────
+
+{
+  // Sotah 1:8 pattern: named ref then two ibid refs to the same book
+  const text = "שֶׁנֶּאֱמַר (שמואל ב יח) וַיָּסֹבּוּ. וּלְפִי שֶׁגָּנַב שֶׁנֶּאֱמַר (שם טו) וַיְגַנֵּב. שֶׁנֶּאֱמַר (שם יח) וַיִּקַּח";
+  const { refs } = extractInlineRefs(text);
+  assert.deepEqual(refs, ["שמואל ב יח", "שמואל ב טו", "שמואל ב יח"]);
+  console.log("✓ ibid (שם) resolves to last named book");
+}
+
+{
+  // Multiple ibid in sequence all resolve to same last book
+  const { refs } = extractInlineRefs("(בראשית א) ראשון (שם ב) שני (שם ג) שלישי");
+  assert.deepEqual(refs, ["בראשית א", "בראשית ב", "בראשית ג"]);
+  console.log("✓ multiple ibid resolve to same last book");
+}
+
+{
+  // Ibid with comma separator: (שם, יב) → lastBook יב
+  const { refs } = extractInlineRefs("(דברים כ) ועוד (שם, כד) גם");
+  assert.deepEqual(refs, ["דברים כ", "דברים כד"]);
+  console.log("✓ ibid with comma separator resolved");
+}
+
+{
+  // Ibid with פסוק prefix: (שם פסוק ט) → lastBook פסוק ט
+  const { refs } = extractInlineRefs("(שמות יג) כתוב (שם פסוק ט) גם");
+  assert.deepEqual(refs, ["שמות יג", "שמות פסוק ט"]);
+  console.log("✓ ibid with פסוק prefix resolved");
+}
+
+{
+  // Ibid with no prior book context → parenthetical preserved (not extracted)
+  const { refs, cleanText } = extractInlineRefs("ראה (שם טו) כאן");
+  assert.deepEqual(refs, []);
+  assert.ok(cleanText.includes("(שם טו)"), "unresolvable ibid preserved");
+  console.log("✓ ibid without prior book context preserved");
+}
+
+{
+  // Last book updates when a new named ref appears
+  const { refs } = extractInlineRefs("(שמות א) ראשון (שם ב) שני (במדבר ה) חדש (שם ו) שישי");
+  assert.deepEqual(refs, ["שמות א", "שמות ב", "במדבר ה", "במדבר ו"]);
+  console.log("✓ last book updates after new named ref");
+}
+
+{
+  // Mixed: named refs before ibid across different books (actual Sotah 1:8 pattern)
+  const text = "שֶׁנֶּאֱמַר (שופטים טז) וַיֹּאחֲזוּהוּ. שֶׁנֶּאֱמַר (שמואל ב יח) וַיָּסֹבּוּ. שֶׁנֶּאֱמַר (שם טו) וַיְגַנֵּב. שֶׁנֶּאֱמַר (שם יח) וַיִּקַּח";
+  const { refs } = extractInlineRefs(text);
+  assert.deepEqual(refs, ["שופטים טז", "שמואל ב יח", "שמואל ב טו", "שמואל ב יח"]);
+  console.log("✓ Sotah 1:8 full pattern — 4 refs including 2 ibid");
+}
+
 console.log("\nAll extractInlineRefs tests passed ✓");

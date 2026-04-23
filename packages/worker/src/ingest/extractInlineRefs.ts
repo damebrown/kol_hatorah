@@ -6,6 +6,10 @@
  *
  * Input:  "שֶׁנֶּאֱמַר (דברים כב) לֹא תִלְבַּשׁ"
  * Output: { cleanText: "שֶׁנֶּאֱמַר  לֹא תִלְבַּשׁ", refs: ["דברים כב"] }
+ *
+ * Ibid resolution: (שם N) is resolved to LAST_BOOK N where LAST_BOOK is the
+ * most recently extracted named book in the same segment. If no prior book
+ * has been seen, the parenthetical is left intact (not extracted).
  */
 
 import { TANAKH_HEB_TO_CANONICAL } from "../planner/scope/mappings/tanakhBooks";
@@ -23,7 +27,6 @@ const KNOWN_BOOKS: string[] = [
   ...Object.keys(MISHNAH_TRACTATES_HEB_TO_CANONICAL),
 ].sort((a, b) => b.length - a.length);
 
-// Escape a string for use in a regex
 function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -31,30 +34,58 @@ function escapeRe(s: string): string {
 // Chapter/verse suffix: Hebrew letter-numerals, Arabic digits, colons, commas, spaces, dashes
 const LOCATION_SUFFIX = "[\\u05D0-\\u05EA\\d\\s,:,\\-\u2013]{0,30}";
 
-// Build one alternation of all book names, longest first (already sorted)
 const BOOK_ALTERNATION = KNOWN_BOOKS.map(escapeRe).join("|");
 
-// Full pattern: (bookName optionalLocation)
-// Captures group 1 = the inner text (without parens)
-const INLINE_REF_RE = new RegExp(
-  `\\(((?:${BOOK_ALTERNATION})${LOCATION_SUFFIX})\\)`,
+/**
+ * Combined pattern (two alternatives):
+ *   Group 1: named-book ref — (BOOK_NAME LOCATION)
+ *   Group 2: ibid suffix    — (שם SUFFIX) where שם = "ibid"
+ */
+const COMBINED_RE = new RegExp(
+  `\\(((?:${BOOK_ALTERNATION})${LOCATION_SUFFIX})\\)|\\(\u05E9\u05DD([^)]{0,30})\\)`,
   "g"
 );
 
+/** Extract the leading book name from a fully-matched ref string. */
+function extractBookFromRef(ref: string): string | null {
+  for (const book of KNOWN_BOOKS) {
+    if (ref === book || ref.startsWith(book + " ") || ref.startsWith(book + ",")) {
+      return book;
+    }
+  }
+  return null;
+}
+
 /**
  * Extracts parenthetical scripture refs from Hebrew text.
- * Only matches when the parenthetical starts with a known Tanakh book or
- * Mishnah tractate name; arbitrary parentheticals are left untouched.
+ * Named refs are anchored to known Tanakh/Mishnah book names.
+ * Ibid citations (שם N) are resolved to the last extracted book + location.
  */
 export function extractInlineRefs(text: string): ExtractInlineRefsResult {
   if (!text) return { cleanText: text, refs: [] };
 
   const refs: string[] = [];
-  // Reset lastIndex since the regex is stateful (global flag)
-  INLINE_REF_RE.lastIndex = 0;
+  let lastBook: string | null = null;
 
-  const cleanText = text.replace(INLINE_REF_RE, (_, inner: string) => {
-    refs.push(inner.trim());
+  COMBINED_RE.lastIndex = 0;
+
+  const cleanText = text.replace(COMBINED_RE, (match, namedRef?: string, ibidSuffix?: string) => {
+    if (namedRef !== undefined) {
+      const ref = namedRef.trim();
+      refs.push(ref);
+      const book = extractBookFromRef(ref);
+      if (book) lastBook = book;
+      return "";
+    }
+
+    // ibidSuffix is defined — this is a (שם ...) match
+    if (lastBook === null) {
+      // No prior book context: leave the parenthetical intact
+      return match;
+    }
+    const suffix = (ibidSuffix ?? "").replace(/^[,\s]+/, "").trim();
+    const resolved = suffix ? `${lastBook} ${suffix}` : lastBook;
+    refs.push(resolved);
     return "";
   });
 
