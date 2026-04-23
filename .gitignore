@@ -151,3 +151,14 @@ external/**
 .checkpoints/
 .local/
 
+# IDE
+.idea/
+
+# Scratch outputs
+out.txt
+out_refs_tmp.json
+
+# Generated viz data (run viz:export to regenerate)
+viz/data.js
+viz/data.json
+

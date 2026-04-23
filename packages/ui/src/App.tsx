@@ -13,6 +13,7 @@ function App() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [debug, setDebug] = useState(false)
+  const [threadId, setThreadId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -47,12 +48,16 @@ function App() {
       const res = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q, debug }),
+        body: JSON.stringify({ q, debug, threadId }),
       })
       const data = await res.json()
 
       if (!res.ok) {
         throw new Error(data.error || `HTTP ${res.status}`)
+      }
+
+      if (data.threadId && threadId === null) {
+        setThreadId(data.threadId)
       }
 
       setMessages((prev) =>
@@ -113,7 +118,13 @@ function App() {
               <button
                 type="button"
                 className="new-chat-btn"
-                onClick={() => setMessages([])}
+                onClick={() => {
+                  if (threadId) {
+                    fetch(`/api/thread/${threadId}`, { method: 'DELETE' }).catch(() => undefined)
+                    setThreadId(null)
+                  }
+                  setMessages([])
+                }}
               >
                 New chat
               </button>

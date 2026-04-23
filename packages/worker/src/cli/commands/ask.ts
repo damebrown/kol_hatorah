@@ -277,6 +277,26 @@ export async function askOnce(params: {
 
     if (process.env.KOL_HATORAH_ENABLE_SEFARIA_GRAPH === "1") {
       try {
+        // #region agent log
+        fetch("http://127.0.0.1:7515/ingest/707c4da3-8276-4925-90ea-9c09214a05ad", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "e31aa4" },
+          body: JSON.stringify({
+            sessionId: "e31aa4",
+            runId: process.env.KOL_HATORAH_DEBUG_RUN_ID ?? "graph-debug",
+            hypothesisId: "H0",
+            location: "ask.ts:graph-branch",
+            message: "entering graph augment path",
+            data: {
+              envGraph: process.env.KOL_HATORAH_ENABLE_SEFARIA_GRAPH,
+              poolLen: chunks.length,
+              firstRef: chunks[0]?.ref?.slice(0, 120),
+              firstCanon: typeof chunks[0]?.sefariaCanonicalRef === "string" ? chunks[0].sefariaCanonicalRef.slice(0, 120) : null,
+            },
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+        // #endregion
         const graphClient = new SefariaGraphClient(logger);
         const augmented = await graphAugmentRetrieval(chunks, scores, sqlite, logger, graphClient, {
           maxUnits: MAX_EXPANDED_UNITS,

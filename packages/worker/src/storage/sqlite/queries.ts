@@ -114,7 +114,7 @@ export const makeGetByPrefix = (db: Database.Database) => (prefix: string, scope
 
 export const makeGetRef = (db: Database.Database) => (normalizedRef: string) => {
   const stmt = db.prepare(`
-      SELECT id, type, work, ref, normalizedRef, lang, source, textPlain
+      SELECT id, type, work, ref, normalizedRef, lang, source, textPlain, sefariaCanonicalRef
       FROM segments
       WHERE normalizedRef = @normalizedRef
       LIMIT 1;

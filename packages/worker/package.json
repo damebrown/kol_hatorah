@@ -29,7 +29,8 @@
     "enrich:metadata": "npx tsx src/cli.ts enrich:metadata",
     "reingest:enrich": "npx tsx src/cli.ts reingest:enrich",
     "tanakh-commentary:reduce-and-graph-enrich": "npx tsx src/cli.ts tanakh-commentary:reduce-and-graph-enrich",
-    "test": "node test/runAll.mjs"
+    "test": "node test/runAll.mjs",
+    "viz:export": "npx tsx scripts/exportVizData.ts"
   },
   "dependencies": {
     "@kol-hatorah/core": "*",

@@ -6,19 +6,28 @@ import { getConfig } from "@kol-hatorah/core";
 import { planQueryWithLLMRouter, executePlan, renderResult, QueryIntent, ensureRegistry } from "./queryPlanner";
 import { normalizeQueryInput } from "./cli/utils/normalizeQuery";
 import { MISHNAH_PAREN_REFS } from "./config/mishnahParenRefs";
+import { resolveQuery, RewriterOptions } from "./conversation/queryRewriter";
+import { extractTurnSummary } from "./conversation/turnSummary";
+import { TurnSummary } from "./conversation/types";
 
 export interface AskOnceParams {
   q: string;
   debug?: boolean;
+  /** Prior turns from the active conversation thread. When provided, the query is resolved before planning. */
+  priorTurns?: TurnSummary[];
+  /** Override for testing — injected into the rewriter instead of the real LLM call. */
+  rewriterOptions?: RewriterOptions;
 }
 
 export interface AskOnceResponse {
   text: string;
   debug?: unknown;
+  /** Summary of this turn for storage in the conversation thread. */
+  turnSummary?: TurnSummary;
 }
 
 export async function askOnce(params: AskOnceParams): Promise<AskOnceResponse> {
-  const { q, debug } = params;
+  const { q, debug, priorTurns, rewriterOptions } = params;
   const normalizedQuery = normalizeQueryInput(q || "");
 
   if (!normalizedQuery) {
@@ -28,15 +37,21 @@ export async function askOnce(params: AskOnceParams): Promise<AskOnceResponse> {
   const config = getConfig();
   const limit = config.rag.topK;
 
+  // Resolve follow-up queries into standalone queries before planning.
+  const standaloneQuery =
+    priorTurns && priorTurns.length > 0
+      ? await resolveQuery(normalizedQuery, priorTurns, rewriterOptions)
+      : normalizedQuery;
+
   const registry = await ensureRegistry();
-  const plan = await planQueryWithLLMRouter(normalizedQuery, registry);
+  const plan = await planQueryWithLLMRouter(standaloneQuery, registry);
 
   const paginationLimit =
     plan.intent === QueryIntent.WORD_OCCURRENCES || plan.intent === QueryIntent.CORPUS_QUOTE_QUERY
       ? plan.limits.maxResults
       : limit;
 
-  const execResult = await executePlan(plan, normalizedQuery, {
+  const execResult = await executePlan(plan, standaloneQuery, {
     pagination: { limit: paginationLimit, offset: 0 },
     debug,
     debugReflink: debug,
@@ -100,7 +115,16 @@ export async function askOnce(params: AskOnceParams): Promise<AskOnceResponse> {
     text = renderResult(execResult);
   }
 
-  const response: AskOnceResponse = { text };
+  const response: AskOnceResponse = {
+    text,
+    turnSummary: extractTurnSummary(
+      normalizedQuery,
+      plan,
+      execResult,
+      text,
+      standaloneQuery !== normalizedQuery ? standaloneQuery : undefined
+    ),
+  };
   if (debug) {
     response.debug = { plan, execResult };
   }

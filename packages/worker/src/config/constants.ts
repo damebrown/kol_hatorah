@@ -1,5 +1,8 @@
 export const PREFIX_LETTERS = ["", "ו", "ב", "כ", "ל", "מ", "ה"] as const;
 
+/** Maximum number of prior turns retained per conversation thread. Older turns are dropped. */
+export const CONVERSATION_MAX_TURNS = 5;
+
 export const DEFAULT_LIMITS = {
   EXACT_REF_MAX_RESULTS: 10,
   EXACT_REF_MAX_SEGMENTS: 40,

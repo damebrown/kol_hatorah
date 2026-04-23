@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kol HaTorah — Vector DB 3D Visualization</title>
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" crossorigin="anonymous"></script>
+  <script src="data.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 12px 20px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header h1 { font-size: 16px; font-weight: 600; }
+    #stats { font-size: 13px; color: #8b949e; }
+    #controls {
+      padding: 8px 20px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    label { font-size: 13px; color: #8b949e; display: flex; align-items: center; gap: 6px; }
+    select, input[type=range] { background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 3px 6px; border-radius: 4px; font-size: 13px; }
+    #type-filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .type-chip {
+      display: flex; align-items: center; gap: 5px;
+      padding: 2px 8px; border-radius: 12px; font-size: 12px; cursor: pointer;
+      border: 1px solid #30363d; background: #21262d; color: #e6edf3;
+      user-select: none; transition: opacity 0.15s;
+    }
+    .type-chip.off { opacity: 0.35; }
+    .type-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    #plot { flex: 1; width: 100%; }
+    #tooltip {
+      position: fixed;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      max-width: 320px;
+      pointer-events: none;
+      display: none;
+      z-index: 1000;
+      line-height: 1.5;
+    }
+    #tooltip .ref { font-weight: 600; color: #58a6ff; margin-bottom: 4px; }
+    #tooltip .type { font-size: 11px; color: #8b949e; margin-bottom: 6px; }
+    #tooltip .text { color: #c9d1d9; direction: rtl; }
+    .legend-dot {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔍 Kol HaTorah — Vector Space (3D PCA)</h1>
+    <span id="stats">טוען...</span>
+  </header>
+  <div id="controls">
+    <label>
+      צבע לפי:
+      <select id="colorBy">
+        <option value="type">סוג טקסט</option>
+        <option value="lang">שפה</option>
+        <option value="work">ספר</option>
+      </select>
+    </label>
+    <label>
+      גודל נקודה:
+      <input type="range" id="pointSize" min="1" max="8" value="3" step="0.5" />
+    </label>
+    <label>
+      שקיפות:
+      <input type="range" id="opacity" min="0.1" max="1" value="0.7" step="0.05" />
+    </label>
+    <div id="type-filters"></div>
+  </div>
+  <div id="plot"></div>
+  <div id="tooltip">
+    <div class="ref" id="tt-ref"></div>
+    <div class="type" id="tt-type"></div>
+    <div class="text" id="tt-text"></div>
+  </div>
+
+  <script>
+    // Declared by data.js via: window.VIZ_DATA = [...]
+    /** @type {Array<{x:number,y:number,z:number,type:string,work:string,ref:string,heRef:string,text:string,lang:string}>} */
+    window.VIZ_DATA = window.VIZ_DATA ?? [];
+
+    // ─── Color palettes ──────────────────────────────────────────────────────
+    const TYPE_COLORS = {
+      tanakh:            "#f78166",
+      mishnah:           "#79c0ff",
+      bavli:             "#56d364",
+      tanakh_commentary: "#e3b341",
+      midrash:           "#bc8cff",
+      philosophy:        "#ffa657",
+      halacha:           "#ff7b72",
+      liturgy:           "#76e3ea",
+    };
+    const LANG_COLORS = { he: "#79c0ff", en: "#f78166" };
+
+    function colorFor(point, by) {
+      if (by === "type") return TYPE_COLORS[point.type] ?? "#8b949e";
+      if (by === "lang") return LANG_COLORS[point.lang] ?? "#8b949e";
+      if (by === "work") return null; // handled by hashing
+      return "#8b949e";
+    }
+
+    function hashColor(str) {
+      let h = 5381;
+      for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
+      const r = (h & 0xff0000) >> 16;
+      const g = (h & 0x00ff00) >> 8;
+      const b = h & 0x0000ff;
+      return `rgb(${Math.abs(r)},${Math.abs(g)},${Math.abs(b)})`;
+    }
+
+    // ─── Build Plotly traces grouped by category ──────────────────────────
+    function buildTraces(points, colorBy, pointSize, opacity) {
+      const groups = new Map();
+
+      for (const p of points) {
+        const key = colorBy === "type" ? p.type
+                  : colorBy === "lang" ? p.lang
+                  : p.work ?? "unknown";
+
+        if (!groups.has(key)) groups.set(key, { x: [], y: [], z: [], texts: [], refs: [], types: [], works: [], langs: [] });
+        const g = groups.get(key);
+        g.x.push(p.x);
+        g.y.push(p.y);
+        g.z.push(p.z);
+        g.texts.push(p.text ?? "");
+        g.refs.push((p.heRef || p.ref) ?? "");
+        g.types.push(p.type ?? "");
+        g.works.push(p.work ?? "");
+        g.langs.push(p.lang ?? "");
+      }
+
+      const traces = [];
+      for (const [key, g] of groups) {
+        const color = colorBy === "work" ? hashColor(key)
+                    : colorBy === "type" ? (TYPE_COLORS[key] ?? "#8b949e")
+                    : (LANG_COLORS[key] ?? "#8b949e");
+
+        traces.push({
+          type: "scatter3d",
+          mode: "markers",
+          name: key,
+          x: g.x, y: g.y, z: g.z,
+          customdata: g.refs.map((r, i) => [r, g.types[i], g.works[i], g.langs[i], g.texts[i]]),
+          hovertemplate: "<b>%{customdata[0]}</b><br>%{customdata[1]} · %{customdata[2]}<extra></extra>",
+          marker: {
+            size: pointSize,
+            color,
+            opacity,
+            line: { width: 0 },
+          },
+        });
+      }
+      return traces;
+    }
+
+    // ─── Type filter chips ────────────────────────────────────────────────
+    const hiddenTypes = new Set(["tanakh_commentary"]);
+
+    function buildTypeChips(types) {
+      const container = document.getElementById("type-filters");
+      container.innerHTML = "";
+      for (const t of types) {
+        const chip = document.createElement("div");
+        chip.className = "type-chip" + (hiddenTypes.has(t) ? " off" : "");
+        chip.dataset.type = t;
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        dot.style.background = TYPE_COLORS[t] ?? "#8b949e";
+        chip.appendChild(dot);
+        chip.appendChild(document.createTextNode(t));
+        chip.addEventListener("click", () => {
+          if (hiddenTypes.has(t)) hiddenTypes.delete(t);
+          else hiddenTypes.add(t);
+          chip.classList.toggle("off");
+          render();
+        });
+        container.appendChild(chip);
+      }
+    }
+
+    // ─── Render ───────────────────────────────────────────────────────────
+    let ALL_POINTS = [];
+
+    function render() {
+      const colorBy = document.getElementById("colorBy").value;
+      const pointSize = parseFloat(document.getElementById("pointSize").value);
+      const opacity = parseFloat(document.getElementById("opacity").value);
+      const visible = ALL_POINTS.filter((p) => !hiddenTypes.has(p.type));
+      const traces = buildTraces(visible, colorBy, pointSize, opacity);
+
+      Plotly.react("plot", traces, {
+        paper_bgcolor: "#0d1117",
+        plot_bgcolor: "#0d1117",
+        scene: {
+          bgcolor: "#0d1117",
+          xaxis: { gridcolor: "#21262d", zerolinecolor: "#30363d", color: "#8b949e", title: "PC1" },
+          yaxis: { gridcolor: "#21262d", zerolinecolor: "#30363d", color: "#8b949e", title: "PC2" },
+          zaxis: { gridcolor: "#21262d", zerolinecolor: "#30363d", color: "#8b949e", title: "PC3" },
+        },
+        legend: {
+          font: { color: "#e6edf3", size: 12 },
+          bgcolor: "#161b22",
+          bordercolor: "#30363d",
+          borderwidth: 1,
+        },
+        margin: { l: 0, r: 0, t: 0, b: 0 },
+        font: { color: "#e6edf3" },
+        uirevision: "keep",
+      }, {
+        displayModeBar: true,
+        modeBarButtonsToRemove: ["toImage"],
+        responsive: true,
+      });
+    }
+
+    // ─── Load & init ──────────────────────────────────────────────────────
+    Promise.resolve(window.VIZ_DATA ?? [])
+      .then((pts) => {
+        if (!pts.length) throw new Error("data.js is empty or missing — run viz:export first");
+        ALL_POINTS = pts;
+
+        const typeCounts = {};
+        for (const p of pts) typeCounts[p.type] = (typeCounts[p.type] ?? 0) + 1;
+        const summary = Object.entries(typeCounts)
+          .sort((a, b) => b[1] - a[1])
+          .map(([t, n]) => `${t}: ${n}`)
+          .join(" · ");
+        document.getElementById("stats").textContent = `${pts.length.toLocaleString()} נקודות — ${summary}`;
+
+        const allTypes = Object.keys(typeCounts).sort();
+        buildTypeChips(allTypes);
+        render();
+
+        document.getElementById("colorBy").addEventListener("change", render);
+        document.getElementById("pointSize").addEventListener("input", render);
+        document.getElementById("opacity").addEventListener("input", render);
+      })
+      .catch((err) => {
+        document.getElementById("stats").textContent = `שגיאה: ${err.message}`;
+        console.error(err);
+      });
+  </script>
+</body>
+</html>

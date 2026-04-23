@@ -44,6 +44,7 @@ export interface GraphAugmentSqlite {
         lang: string;
         source: string;
         textPlain: string;
+        sefariaCanonicalRef?: string | null;
       }
     | null
     | undefined;
@@ -64,6 +65,8 @@ export interface GraphAugmentationDebug {
   addedNeighbors: Array<{ fromRef: string; neighborSefariaRef: string; localRef: string; score: number }>;
   unmappedNeighborRefs: string[];
 }
+
+type DebugLinkLike = SefariaLinkRow & { refs?: string[] };
 
 function normalizeRefKey(r: string): string {
   return r
@@ -93,8 +96,9 @@ function segmentRowToChunk(row: {
   lang: string;
   source: string;
   textPlain: string;
+  sefariaCanonicalRef?: string | null;
 }): Chunk {
-  return {
+  const ch: Chunk = {
     id: row.id,
     text: row.textPlain,
     source: row.source,
@@ -105,6 +109,9 @@ function segmentRowToChunk(row: {
     lang: row.lang as "he" | "en",
     createdAt: "1970-01-01T00:00:00.000Z",
   };
+  const canon = row.sefariaCanonicalRef?.trim();
+  if (canon) ch.sefariaCanonicalRef = canon;
+  return ch;
 }
 
 /**
@@ -137,7 +144,8 @@ export function mapSefariaRefToLocal(
 
 function otherLinkEndpoint(link: SefariaLinkRow, fromDisplayRef: string): string | null {
   const fromKey = normalizeRefKey(fromDisplayRef);
-  const candidates = [link.ref, link.sourceRef, link.anchorRef].filter(
+  const refsArray = Array.isArray((link as DebugLinkLike).refs) ? (link as DebugLinkLike).refs : [];
+  const candidates = [link.ref, link.sourceRef, link.anchorRef, ...refsArray].filter(
     (x): x is string => typeof x === "string" && x.length > 0
   );
   for (const c of candidates) {
@@ -169,8 +177,112 @@ function expansionLinkPriority(link: SefariaLinkRow): number {
   return 3;
 }
 
-function displayRefForApi(chunk: Chunk): string {
-  return (chunk.sefariaCanonicalRef || chunk.normalizedRef || chunk.ref).trim();
+/** Qdrant / merged chunks often carry a stable id-shaped ref; Sefaria APIs need the human canonical ref from SQLite when present. */
+function isLikelyInternalSegmentRef(s: string): boolean {
+  const t = s.trim();
+  if (!t) return true;
+  if (t.includes("%3C") || t.includes("<EMPTY")) return true;
+  return /^[0-9a-f]{12,}:/i.test(t);
+}
+
+function lookupSegmentRow(
+  sqlite: GraphAugmentSqlite,
+  chunk: Chunk
+): NonNullable<ReturnType<GraphAugmentSqlite["getRef"]>> | null {
+  const keys = [chunk.normalizedRef, chunk.ref]
+    .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+    .map((x) => x.trim());
+  const seen = new Set<string>();
+  for (const k of keys) {
+    if (seen.has(k)) continue;
+    seen.add(k);
+    const row = sqlite.getRef(k);
+    if (row) return row;
+  }
+  return null;
+}
+
+/** Tanakh commentary ingest uses `ref = normalizedRef = docId:encodeSectionPath(...)` (see ingestTanakhCommentaries). */
+const INTERNAL_DOC_REF_RE = /^[0-9a-f]{12,32}:(.+)$/i;
+
+function decodeRefPathSegment(seg: string): string {
+  try {
+    return decodeURIComponent(seg);
+  } catch {
+    return seg;
+  }
+}
+
+/**
+ * Best-effort: turn export-internal `deadbeef:Genesis/30/16/0` or `deadbeef:24/1/0` into a Sefaria-shaped address
+ * (`Genesis 30:16` or `24:1`) to combine with `work` ("Kli Yakar on Leviticus 24:1").
+ */
+export function guessSefariaRefFromExportInternal(work: string, internalRef: string): string | null {
+  const t = internalRef.trim();
+  const m = t.match(INTERNAL_DOC_REF_RE);
+  if (!m) return null;
+  const parts = m[1]
+    .split("/")
+    .map((s) => decodeRefPathSegment(s))
+    .filter((p) => p.length > 0 && p !== "<EMPTY_KEY>");
+  if (parts.length === 0) return null;
+
+  const numPartsRaw = parts.filter((p) => /^\d+$/.test(p)).map((p) => Number(p));
+  const numParts = [...numPartsRaw];
+  // Many extracted commentary paths are array-index based; Sefaria refs are 1-based.
+  // Only lift explicit zero section indices (0 -> 1) and leave non-zero coordinates untouched.
+  for (let i = 0; i < numParts.length; i++) {
+    if (numParts[i] === 0) numParts[i] = 1;
+  }
+  const strParts = parts.filter((p) => !/^\d+$/.test(p));
+
+  let addr: string | null = null;
+  if (strParts.length > 0 && numParts.length >= 2) {
+    addr = `${strParts[0]} ${numParts[0]}:${numParts[1]}`;
+  } else if (strParts.length > 0 && numParts.length === 1) {
+    addr = `${strParts[0]} ${numParts[0]}`;
+  } else if (strParts.length === 0 && numParts.length >= 2) {
+    addr = `${numParts[0]}:${numParts[1]}`;
+  } else {
+    return null;
+  }
+
+  const w = work.trim();
+  if (!w) return addr;
+
+  const workWithOptionalComma =
+    /\bon Torah\b/i.test(w) && /^[A-Za-z]/.test(addr) ? `${w},` : w;
+
+  const on = w.match(/\s+on\s+(.+)$/i);
+  const baseBook = on ? on[1]!.trim().toLowerCase() : "";
+  const addrFirstToken = addr.split(/\s+/)[0]?.toLowerCase() ?? "";
+  const baseFirst = baseBook.split(/\s+/)[0] ?? "";
+  if (baseFirst && addrFirstToken && addrFirstToken === baseFirst && numParts.length >= 2) {
+    return `${workWithOptionalComma} ${numParts[0]}:${numParts[1]}`.trim();
+  }
+  return `${workWithOptionalComma} ${addr}`.trim();
+}
+
+/**
+ * Ref string used for Sefaria `/api/links` + `/api/ref-topic-links` and for interpreting link endpoints.
+ * Prefer persisted canonical ref from the chunk or from the lexical segment row over internal normalized keys.
+ */
+export function refForSefariaHttpApi(chunk: Chunk, sqlite: GraphAugmentSqlite): string {
+  const fromChunk = chunk.sefariaCanonicalRef?.trim();
+  if (fromChunk) return fromChunk;
+  const row = lookupSegmentRow(sqlite, chunk);
+  const canon = row?.sefariaCanonicalRef?.trim();
+  if (canon) return canon;
+  const dbRef = row?.ref?.trim() ?? "";
+  if (dbRef && !isLikelyInternalSegmentRef(dbRef)) return dbRef;
+  const r = chunk.ref?.trim() ?? "";
+  const n = chunk.normalizedRef?.trim() ?? "";
+  if (r && !isLikelyInternalSegmentRef(r)) return r;
+  if (n && !isLikelyInternalSegmentRef(n)) return n;
+  const internal = r || n;
+  const guessed = guessSefariaRefFromExportInternal(chunk.work ?? "", internal);
+  if (guessed) return guessed;
+  return internal;
 }
 
 export interface GraphAugmentResult {
@@ -243,7 +355,7 @@ export async function graphAugmentRetrieval(
 
   try {
     for (let i = 0; i < n; i++) {
-      const dref = displayRefForApi(chunks[i]!);
+      const dref = refForSefariaHttpApi(chunks[i]!, sqlite);
       const [links, topics] = await Promise.all([
         client.getLinksForRef(dref),
         client.getRefTopicLinksForRef(dref),
@@ -263,13 +375,13 @@ export async function graphAugmentRetrieval(
   const commentaryBonus = new Array<number>(n).fill(0);
 
   for (let i = 0; i < n; i++) {
-    const di = displayRefForApi(chunks[i]!);
+    const di = refForSefariaHttpApi(chunks[i]!, sqlite);
     for (const L of linksByIndex[i] || []) {
       const other = otherLinkEndpoint(L, di);
       if (!other) continue;
       for (let j = 0; j < n; j++) {
         if (i === j) continue;
-        const dj = displayRefForApi(chunks[j]!);
+        const dj = refForSefariaHttpApi(chunks[j]!, sqlite);
         if (refsConnect(other, dj)) {
           linkSignalRaw[i]!++;
           break;
@@ -287,13 +399,13 @@ export async function graphAugmentRetrieval(
   }
 
   for (let i = 0; i < n; i++) {
-    const di = displayRefForApi(chunks[i]!);
+    const di = refForSefariaHttpApi(chunks[i]!, sqlite);
     const si = scores[i] ?? 0;
     for (let j = 0; j < n; j++) {
       if (i === j) continue;
       const sj = scores[j] ?? 0;
       if (sj <= si) continue;
-      const dj = displayRefForApi(chunks[j]!);
+      const dj = refForSefariaHttpApi(chunks[j]!, sqlite);
       for (const L of linksByIndex[i] || []) {
         if (!isCommentaryLink(L)) continue;
         const other = otherLinkEndpoint(L, di);
@@ -305,6 +417,72 @@ export async function graphAugmentRetrieval(
       if (commentaryBonus[i]) break;
     }
   }
+
+  // #region agent log
+  {
+    const maxL = Math.max(0, ...linkSignalRaw);
+    const maxT = Math.max(0, ...topicSignalRaw);
+    const sumL = linkSignalRaw.reduce((a, x) => a + x, 0);
+    const totalLinks = linksByIndex.reduce((a, r) => a + r.length, 0);
+    const totalTopics = topicsByIndex.reduce((a, r) => a + r.length, 0);
+    const poolRefs = chunks.map((c) => refForSefariaHttpApi(c, sqlite));
+    const probeIdx = linksByIndex.findIndex((rows) => rows.length > 0);
+    let linkProbe: {
+      probeIdx: number;
+      probeRef: string;
+      keys: string[];
+      ref?: string;
+      sourceRef?: string;
+      anchorRef?: string;
+      refs?: string[];
+      chosenOther?: string | null;
+      matchedAnyPool?: boolean;
+    } | null = null;
+    if (probeIdx >= 0) {
+      const probeRef = poolRefs[probeIdx] ?? "";
+      const firstRaw = linksByIndex[probeIdx]![0] as DebugLinkLike | undefined;
+      if (firstRaw) {
+        const chosenOther = otherLinkEndpoint(firstRaw, probeRef);
+        const keys = Object.keys(firstRaw).slice(0, 12);
+        const refs = Array.isArray(firstRaw.refs) ? firstRaw.refs.slice(0, 4) : undefined;
+        const matchedAnyPool = !!chosenOther && poolRefs.some((pr) => refsConnect(chosenOther, pr));
+        linkProbe = {
+          probeIdx,
+          probeRef,
+          keys,
+          ref: firstRaw.ref,
+          sourceRef: firstRaw.sourceRef,
+          anchorRef: firstRaw.anchorRef,
+          refs,
+          chosenOther,
+          matchedAnyPool,
+        };
+      }
+    }
+    fetch("http://127.0.0.1:7515/ingest/707c4da3-8276-4925-90ea-9c09214a05ad", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "e31aa4" },
+      body: JSON.stringify({
+        sessionId: "e31aa4",
+        runId: process.env.KOL_HATORAH_DEBUG_RUN_ID ?? "graph-debug",
+        hypothesisId: "H2",
+        location: "graphAugmentRetrieval.ts:post-signals",
+        message: "in-pool link/topic cohesion signals",
+        data: {
+          maxLinkSignalRaw: maxL,
+          maxTopicSignalRaw: maxT,
+          sumLinkSignalRaw: sumL,
+          n,
+          totalLinks,
+          totalTopics,
+          firstResolvedRef: refForSefariaHttpApi(chunks[0]!, sqlite).slice(0, 140),
+          linkProbe,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  }
+  // #endregion
 
   const finalScores: number[] = [];
   for (let i = 0; i < n; i++) {
@@ -344,11 +522,11 @@ export async function graphAugmentRetrieval(
   const added: Array<{ chunk: Chunk; sortKey: number; promptScore: number }> = [];
 
   for (let ord = 0; ord < TOP_SOURCES_FOR_EXPANSION && ord < n; ord++) {
-    const idx = ord;
-    const parentChunk = chunks[idx]!;
-    const parentInputScore = scores[idx] ?? 0;
-    const di = displayRefForApi(parentChunk);
-    const links = linksByIndex[idx] || [];
+    const origIdx = order[ord]!;
+    const parentChunk = chunks[origIdx]!;
+    const parentInputScore = scores[origIdx] ?? 0;
+    const di = refForSefariaHttpApi(parentChunk, sqlite);
+    const links = linksByIndex[origIdx] || [];
     const sortedLinks = [...links].sort((a, b) => expansionLinkPriority(a) - expansionLinkPriority(b));
 
     let taken = 0;
@@ -382,6 +560,27 @@ export async function graphAugmentRetrieval(
       taken++;
     }
   }
+
+  // #region agent log
+  fetch("http://127.0.0.1:7515/ingest/707c4da3-8276-4925-90ea-9c09214a05ad", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "e31aa4" },
+    body: JSON.stringify({
+      sessionId: "e31aa4",
+      runId: process.env.KOL_HATORAH_DEBUG_RUN_ID ?? "graph-debug",
+      hypothesisId: "H3",
+      location: "graphAugmentRetrieval.ts:post-expansion",
+      message: "neighbor expansion outcome",
+      data: {
+        addedNeighbors: debug.addedNeighbors.length,
+        unmappedNeighborRefs: debug.unmappedNeighborRefs.length,
+        rerankOrderChanged:
+          debug.originalTop.map((x) => x.ref).join("|") !== debug.rerankedTop.map((x) => x.ref).join("|"),
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
 
   let merged: { chunk: Chunk; sortKey: number; promptScore: number }[] = [
     ...order.map((origIdx) => ({
