@@ -10,8 +10,7 @@
 import path from "path";
 import fs from "fs/promises";
 import { getConfig } from "@kol-hatorah/core";
-import { createDocId, createChunkIdFromRef } from "../ingest/ingestTanakhCommentaries";
-import { extractCommentaryLeaves, encodeSectionPath, type SectionPathComponent } from "../ingest/commentaryExtractor";
+import { flattenMergedExportText } from "../sefariaLoader";
 
 const DEFAULT_SAMPLE =
   "Rishonim on Tanakh/Rashi/Torah/Rashi on Leviticus/Hebrew/merged.json";
@@ -50,29 +49,19 @@ async function main() {
     process.exit(1);
   }
 
-  const docId = createDocId(relPath);
-  const leaves: Array<{ sectionPath: unknown[]; text: string }> = [];
-  for (const leaf of extractCommentaryLeaves(text)) {
-    leaves.push({ sectionPath: leaf.sectionPath, text: leaf.text });
-  }
+  const leaves = flattenMergedExportText(title, text);
 
   console.log("--- Commentary inspection ---");
   console.log("file:", relPath);
   console.log("title:", title);
-  console.log("docId:", docId);
   console.log("total leaf count:", leaves.length);
   console.log("");
   console.log("First 3 refs + preview (120 chars):");
 
   for (let i = 0; i < Math.min(3, leaves.length); i++) {
     const leaf = leaves[i];
-    const encoded = encodeSectionPath(leaf.sectionPath as SectionPathComponent[]);
-    const ref = `${docId}:${encoded}`;
-    const id = createChunkIdFromRef(ref);
     const preview = leaf.text.slice(0, 120) + (leaf.text.length > 120 ? "..." : "");
-    console.log(`  [${i + 1}] ref: ${ref}`);
-    console.log(`      id: ${id}`);
-    console.log(`      sectionPath: ${JSON.stringify(leaf.sectionPath)}`);
+    console.log(`  [${i + 1}] ref: ${leaf.ref}`);
     console.log(`      preview: ${preview}`);
     console.log("");
   }

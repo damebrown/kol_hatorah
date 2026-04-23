@@ -3,13 +3,14 @@ import path from "path";
 import pLimit from "p-limit";
 import {
   Chunk,
+  createEmbeddingService,
   createLogger,
   createQdrantClient,
   ensureCollection,
   getConfig,
-  OpenAIService,
   upsertChunksWithVectors,
 } from "@kol-hatorah/core";
+import { loadCheckpoint, saveCheckpoint } from "./checkpoint";
 import { findHebrewMergedFile, WorkTarget } from "../sefariaLoader";
 import { getSQLiteManager } from "../storage/sqlite";
 import { loadBavliLeavesFromMergedText, resolveBavliRefContext } from "./bavli/loadMergedLeaves";
@@ -76,19 +77,11 @@ export async function runIngestBavli(opts: IngestBavliOpts): Promise<void> {
   const qdrantClient = doQdrant
     ? createQdrantClient({ url: config.qdrant.url, apiKey: config.qdrant.apiKey })
     : null;
-  const openaiService = doQdrant ? new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel) : null;
+  const embeddingService = doQdrant ? createEmbeddingService(config) : null;
   const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
 
-  const checkpointPath = path.join(process.cwd(), SEFARIA_BAVLI_CHECKPOINT);
-  let checkpoint: Record<string, boolean> = {};
-  if (!opts.reset) {
-    try {
-      checkpoint = JSON.parse(await fs.readFile(checkpointPath, "utf8"));
-      logger.info({ done: Object.keys(checkpoint).length }, "Loaded Bavli checkpoint.");
-    } catch {
-      logger.info("No Bavli checkpoint found; starting fresh.");
-    }
-  }
+  let checkpoint = opts.reset ? {} : await loadCheckpoint(SEFARIA_BAVLI_CHECKPOINT);
+  logger.info({ done: Object.keys(checkpoint).length }, "Loaded Bavli checkpoint.");
 
   const sqlite = doSqlite ? await getSQLiteManager() : null;
   let totalSegments = 0;
@@ -108,8 +101,7 @@ export async function runIngestBavli(opts: IngestBavliOpts): Promise<void> {
       if (!findResult.filePath) {
         logger.warn({ work }, "No Hebrew merged.json found for tractate; marking checkpoint.");
         checkpoint[work] = true;
-        await fs.mkdir(path.dirname(checkpointPath), { recursive: true });
-        await fs.writeFile(checkpointPath, JSON.stringify(checkpoint, null, 2));
+        await saveCheckpoint(SEFARIA_BAVLI_CHECKPOINT, checkpoint);
         continue;
       }
 
@@ -146,8 +138,7 @@ export async function runIngestBavli(opts: IngestBavliOpts): Promise<void> {
       if (!leaves.length) {
         logger.warn({ work }, "No leaves extracted; marking checkpoint.");
         checkpoint[work] = true;
-        await fs.mkdir(path.dirname(checkpointPath), { recursive: true });
-        await fs.writeFile(checkpointPath, JSON.stringify(checkpoint, null, 2));
+        await saveCheckpoint(SEFARIA_BAVLI_CHECKPOINT, checkpoint);
         continue;
       }
 
@@ -221,9 +212,9 @@ export async function runIngestBavli(opts: IngestBavliOpts): Promise<void> {
 
         allChunks.push(...enriched.map((e) => e.chunk));
 
-        if (doQdrant && openaiService) {
+        if (doQdrant && embeddingService) {
           const texts = enriched.map((e) => e.chunk.text);
-          const emb = await openaiService.embedTexts(texts, { batchSize: embedBatchSize });
+          const emb = await embeddingService.embedTexts(texts, { inputType: "search_document", batchSize: embedBatchSize });
           if (emb.length !== enriched.length) {
             logger.error({ work }, "Embedding count mismatch; aborting tractate.");
             process.exitCode = 1;
@@ -236,7 +227,7 @@ export async function runIngestBavli(opts: IngestBavliOpts): Promise<void> {
         logger.info({ work, batchDone: totalSegments, tractateTotal: leaves.length }, "Bavli batch stored");
       }
 
-      if (doQdrant && openaiService && qdrantClient && allChunks.length) {
+      if (doQdrant && embeddingService && qdrantClient && allChunks.length) {
         const vectorSize = allEmbeddings[0].length;
         await ensureCollection(qdrantClient, collectionName, vectorSize);
         for (let i = 0; i < allChunks.length; i += qdrantBatchSize) {
@@ -248,8 +239,7 @@ export async function runIngestBavli(opts: IngestBavliOpts): Promise<void> {
       }
 
       checkpoint[work] = true;
-      await fs.mkdir(path.dirname(checkpointPath), { recursive: true });
-      await fs.writeFile(checkpointPath, JSON.stringify(checkpoint, null, 2));
+      await saveCheckpoint(SEFARIA_BAVLI_CHECKPOINT, checkpoint);
     }
   } finally {
     sqlite?.close();

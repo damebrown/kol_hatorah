@@ -1,35 +1,34 @@
 /**
  * Ingestion pipeline for Tanakh commentaries from Sefaria export.
- * Scope: Rishonim on Tanakh, Acharonim on Tanakh, Modern Commentary on Tanakh.
+ * Scope: Rashi, Ramban, Ibn Ezra, Sforno, Kli Yakar (allowlist in tanakhCommentaryAllowlist.ts).
  *
- * Qdrant upsert tuning (env vars, overridable via CLI):
- *   QDRANT_UPSERT_TIMEOUT_MS   - Client timeout in ms (default 300000)
- *   QDRANT_UPSERT_BATCH_SIZE   - Chunks per upsert batch (default 32)
- *   QDRANT_UPSERT_CONCURRENCY  - Max parallel upserts (default 6)
- *
- * CLI flags: --qdrant-batch-size N, --qdrant-concurrency N
+ * Fixes vs old version:
+ *  - Refs now use flattenMergedExportText → proper "Rashi on Genesis 1:1" format, not docId:path
+ *  - Segments enriched via enrichSefariaMergedSegment (Sefaria Name API + links), matching Bavli/Corpora
+ *  - SQLite opened once per run (not per file)
+ *  - Embedding via createEmbeddingService (supports both OpenAI and Cohere)
+ *  - Checkpoint uses shared checkpoint.ts helpers
  */
 
 import path from "path";
 import fs from "fs/promises";
-import { createHash } from "crypto";
 import pLimit from "p-limit";
 import {
   getConfig,
   createLogger,
   createQdrantClient,
+  createEmbeddingService,
   ensureCollection,
   upsertChunksWithVectors,
-  OpenAIService,
   Chunk,
 } from "@kol-hatorah/core";
 import { getSQLiteManager } from "../storage/sqlite";
-import {
-  extractCommentaryLeaves,
-  encodeSectionPath,
-  type SectionPathComponent,
-} from "./commentaryExtractor";
+import { flattenMergedExportText } from "../sefariaLoader";
+import { enrichSefariaMergedSegment } from "./enrichSefariaMergedSegment";
 import { splitOversizedChunks, MAX_EMBED_CHARS } from "./splitOversizedChunks";
+import { loadCheckpoint, saveCheckpoint } from "./checkpoint";
+import { isAllowlistedTanakhCommentaryWork } from "./tanakhCommentaryAllowlist";
+import { fetchWorkIndexSubset } from "./bavli/sefariaApi";
 
 const COMMENTARY_BASE_DIRS = [
   "Rishonim on Tanakh",
@@ -37,44 +36,23 @@ const COMMENTARY_BASE_DIRS = [
   "Modern Commentary on Tanakh",
 ];
 
-const MERGED_JSON = "merged.json";
+const CHECKPOINT_PATH = ".checkpoints/sefaria-tanakh-commentaries.json";
 
-export type CommentaryFamily = "rishonim" | "acharonim" | "modern";
-
-function getFamilyFromRelPath(relPath: string): CommentaryFamily {
-  if (relPath.startsWith("Rishonim on Tanakh/")) return "rishonim";
-  if (relPath.startsWith("Acharonim on Tanakh/")) return "acharonim";
-  if (relPath.startsWith("Modern Commentary on Tanakh/")) return "modern";
-  return "rishonim";
-}
-
-async function collectMergedJsonFiles(
-  dir: string,
-  base: string,
-  acc: string[] = []
-): Promise<string[]> {
+async function collectMergedJsonFiles(dir: string, base: string, acc: string[] = []): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   for (const e of entries) {
     const full = path.join(dir, e.name);
     const rel = path.relative(base, full).replace(/\\/g, "/");
     if (e.isDirectory()) {
       await collectMergedJsonFiles(full, base, acc);
-    } else if (e.name === MERGED_JSON) {
-      // Only Hebrew; path structure is .../Hebrew/merged.json or .../English/merged.json
-      if (rel.endsWith("/Hebrew/merged.json")) {
-        acc.push(rel);
-      }
+    } else if (e.name === "merged.json" && rel.endsWith("/Hebrew/merged.json")) {
+      acc.push(full);
     }
   }
   return acc;
 }
 
-/**
- * Discover all merged.json under the 3 commentary base directories.
- */
-export async function discoverCommentaryFiles(
-  tanakhRoot: string
-): Promise<string[]> {
+export async function discoverCommentaryFiles(tanakhRoot: string): Promise<string[]> {
   const all: string[] = [];
   for (const sub of COMMENTARY_BASE_DIRS) {
     const dir = path.join(tanakhRoot, sub);
@@ -89,229 +67,193 @@ export async function discoverCommentaryFiles(
   return all.sort();
 }
 
-export function createDocId(relPath: string): string {
-  return createHash("sha1").update(relPath).digest("hex").substring(0, 16);
-}
-
-export function createChunkIdFromRef(ref: string): string {
-  return createHash("sha1").update(ref).digest("hex").substring(0, 32);
-}
-
-export interface CommentaryChunk {
-  id: string;
-  text: string;
-  source: string;
-  type: "tanakh_commentary";
-  work: string;
-  ref: string;
-  normalizedRef: string;
-  lang: "he" | "en";
-  createdAt: string;
-  sourcePath?: string;
-  family?: CommentaryFamily;
-  sectionNames?: string[];
-  sectionPath?: SectionPathComponent[];
-}
-
 export async function runIngestTanakhCommentaries(opts: {
   limit?: number;
   reset?: boolean;
   resetPaths?: string[];
   doQdrant?: boolean;
   doSqlite?: boolean;
-  /** Qdrant upsert batch size (default from QDRANT_UPSERT_BATCH_SIZE or 16). */
+  loadBatchSize?: number;
+  apiConcurrency?: number;
+  embedBatchSize?: number;
   qdrantBatchSize?: number;
-  /** Max concurrent Qdrant upserts (default from QDRANT_UPSERT_CONCURRENCY or 4). */
-  qdrantConcurrency?: number;
 }): Promise<void> {
-  const {
-    limit = 0,
-    reset = false,
-    resetPaths = [],
-    doQdrant = true,
-    doSqlite = true,
-    qdrantBatchSize,
-    qdrantConcurrency,
-  } = opts;
-
   const config = getConfig();
   const logger = createLogger(config);
 
   if (!config.sefariaExportPath) {
     logger.error("SEFARIA_EXPORT_PATH is not configured in .env.");
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
+
+  const doQdrant = opts.doQdrant !== false;
+  const doSqlite = opts.doSqlite !== false;
+  const loadBatchSize = opts.loadBatchSize ?? 64;
+  const apiConcurrency = opts.apiConcurrency ?? 2;
+  const embedBatchSize = opts.embedBatchSize ?? 32;
+  const qdrantBatchSize = opts.qdrantBatchSize ?? 32;
+  const globalLimit = opts.limit && opts.limit > 0 ? opts.limit : 0;
 
   const tanakhRoot = path.join(config.sefariaExportPath, "json", "Tanakh");
-  const files = await discoverCommentaryFiles(tanakhRoot);
-  logger.info({ count: files.length }, "Discovered commentary merged.json files");
+  const allFiles = await discoverCommentaryFiles(tanakhRoot);
+  logger.info({ count: allFiles.length }, "Discovered commentary merged.json files");
 
-  const checkpointFilePath = path.join(process.cwd(), ".checkpoints/sefaria-tanakh-commentaries.json");
-  let checkpoint: Record<string, boolean> = {};
-  if (!reset) {
-    try {
-      const data = await fs.readFile(checkpointFilePath, "utf8");
-      checkpoint = JSON.parse(data);
-      logger.info({ done: Object.keys(checkpoint).length }, "Loaded checkpoint.");
-    } catch {
-      logger.info("No checkpoint found; starting fresh.");
-    }
+  let checkpoint = opts.reset ? {} : await loadCheckpoint(CHECKPOINT_PATH);
+  if (opts.resetPaths?.length) {
+    for (const p of opts.resetPaths) delete checkpoint[p];
   }
-
-  for (const p of resetPaths) {
-    delete checkpoint[p];
-  }
-
-  const upsertTimeoutMs = parseInt(process.env.QDRANT_UPSERT_TIMEOUT_MS || "300000", 10);
-  const batchSize = qdrantBatchSize ?? parseInt(process.env.QDRANT_UPSERT_BATCH_SIZE || "32", 10);
-  const concurrency = qdrantConcurrency ?? parseInt(process.env.QDRANT_UPSERT_CONCURRENCY || "6", 10);
 
   const qdrantClient = doQdrant
-    ? createQdrantClient({
-        url: config.qdrant.url,
-        apiKey: config.qdrant.apiKey,
-        timeout: upsertTimeoutMs,
-      })
+    ? createQdrantClient({ url: config.qdrant.url, apiKey: config.qdrant.apiKey })
     : null;
-  const openaiService = doQdrant ? new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel) : null;
+  const embeddingService = doQdrant ? createEmbeddingService(config) : null;
   const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
 
-  const limitFn = pLimit(concurrency);
+  const limitFn = pLimit(apiConcurrency);
   let totalChunks = 0;
   let filesProcessed = 0;
+  let limitLeft = globalLimit;
 
-  for (const relPath of files) {
-    if (checkpoint[relPath]) {
-      continue;
-    }
-    if (limit > 0 && totalChunks >= limit) break;
+  const sqlite = doSqlite ? await getSQLiteManager() : null;
 
-    const absPath = path.join(tanakhRoot, relPath);
-    let parsed: any;
-    try {
-      const raw = await fs.readFile(absPath, "utf8");
-      parsed = JSON.parse(raw);
-    } catch (err) {
-      logger.warn({ relPath, err }, "Failed to read/parse file; skipping.");
-      checkpoint[relPath] = true;
-      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-      continue;
-    }
+  try {
+    for (const absPath of allFiles) {
+      if (globalLimit > 0 && limitLeft <= 0) break;
+      if (!opts.reset && checkpoint[absPath]) continue;
 
-    const title = parsed?.title ?? "Unknown";
-    const lang = parsed?.language === "en" ? "en" : "he";
-    const sectionNames = Array.isArray(parsed?.sectionNames) ? parsed.sectionNames : [];
-    const text = parsed?.text;
-    if (!text) {
-      checkpoint[relPath] = true;
-      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-      continue;
-    }
-
-    const family = getFamilyFromRelPath(relPath);
-    const docId = createDocId(relPath);
-    const chunks: CommentaryChunk[] = [];
-    const createdAt = new Date().toISOString();
-
-    for (const leaf of extractCommentaryLeaves(text)) {
-      const encoded = encodeSectionPath(leaf.sectionPath);
-      const ref = `${docId}:${encoded}`;
-      const id = createChunkIdFromRef(ref);
-      chunks.push({
-        id,
-        text: leaf.text,
-        source: "sefaria",
-        type: "tanakh_commentary",
-        work: title,
-        ref,
-        normalizedRef: ref,
-        lang,
-        createdAt,
-        sourcePath: relPath,
-        family,
-        sectionNames,
-        sectionPath: leaf.sectionPath,
-      });
-    }
-
-    if (chunks.length === 0) {
-      checkpoint[relPath] = true;
-      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-      continue;
-    }
-
-    const chunksAfterSplit = splitOversizedChunks(chunks, MAX_EMBED_CHARS, logger);
-
-    const remaining = limit > 0 ? Math.max(0, limit - totalChunks) : chunksAfterSplit.length;
-    const toIngest = limit > 0 ? chunksAfterSplit.slice(0, remaining) : chunksAfterSplit;
-    if (toIngest.length === 0) break;
-
-    const chunkPayloads = toIngest as Chunk[];
-
-    if (doSqlite) {
-      const sqlite = await getSQLiteManager();
+      let parsed: { title?: string; language?: string; text?: unknown; versionTitle?: string; license?: string; attribution?: string } | null = null;
       try {
-        sqlite.insertSegments(chunkPayloads);
-      } finally {
-        sqlite.close();
+        parsed = JSON.parse(await fs.readFile(absPath, "utf8"));
+      } catch (e) {
+        logger.warn({ absPath, err: String(e) }, "Failed to read/parse file; skipping");
+        checkpoint[absPath] = true;
+        await saveCheckpoint(CHECKPOINT_PATH, checkpoint);
+        continue;
       }
-    }
 
-    if (doQdrant && openaiService && qdrantClient) {
-      const textsToEmbed = toIngest.map((c) => c.text);
-      const embeddings = await openaiService.embedTexts(textsToEmbed);
-      if (embeddings.length) {
-        const vectorSize = embeddings[0].length;
-        await ensureCollection(qdrantClient, collectionName, vectorSize);
+      if (!parsed?.text) {
+        checkpoint[absPath] = true;
+        await saveCheckpoint(CHECKPOINT_PATH, checkpoint);
+        continue;
+      }
 
-        const minBatchForSplit = 8;
-        const upsertOne = (b: Chunk[], v: number[][]) =>
-          upsertChunksWithVectors(qdrantClient, collectionName, b, v, {
-            onRetry: (r) =>
-              logger.warn(
-                { collection: r.collection, batchSize: r.batchSize, attempt: r.attempt, firstId: r.firstId, lastId: r.lastId, error: r.error },
-                "Qdrant upsert retry"
-              ),
-          });
+      const title = typeof parsed.title === "string" ? parsed.title : "";
+      if (!title) {
+        logger.warn({ absPath }, "merged.json missing title; skipping");
+        checkpoint[absPath] = true;
+        await saveCheckpoint(CHECKPOINT_PATH, checkpoint);
+        continue;
+      }
 
-        const upsertWithFallback = async (b: Chunk[], v: number[][]): Promise<void> => {
-          try {
-            await upsertOne(b, v);
-          } catch (err) {
-            if (b.length > minBatchForSplit) {
-              const mid = Math.floor(b.length / 2);
-              await upsertWithFallback(b.slice(0, mid), v.slice(0, mid));
-              await upsertWithFallback(b.slice(mid), v.slice(mid));
-            } else {
-              throw err;
-            }
+      if (!isAllowlistedTanakhCommentaryWork(title)) {
+        logger.debug({ title, absPath }, "Commentary not in allowlist; skipping");
+        checkpoint[absPath] = true;
+        await saveCheckpoint(CHECKPOINT_PATH, checkpoint);
+        continue;
+      }
+
+      const flat = flattenMergedExportText(title, parsed.text);
+      const leaves = flat.filter(x => x.text.trim().length > 0).map(x => ({ exportRef: x.ref, text: x.text }));
+
+      if (!leaves.length) {
+        checkpoint[absPath] = true;
+        await saveCheckpoint(CHECKPOINT_PATH, checkpoint);
+        continue;
+      }
+
+      logger.info({ title, absPath, segments: leaves.length }, "Commentary work loaded from export");
+
+      if (sqlite) {
+        try {
+          const idx = await fetchWorkIndexSubset(title);
+          if (idx) {
+            sqlite.upsertCorpusWork({
+              corpus: "tanakh_commentary",
+              work: title,
+              title: idx.title ?? title,
+              he_title: idx.heTitle ?? null,
+              primary_category: idx.primaryCategory ?? null,
+              categories_json: idx.categories?.length ? JSON.stringify(idx.categories) : null,
+              section_names_json: idx.sectionNames?.length ? JSON.stringify(idx.sectionNames) : null,
+              address_types_json: idx.addressTypes?.length ? JSON.stringify(idx.addressTypes) : null,
+              updated_at: new Date().toISOString(),
+            });
           }
-        };
-
-        const batchPromises: Promise<void>[] = [];
-        for (let i = 0; i < toIngest.length; i += batchSize) {
-          const batch = chunkPayloads.slice(i, i + batchSize);
-          const vectorBatch = embeddings.slice(i, i + batchSize);
-          batchPromises.push(limitFn(() => upsertWithFallback(batch, vectorBatch)));
+        } catch (e) {
+          logger.warn({ title, err: String(e) }, "Work index fetch failed; continuing");
         }
-        logger.info({ batches: batchPromises.length, concurrency, batchSize }, "Qdrant upsert in flight");
-        await Promise.all(batchPromises);
       }
+
+      const allChunks: Chunk[] = [];
+      const allEmbeddings: number[][] = [];
+
+      for (let offset = 0; offset < leaves.length; offset += loadBatchSize) {
+        if (globalLimit > 0 && limitLeft <= 0) break;
+        const remain = globalLimit > 0 ? limitLeft : leaves.length;
+        const batch = leaves.slice(offset, offset + Math.min(loadBatchSize, remain));
+        if (!batch.length) break;
+
+        const enriched = await Promise.all(
+          batch.map(leaf =>
+            limitFn(() =>
+              enrichSefariaMergedSegment({
+                work: title,
+                exportRef: leaf.exportRef,
+                text: leaf.text,
+                segmentType: "tanakh_commentary",
+                versionTitle: parsed!.versionTitle,
+                license: parsed!.license,
+                attribution: parsed!.attribution,
+                sourceWorkForLinks: title,
+                logger,
+              })
+            )
+          )
+        );
+
+        const chunks = splitOversizedChunks(enriched.map(e => e.chunk), MAX_EMBED_CHARS, logger);
+
+        if (sqlite) {
+          sqlite.insertSegments(chunks);
+          sqlite.applyEnrichmentBatch(enriched.map(e => e.enrichment));
+        }
+
+        allChunks.push(...chunks);
+        if (globalLimit > 0) limitLeft = Math.max(0, limitLeft - batch.length);
+
+        if (doQdrant && embeddingService) {
+          const texts = chunks.map(c => c.text);
+          const emb = await embeddingService.embedTexts(texts, { inputType: "search_document", batchSize: embedBatchSize });
+          if (emb.length !== chunks.length) {
+            logger.error({ title, absPath }, "Embedding count mismatch; aborting file");
+            process.exitCode = 1;
+            return;
+          }
+          allEmbeddings.push(...emb);
+        }
+
+        logger.info({ title, stored: allChunks.length, fileTotal: leaves.length }, "Commentary batch processed");
+      }
+
+      if (doQdrant && embeddingService && qdrantClient && allChunks.length && allEmbeddings.length) {
+        const vectorSize = allEmbeddings[0].length;
+        await ensureCollection(qdrantClient, collectionName, vectorSize);
+        for (let i = 0; i < allChunks.length; i += qdrantBatchSize) {
+          await upsertChunksWithVectors(qdrantClient, collectionName, allChunks.slice(i, i + qdrantBatchSize), allEmbeddings.slice(i, i + qdrantBatchSize));
+        }
+        logger.info({ title, qdrantChunks: allChunks.length }, "Qdrant upsert complete");
+      }
+
+      totalChunks += allChunks.length;
+      filesProcessed += 1;
+      checkpoint[absPath] = true;
+      await saveCheckpoint(CHECKPOINT_PATH, checkpoint);
+      logger.info({ title, chunks: allChunks.length, totalChunks }, "Ingested commentary file");
     }
-
-    totalChunks += toIngest.length;
-    filesProcessed += 1;
-    checkpoint[relPath] = true;
-    await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-    await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-
-    logger.info({ relPath, chunks: toIngest.length, totalChunks }, "Ingested file");
-
-    if (limit > 0 && totalChunks >= limit) break;
+  } finally {
+    sqlite?.close();
   }
 
-  logger.info({ totalChunks, filesProcessed }, "✅ Tanakh commentaries ingestion complete.");
+  logger.info({ totalChunks, filesProcessed }, "Tanakh commentaries ingestion complete");
 }

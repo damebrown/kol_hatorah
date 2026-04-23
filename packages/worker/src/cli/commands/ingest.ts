@@ -5,11 +5,12 @@ import {
   getConfig,
   createLogger,
   createQdrantClient,
+  createEmbeddingService,
   ensureCollection,
   upsertChunksWithVectors,
   TextType,
-  OpenAIService,
 } from "@kol-hatorah/core";
+import { loadCheckpoint, saveCheckpoint } from "../../ingest/checkpoint";
 import { findHebrewMergedFile, loadSefariaSegmentsFromMerged } from "../../sefariaLoader";
 import { getSQLiteManager } from "../../storage/sqlite";
 import { runIngestTanakhCommentaries } from "../../ingest/ingestTanakhCommentaries";
@@ -69,100 +70,69 @@ export async function ingestSefariaTanakhAllCommand() {
   }
 
   const qdrantClient = doQdrant
-    ? createQdrantClient({
-        url: config.qdrant.url,
-        apiKey: config.qdrant.apiKey,
-      })
+    ? createQdrantClient({ url: config.qdrant.url, apiKey: config.qdrant.apiKey })
     : null;
-  const openaiService = doQdrant ? new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel) : null;
+  const embeddingService = doQdrant ? createEmbeddingService(config) : null;
   const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
   logger.info({ collectionName, limit, doQdrant, doSqlite }, "Ingesting Tanakh...");
 
-  const checkpointFilePath = path.join(process.cwd(), SEFARIA_TANAKH_ALL_CHECKPOINT_FILE);
-  let checkpoint: Record<string, boolean> = {};
-  if (!reset) {
-    try {
-      const checkpointData = await fs.readFile(checkpointFilePath, "utf8");
-      checkpoint = JSON.parse(checkpointData);
-      logger.info({ done: Object.keys(checkpoint).length }, "Loaded tanakh checkpoint.");
-    } catch {
-      logger.info("No tanakh checkpoint found; starting fresh.");
-    }
-  }
+  let checkpoint = reset ? {} : await loadCheckpoint(SEFARIA_TANAKH_ALL_CHECKPOINT_FILE);
+  logger.info({ done: Object.keys(checkpoint).length }, "Loaded tanakh checkpoint.");
 
+  const sqlite = doSqlite ? await getSQLiteManager() : null;
   let ingestedCount = 0;
-  for (const work of remainingWorks) {
-    if (limit > 0 && ingestedCount >= limit) break;
-    if (resetWork.includes(work)) {
-      delete checkpoint[work];
-    }
-    if (checkpoint[work]) {
-      logger.info({ work }, "Skipping (already ingested in checkpoint).");
-      continue;
-    }
 
-    const target: any = { type: "tanakh", work, categoryGuess: "Tanakh" };
-    const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target);
-    if (!findResult.filePath) {
-      logger.warn({ work }, "No Hebrew merged file found in category root; skipping.");
-      if (findResult.candidates.length) {
-        logger.info({ candidates: findResult.candidates.slice(0, 5) }, "Closest candidates");
+  try {
+    for (const work of remainingWorks) {
+      if (limit > 0 && ingestedCount >= limit) break;
+      if (resetWork.includes(work)) delete checkpoint[work];
+      if (checkpoint[work]) {
+        logger.info({ work }, "Skipping (already ingested in checkpoint).");
+        continue;
       }
-      checkpoint[work] = true;
-      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-      continue;
-    }
 
-    logger.info({ work, mergedPath: findResult.filePath }, "Loading Sefaria segments...");
-    const segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target);
-    if (!segments.length) {
-      logger.warn({ work }, "No segments loaded; skipping.");
-      checkpoint[work] = true;
-      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-      continue;
-    }
-
-    if (doSqlite) {
-      const sqlite = await getSQLiteManager();
-      try {
-        sqlite.insertSegments(segments);
-      } finally {
-        sqlite.close();
+      const target: any = { type: "tanakh", work, categoryGuess: "Tanakh" };
+      const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target);
+      if (!findResult.filePath) {
+        logger.warn({ work }, "No Hebrew merged file found in category root; skipping.");
+        checkpoint[work] = true;
+        await saveCheckpoint(SEFARIA_TANAKH_ALL_CHECKPOINT_FILE, checkpoint);
+        continue;
       }
-    }
 
-    if (doQdrant && openaiService && qdrantClient) {
-      const textsToEmbed = segments.map((c) => c.text);
-      const embeddings = await openaiService.embedTexts(textsToEmbed);
-      if (!embeddings.length) {
-        logger.warn({ work: target.work }, "No embeddings generated; skipping Qdrant upsert.");
-      } else {
-        const vectorSize = embeddings[0].length;
-        await ensureCollection(qdrantClient, collectionName, vectorSize);
+      logger.info({ work, mergedPath: findResult.filePath }, "Loading Sefaria segments...");
+      const segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target);
+      if (!segments.length) {
+        logger.warn({ work }, "No segments loaded; skipping.");
+        checkpoint[work] = true;
+        await saveCheckpoint(SEFARIA_TANAKH_ALL_CHECKPOINT_FILE, checkpoint);
+        continue;
+      }
 
-        const UPSERT_BATCH_SIZE = 32;
-        for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
-          const chunkBatch = segments.slice(i, i + UPSERT_BATCH_SIZE);
-          const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
-          await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
+      if (sqlite) sqlite.insertSegments(segments);
+
+      if (doQdrant && embeddingService && qdrantClient) {
+        const embeddings = await embeddingService.embedTexts(segments.map(c => c.text), { inputType: "search_document" });
+        if (!embeddings.length) {
+          logger.warn({ work }, "No embeddings generated; skipping Qdrant upsert.");
+        } else {
+          const vectorSize = embeddings[0].length;
+          await ensureCollection(qdrantClient, collectionName, vectorSize);
+          const UPSERT_BATCH_SIZE = 32;
+          for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
+            await upsertChunksWithVectors(qdrantClient, collectionName, segments.slice(i, i + UPSERT_BATCH_SIZE), embeddings.slice(i, i + UPSERT_BATCH_SIZE));
+          }
         }
       }
+
+      ingestedCount += segments.length;
+      checkpoint[work] = true;
+      await saveCheckpoint(SEFARIA_TANAKH_ALL_CHECKPOINT_FILE, checkpoint);
+      ingestedSummary.push({ work, path: findResult.filePath, destinations: [...(doSqlite ? ["sqlite"] : []), ...(doQdrant ? [collectionName] : [])] });
+      logger.info({ work, added: segments.length, totalIngested: ingestedCount }, "Ingested work and checkpoint saved.");
     }
-
-    ingestedCount += segments.length;
-    checkpoint[work] = true;
-    await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-    await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-    ingestedSummary.push({
-      work,
-      path: findResult.filePath,
-      destinations: [...(doSqlite ? ["sqlite"] : []), ...(doQdrant ? [collectionName] : [])],
-    });
-    logger.info({ work, added: segments.length, totalIngested: ingestedCount }, "Ingested work and checkpoint saved.");
-
-    if (limit > 0 && ingestedCount >= limit) break;
+  } finally {
+    sqlite?.close();
   }
 
   logger.info({ ingestedCount, ingestedSummary }, "✅ Tanakh ingestion complete.");
@@ -211,99 +181,68 @@ export async function ingestSefariaMishnahAllCommand() {
   }
 
   const qdrantClient = doQdrant
-    ? createQdrantClient({
-        url: config.qdrant.url,
-        apiKey: config.qdrant.apiKey,
-      })
+    ? createQdrantClient({ url: config.qdrant.url, apiKey: config.qdrant.apiKey })
     : null;
-  const openaiService = doQdrant ? new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel) : null;
+  const embeddingService = doQdrant ? createEmbeddingService(config) : null;
   const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
 
-  const checkpointFilePath = path.join(process.cwd(), SEFARIA_MISHNAH_ALL_CHECKPOINT_FILE);
-  let checkpoint: Record<string, boolean> = {};
-  if (!reset) {
-    try {
-      const checkpointData = await fs.readFile(checkpointFilePath, "utf8");
-      checkpoint = JSON.parse(checkpointData);
-      logger.info({ done: Object.keys(checkpoint).length }, "Loaded mishnah checkpoint.");
-    } catch {
-      logger.info("No mishnah checkpoint found; starting fresh.");
-    }
-  }
+  let checkpoint = reset ? {} : await loadCheckpoint(SEFARIA_MISHNAH_ALL_CHECKPOINT_FILE);
+  logger.info({ done: Object.keys(checkpoint).length }, "Loaded mishnah checkpoint.");
 
+  const sqlite = doSqlite ? await getSQLiteManager() : null;
   let ingestedCount = 0;
-  for (const work of tractates) {
-    if (limit > 0 && ingestedCount >= limit) break;
-    if (resetWork.includes(work)) {
-      delete checkpoint[work];
-    }
-    if (checkpoint[work]) {
-      logger.info({ work }, "Skipping (already ingested in checkpoint).");
-      continue;
-    }
 
-    const target: any = { type: "mishnah", work, categoryGuess: "Mishnah" as const };
-    const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target);
-    if (!findResult.filePath) {
-      logger.warn({ work }, "No Hebrew merged file found; skipping.");
-      if (findResult.candidates.length) {
-        logger.info({ candidates: findResult.candidates.slice(0, 5) }, "Closest candidates");
+  try {
+    for (const work of tractates) {
+      if (limit > 0 && ingestedCount >= limit) break;
+      if (resetWork.includes(work)) delete checkpoint[work];
+      if (checkpoint[work]) {
+        logger.info({ work }, "Skipping (already ingested in checkpoint).");
+        continue;
       }
-      checkpoint[work] = true;
-      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-      continue;
-    }
 
-    logger.info({ work, mergedPath: findResult.filePath }, "Loading Sefaria segments...");
-    const segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target);
-    if (!segments.length) {
-      logger.warn({ work }, "No segments loaded; skipping.");
-      checkpoint[work] = true;
-      await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-      await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-      continue;
-    }
-
-    if (doSqlite) {
-      const sqlite = await getSQLiteManager();
-      try {
-        sqlite.insertSegments(segments);
-      } finally {
-        sqlite.close();
+      const target: any = { type: "mishnah", work, categoryGuess: "Mishnah" as const };
+      const findResult = await findHebrewMergedFile(config.sefariaExportPath!, target);
+      if (!findResult.filePath) {
+        logger.warn({ work }, "No Hebrew merged file found; skipping.");
+        checkpoint[work] = true;
+        await saveCheckpoint(SEFARIA_MISHNAH_ALL_CHECKPOINT_FILE, checkpoint);
+        continue;
       }
-    }
 
-    if (doQdrant && openaiService && qdrantClient) {
-      const textsToEmbed = segments.map((c) => c.text);
-      const embeddings = await openaiService.embedTexts(textsToEmbed);
-      if (!embeddings.length) {
-        logger.warn({ work: target.work }, "No embeddings generated; skipping Qdrant upsert.");
-      } else {
-        const vectorSize = embeddings[0].length;
-        await ensureCollection(qdrantClient, collectionName, vectorSize);
+      logger.info({ work, mergedPath: findResult.filePath }, "Loading Sefaria segments...");
+      const segments = await loadSefariaSegmentsFromMerged(findResult.filePath, target);
+      if (!segments.length) {
+        logger.warn({ work }, "No segments loaded; skipping.");
+        checkpoint[work] = true;
+        await saveCheckpoint(SEFARIA_MISHNAH_ALL_CHECKPOINT_FILE, checkpoint);
+        continue;
+      }
 
-        const UPSERT_BATCH_SIZE = 32;
-        for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
-          const chunkBatch = segments.slice(i, i + UPSERT_BATCH_SIZE);
-          const vectorBatch = embeddings.slice(i, i + UPSERT_BATCH_SIZE);
-          await upsertChunksWithVectors(qdrantClient, collectionName, chunkBatch, vectorBatch);
+      if (sqlite) sqlite.insertSegments(segments);
+
+      if (doQdrant && embeddingService && qdrantClient) {
+        const embeddings = await embeddingService.embedTexts(segments.map(c => c.text), { inputType: "search_document" });
+        if (!embeddings.length) {
+          logger.warn({ work }, "No embeddings generated; skipping Qdrant upsert.");
+        } else {
+          const vectorSize = embeddings[0].length;
+          await ensureCollection(qdrantClient, collectionName, vectorSize);
+          const UPSERT_BATCH_SIZE = 32;
+          for (let i = 0; i < segments.length; i += UPSERT_BATCH_SIZE) {
+            await upsertChunksWithVectors(qdrantClient, collectionName, segments.slice(i, i + UPSERT_BATCH_SIZE), embeddings.slice(i, i + UPSERT_BATCH_SIZE));
+          }
         }
       }
+
+      ingestedCount += segments.length;
+      checkpoint[work] = true;
+      await saveCheckpoint(SEFARIA_MISHNAH_ALL_CHECKPOINT_FILE, checkpoint);
+      ingestedSummary.push({ work, path: findResult.filePath, destinations: [...(doSqlite ? ["sqlite"] : []), ...(doQdrant ? [collectionName] : [])] });
+      logger.info({ work, added: segments.length, totalIngested: ingestedCount }, "Ingested work and checkpoint saved.");
     }
-
-    ingestedCount += segments.length;
-    checkpoint[work] = true;
-    await fs.mkdir(path.dirname(checkpointFilePath), { recursive: true });
-    await fs.writeFile(checkpointFilePath, JSON.stringify(checkpoint, null, 2));
-    ingestedSummary.push({
-      work,
-      path: findResult.filePath,
-      destinations: [...(doSqlite ? ["sqlite"] : []), ...(doQdrant ? [collectionName] : [])],
-    });
-    logger.info({ work, added: segments.length, totalIngested: ingestedCount }, "Ingested work and checkpoint saved.");
-
-    if (limit > 0 && ingestedCount >= limit) break;
+  } finally {
+    sqlite?.close();
   }
 
   logger.info({ ingestedCount, ingestedSummary }, "✅ Mishnah ingestion complete.");
@@ -318,7 +257,7 @@ export async function ingestTanakhCommentariesCommand() {
   const doQdrant = argv["qdrant"] !== false && argv["no-qdrant"] !== true;
   const doSqlite = argv["sqlite"] !== false && argv["no-sqlite"] !== true;
   const qdrantBatchSize = argv["qdrant-batch-size"] ? parseInt(argv["qdrant-batch-size"], 10) : undefined;
-  const qdrantConcurrency = argv["qdrant-concurrency"] ? parseInt(argv["qdrant-concurrency"], 10) : undefined;
+  const apiConcurrency = argv["api-concurrency"] ? parseInt(argv["api-concurrency"], 10) : undefined;
 
   await runIngestTanakhCommentaries({
     limit: limit || undefined,
@@ -327,7 +266,7 @@ export async function ingestTanakhCommentariesCommand() {
     doQdrant,
     doSqlite,
     qdrantBatchSize,
-    qdrantConcurrency,
+    apiConcurrency,
   });
   process.exit(0);
 }

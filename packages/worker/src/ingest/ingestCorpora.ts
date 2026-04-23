@@ -3,13 +3,14 @@ import path from "path";
 import pLimit from "p-limit";
 import {
   Chunk,
+  createEmbeddingService,
   createLogger,
   createQdrantClient,
   ensureCollection,
   getConfig,
-  OpenAIService,
   upsertChunksWithVectors,
 } from "@kol-hatorah/core";
+import { loadCheckpoint, saveCheckpoint } from "./checkpoint";
 import { flattenMergedExportText } from "../sefariaLoader";
 import { getSQLiteManager } from "../storage/sqlite";
 import { enrichSefariaMergedSegment } from "./enrichSefariaMergedSegment";
@@ -94,7 +95,7 @@ async function ingestOneMergedFile(args: {
   mergedPath: string;
   relPath: string;
   sqlite: NonNullable<Awaited<ReturnType<typeof getSQLiteManager>>>;
-  openaiService: OpenAIService | null;
+  embeddingService: ReturnType<typeof createEmbeddingService> | null;
   qdrantClient: ReturnType<typeof createQdrantClient> | null;
   collectionName: string;
   loadBatchSize: number;
@@ -111,7 +112,7 @@ async function ingestOneMergedFile(args: {
     mergedPath,
     relPath,
     sqlite,
-    openaiService,
+    embeddingService,
     qdrantClient,
     collectionName,
     loadBatchSize,
@@ -190,9 +191,9 @@ async function ingestOneMergedFile(args: {
     consumeLimit(capped.length);
     stored += capped.length;
 
-    if (doQdrant && openaiService) {
+    if (doQdrant && embeddingService) {
       const texts = enriched.map((e) => e.chunk.text);
-      const emb = await openaiService.embedTexts(texts, { batchSize: embedBatchSize });
+      const emb = await embeddingService.embedTexts(texts, { inputType: "search_document", batchSize: embedBatchSize });
       if (emb.length !== enriched.length) {
         logger.error({ title, relPath }, "Embedding count mismatch; aborting file.");
         return { segments: stored, ok: false };
@@ -203,7 +204,7 @@ async function ingestOneMergedFile(args: {
     logger.info({ corpus: spec.id, title, stored, fileTotal: leaves.length }, "Corpus batch stored");
   }
 
-  if (doQdrant && openaiService && qdrantClient && allChunks.length) {
+  if (doQdrant && embeddingService && qdrantClient && allChunks.length) {
     const vectorSize = allEmbeddings[0].length;
     await ensureCollection(qdrantClient, collectionName, vectorSize);
     for (let i = 0; i < allChunks.length; i += qdrantBatchSize) {
@@ -239,19 +240,11 @@ export async function runIngestCorpora(opts: IngestCorporaOpts): Promise<void> {
   const qdrantClient = doQdrant
     ? createQdrantClient({ url: config.qdrant.url, apiKey: config.qdrant.apiKey })
     : null;
-  const openaiService = doQdrant ? new OpenAIService(config.openai.apiKey, config.openai.embeddingModel, config.openai.chatModel) : null;
+  const embeddingService = doQdrant ? createEmbeddingService(config) : null;
   const collectionName = `${config.qdrant.collectionPrefix}_chunks_v2`;
 
-  const checkpointAbs = path.join(process.cwd(), CHECKPOINT_PATH);
-  let checkpoint: Record<string, boolean> = {};
-  if (!opts.reset) {
-    try {
-      checkpoint = JSON.parse(await fs.readFile(checkpointAbs, "utf8"));
-      logger.info({ done: Object.keys(checkpoint).length }, "Loaded corpora checkpoint.");
-    } catch {
-      logger.info("No corpora checkpoint found; starting fresh.");
-    }
-  }
+  let checkpoint = opts.reset ? {} : await loadCheckpoint(CHECKPOINT_PATH);
+  logger.info({ done: Object.keys(checkpoint).length }, "Loaded corpora checkpoint.");
 
   if (opts.resetCorpus?.length) {
     for (const raw of opts.resetCorpus) {
@@ -323,7 +316,7 @@ export async function runIngestCorpora(opts: IngestCorporaOpts): Promise<void> {
           mergedPath,
           relPath,
           sqlite,
-          openaiService,
+          embeddingService,
           qdrantClient,
           collectionName,
           loadBatchSize,
@@ -345,8 +338,7 @@ export async function runIngestCorpora(opts: IngestCorporaOpts): Promise<void> {
         segmentsThisCorpus += result.segments;
         if (result.ok) {
           checkpoint[ck] = true;
-          await fs.mkdir(path.dirname(checkpointAbs), { recursive: true });
-          await fs.writeFile(checkpointAbs, JSON.stringify(checkpoint, null, 2));
+          await saveCheckpoint(CHECKPOINT_PATH, checkpoint);
         }
       }
 
