@@ -144,7 +144,7 @@ export function mapSefariaRefToLocal(
 
 function otherLinkEndpoint(link: SefariaLinkRow, fromDisplayRef: string): string | null {
   const fromKey = normalizeRefKey(fromDisplayRef);
-  const refsArray = Array.isArray((link as DebugLinkLike).refs) ? (link as DebugLinkLike).refs : [];
+  const refsArray: string[] = Array.isArray((link as DebugLinkLike).refs) ? (link as DebugLinkLike).refs! : [];
   const candidates = [link.ref, link.sourceRef, link.anchorRef, ...refsArray].filter(
     (x): x is string => typeof x === "string" && x.length > 0
   );

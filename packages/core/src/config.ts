@@ -24,7 +24,13 @@ const ConfigSchema = z.object({
     minSources: z.coerce.number().int().min(1).default(2),
     minScore: z.coerce.number().min(0).optional(), // Truly optional, defaults to undefined
   }),
+  embedding: z.object({
+    provider: z.enum(["openai", "cohere"]).default("openai"),
+    cohereApiKey: z.string().optional(),
+    cohereModel: z.string().default("embed-multilingual-v3.0"),
+  }),
   sefariaExportPath: z.string().min(1, "SEFARIA_EXPORT_PATH is required for Sefaria ingestion").optional(),
+  sefariaCleanPath: z.string().optional(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -55,7 +61,13 @@ export function getConfig(): Config {
       minSources: process.env.RAG_MIN_SOURCES ? parseInt(process.env.RAG_MIN_SOURCES, 10) : undefined,
       minScore: process.env.RAG_MIN_SCORE ? parseFloat(process.env.RAG_MIN_SCORE) : undefined,
     },
+    embedding: {
+      provider: (process.env.EMBEDDING_PROVIDER || "openai") as "openai" | "cohere",
+      cohereApiKey: process.env.COHERE_API_KEY,
+      cohereModel: process.env.COHERE_EMBEDDING_MODEL || "embed-multilingual-v3.0",
+    },
     sefariaExportPath: process.env.SEFARIA_EXPORT_PATH,
+    sefariaCleanPath: process.env.SEFARIA_CLEAN_PATH,
   };
 
   try {

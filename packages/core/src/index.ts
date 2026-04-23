@@ -1,4 +1,5 @@
 export * from "./config";
+export * from "./embedding";
 export * from "./ids";
 export * from "./log";
 export * from "./openai";

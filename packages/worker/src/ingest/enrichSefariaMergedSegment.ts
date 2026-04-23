@@ -160,6 +160,7 @@ export async function enrichSefariaMergedSegment(args: {
     enrichSegment,
     hasLinks: links.length > 0 ? 1 : 0,
     linksCount: links.length,
+    quotedRefsJson: null,
   };
 
   return { chunk, enrichment: { update, links: linkRows } };

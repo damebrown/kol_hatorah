@@ -66,6 +66,7 @@ function toDbPayload(meta: SefariaTextMeta, row: { id: string; ref: string }, li
     enrichSegment: meta.segment,
     hasLinks: linksCount > 0 ? 1 : 0,
     linksCount,
+    quotedRefsJson: null,
   };
   return update;
 }
