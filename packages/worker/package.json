@@ -31,6 +31,7 @@
     "tanakh-commentary:reduce-and-graph-enrich": "npx tsx src/cli.ts tanakh-commentary:reduce-and-graph-enrich",
     "test": "node test/runAll.mjs",
     "viz:export": "npx tsx scripts/exportVizData.ts",
+    "validate:refs": "npx tsx scripts/validateRefs.ts",
     "audit:sefaria": "npx tsx scripts/auditSefaria.ts",
     "clean:sefaria": "npx tsx scripts/cleanSefaria.ts"
   },
