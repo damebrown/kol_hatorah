@@ -30,7 +30,8 @@
     "reingest:enrich": "npx tsx src/cli.ts reingest:enrich",
     "tanakh-commentary:reduce-and-graph-enrich": "npx tsx src/cli.ts tanakh-commentary:reduce-and-graph-enrich",
     "test": "node test/runAll.mjs",
-    "viz:export": "npx tsx scripts/exportVizData.ts"
+    "viz:export": "npx tsx scripts/exportVizData.ts",
+    "audit:sefaria": "npx tsx scripts/auditSefaria.ts"
   },
   "dependencies": {
     "@kol-hatorah/core": "*",

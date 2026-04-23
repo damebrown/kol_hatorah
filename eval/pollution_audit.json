@@ -1,0 +1,4596 @@
+{
+  "generatedAt": "2026-04-23T11:29:31.841Z",
+  "sefariaExportPath": "/Users/danielavigail/Documents/kol_hatorah/external/Sefaria-Export-master",
+  "totalFiles": 6175,
+  "totalSegments": 3221917,
+  "corpora": {
+    "bavli": {
+      "fileCount": 1226,
+      "segmentCount": 688283,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 1018,
+          "totalOccurrences": 2774430,
+          "examples": [
+            {
+              "ref": "Chiddushei Rabbi Akiva Eiger on Ketubot 149:1",
+              "text": "<b>מתני'</b> היו בה מומין. א)<br><b>רש\"י</b> במתני' הבעל צריך להביא ראיה, כתב רש\"י עדים, ומאי בעי בזה, ואמאי לא פירש כן ברישא בההיא דהאב צריך להביא ראיה:<br>ב)<br><b>בפרכת</b> הש\"ס טעמא דמייתי האב ראי",
+              "count": 295
+            },
+            {
+              "ref": "Chiddushei Rabbi Akiva Eiger on Ketubot 139:3",
+              "text": "<b>מערכה ששה עשר במסכת כתובות</b><br><b>מתני'</b> המדיר את אשתו מליהנות לו.<br><b>ש\"ע</b> יורה דעה (סס\"י רלט) אם תלאן זו בזו וכו' אסור לאכול כל אחד מהם דחיישינן שמא יאכל השניה וכו'.<br><b>הנה</b> במקו",
+              "count": 235
+            },
+            {
+              "ref": "Chiddushei Rabbi Akiva Eiger on Ketubot 177:1",
+              "text": "<b>מערכה שלשה עשר במסכת כתובות</b><br>א) <b>מתני'</b> הוציאה גט. רבינו האלפסי העתיק אוקימתא דשמואל דמתני' במקום שאין כותבין כתובה עסקינן. וכ\"כ הרמב\"ם (פט\"ז מהל' אישות). ותמהו הא למאי דקיי\"ל כר\"י דהטוע",
+              "count": 212
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 24,
+          "totalOccurrences": 337,
+          "examples": [
+            {
+              "ref": "Ben Yehoyada on Chullin 278:1",
+              "text": "<b>מָצָא קֵן בְּראֹשׁוֹ שֶׁל אָדָם מַהוּ.</b> קשא למה נקיט 'בְּראֹשׁוֹ' הוה ליה למימר בגבו דזה שכיח טפי שהאדם ישן על פניו וגבו למעלה ותרדמה נפלה עליו ובא עוף ועשה קן על גבו אך בראשו קשה המציאות של הקן",
+              "count": 18
+            },
+            {
+              "ref": "Introductions to Amoraic Literature Part III (Introduction to Talmud Yerushalmi):Tractate Nezikin (Baba Kamma, Baba Metzia, Baba Batra):70",
+              "text": "והנה לפניו בירוש' הוריות פ\"ג ה\"ג, מז סע\"ד (וכן בסנהד' פ\"ב, כ ע\"ד) נמסרה עובדא זו של הקריעה בקשר אחר: כהן גדול פורם מלמטן וכו'. רבי לעזר בשם כהנא למעלן (\"של ההדיוט\") למעלן מקנה שפה למטן (\"של כ\"ג\") למטן",
+              "count": 8
+            },
+            {
+              "ref": "Introductions to Tanaitic Literature Introduction to Halakhic Midrashim:Sifrei Deuteronomy:188",
+              "text": "21. ושם אחרי \"לדם יולדת\" נוסף בכ\"י ר'<sup class=\"footnote-marker\">99</sup><i class=\"footnote\">ומקצתו גם בפי' ר\"ה, ומקצתו במ\"ת 102.</i>: <b>ד\"א</b> בין דם לדם אילו דיני הרוגים (ו)דיני גלות מנ' ת' ל' בי",
+              "count": 8
+            }
+          ]
+        },
+        "taamim": {
+          "segmentsAffected": 9,
+          "totalOccurrences": 82,
+          "examples": [
+            {
+              "ref": "Ben Yehoyada on Pesachim 173:7",
+              "text": "<b>תְּחִלָּה לְאַרְבָּעָה נְבִיאִים שֶׁנִּתְנַבְּאוּ בְּאוֹתוֹ הַפֶּרֶק</b>. נראה לי לכך בהושע שהיה ראשון לארבעה כתיב <small>(הושע א, א)</small> 'אֲשֶׁ֣ר הָיָ֗ה' בטעם רביע וכן במיכה שהיה סוף הארבעה כת",
+              "count": 13
+            },
+            {
+              "ref": "Ben Yehoyada on Sanhedrin 138:2",
+              "text": "<b>אֶלָּא מֵהָכָא: \"וְאֵלֶּה תּוֹלְדֹת תֶּרַח, תֶּרַח הוֹלִיד אֶת אַבְרָם, אֶת נָחוֹר וְאֶת הָרָן\" <small>(בראשית יא, כז)</small>.</b> הקשה הרב עיון יעקב ז\"ל הוה ליה למימר פסוק שקודם זה דכתיב 'וַיְחִי",
+              "count": 9
+            },
+            {
+              "ref": "Ben Yehoyada on Sukkah 77:2",
+              "text": "<b>וְאָמַר רָבָא: לָא לֵימָא אִינִישׁ</b>, \" <b>יְהֵא שְׁמֵיהּ רַבָּא\", וַהֲדַר</b> <b>\"מְבָרַךְ\", אֶלָּא: \"יְהֵא שְׁמֵיהּ רַבָּא מְבָרַךְ\" כַּהֲדָדֵי.</b> קשה למה הוצרך רבא ללמדינו דבר זה בתרתי שהוא ",
+              "count": 9
+            }
+          ]
+        },
+        "nikkud": {
+          "segmentsAffected": 187,
+          "totalOccurrences": 5627489,
+          "examples": [
+            {
+              "ref": "Ben Yehoyada on Pesachim 225:3",
+              "text": "<b>לָא תִּשְׁתֵּי סַמָּא</b>. פירוש אם ראית בעצמך התחלת מיחוש באיזה חולי לא תמהר לשתות סם דהסם עושה מלחמה עם החולי וראוי תחלת הכל וְקָרָאתָ אֵלֶיהָ לְשָׁלוֹם <small>(דברים כ, י) </small>שתעשה הכנות טב",
+              "count": 1452
+            },
+            {
+              "ref": "Introductions to the Babylonian Talmud Nazir:Introduction to Perek VI:1",
+              "text": "<b>וַיְדַבֵּר ה׳ אֶל מֹשֶׁה לֵּאמֹר. דַּבֵּר אֶל בְּנֵי יִשְׂרָאֵל וְאָמַרְתָּ אֲלֵהֶם אִישׁ אוֹ אִשָּׁה כִּי יַפְלִא לִנְדֹּר נֶדֶר נָזִיר לְהַזִּיר לַה׳. מִיַּיִן וְשֵׁכָר יַזִּיר חֹמֶץ יַיִן וְחֹמֶ",
+              "count": 918
+            },
+            {
+              "ref": "Ben Yehoyada on Shabbat 154:6",
+              "text": "<b>מַאי טַעְמָא, עִזֵּי מַסְגָן בְּרֵישָׁא, וַהֲדָר אִימְרֵי?.</b> פירש הרב עט\"ר מו\"ר <small>[עטרת ראשי מורי ורבי]</small> אבי זלה\"ה <small>[זכרונו לחיי העולם הבא]</small> דְ'קַיִן' שהיה סוד הגבורות נ",
+              "count": 859
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "inlineRefs": {
+          "segmentsAffected": 989,
+          "totalOccurrences": 173765,
+          "examples": [
+            {
+              "ref": "Rashba on Chullin 196:6",
+              "text": "<b>אמר רבא לא נצרכה אלא לטעם כעיקר דבקדשים אסור והכא שרי. </b>כן גרסת הספרים וכן גרסת רש\"י ז\"ל (ורש\"י) [ור\"ת] ז\"ל הקשה דא\"א דגרסינן הכי מדפרכינן וליגמר מיניה ופרקינן גלי רחמנא גבי חטאת יקדש להיות כמוה",
+              "count": 47
+            },
+            {
+              "ref": "Chiddushei Rabbi Akiva Eiger on Bava Metzia 72:3",
+              "text": "<b>תד\"ה את מהימנת לי, דלא כר\"ח דפסק כאביי.</b> וטעמו דהר\"ח כיון דקיי\"ל תחב\"פ וס\"ב חייב.<br><b>הוא</b> תמו' מאוד דהא גם רבא ס\"ל כן כמ\"ש הנ\"י, ונ\"ל לפרש עפ\"מ דנסתפקתי לדינא במ\"ש תוס' לקמן (דף צג) להוכיח",
+              "count": 39
+            },
+            {
+              "ref": "Rashi on Keritot 3:3:1",
+              "text": "ופסח ומילה מצות עשה - ובכרת. פסח בכרת דכתיב (במדבר ט) והאיש אשר הוא טהור וגו'. מילה בכרת דכתיב (בראשית יז) וערל זכר אשר לא ימול וגו' ונכרתה. והני פסח ומילה מצות עשה [ואין קרבן על שגגתן] אבל אינך כולהו",
+              "count": 39
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 23,
+          "totalOccurrences": 7405,
+          "examples": [
+            {
+              "ref": "Ritva on Taanit 19:5",
+              "text": "<b>ש״ס מאן יחידים אמר רב הונא רבנן ומתעני׳‎ ב׳‎ וה׳‎.</b> פי׳‎ שאין גוזרי׳‎ תענית בתחלת ה׳‎ כדי להפקיע את השערי׳‎ דאפי׳‎ בתעני׳‎ של שאר צרות כדבעי׳‎ לפרושי בדוכתא לקמן ואשמועי׳‎ רב הונא שאפי׳‎ בתעניות",
+              "count": 187
+            },
+            {
+              "ref": "Ritva on Taanit 24:3",
+              "text": "<b>אמרו ליה רבנן לרב ששת קאתו כד מסיימי מסאני כו׳‎ עד רבנן דבי רב אשי סיימי כי אורחייהו סברי לה כדשמואל דאמר שמואל אין תעני׳‎ צבור בבבל אלא ט׳‎ באב בלבד..</b> פירשו המפרשים כולם ז״ל דהיינו שאין בו תענ",
+              "count": 108
+            },
+            {
+              "ref": "Ritva on Taanit 51:3",
+              "text": "<b>בתעניות ובמעמדו׳‎ ובי״ה</b> פי׳‎  תעניו׳‎ אלו אינן הצומו׳‎ הקבועי׳‎ על כל ישראל דהנהו לית בהו נעילה כדאמר בפ׳‎ מקום שנהגו ט׳‎ באב אינו כתעני׳‎ צבור ואסיקנא דהיינו לענין נעיל׳‎ וכ״ד ברכות אלא תעניו׳",
+              "count": 107
+            }
+          ]
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "שם",
+          "count": 3345
+        },
+        {
+          "ref": "בסופו",
+          "count": 493
+        },
+        {
+          "ref": "לא",
+          "count": 452
+        },
+        {
+          "ref": "ו",
+          "count": 432
+        },
+        {
+          "ref": "א",
+          "count": 420
+        },
+        {
+          "ref": "בשם",
+          "count": 412
+        },
+        {
+          "ref": "ב",
+          "count": 362
+        },
+        {
+          "ref": "ד",
+          "count": 333
+        },
+        {
+          "ref": "אין",
+          "count": 308
+        },
+        {
+          "ref": "אלא",
+          "count": 295
+        },
+        {
+          "ref": "ג",
+          "count": 266
+        },
+        {
+          "ref": "י",
+          "count": 256
+        },
+        {
+          "ref": "ה",
+          "count": 243
+        },
+        {
+          "ref": "דף ו.",
+          "count": 225
+        },
+        {
+          "ref": "דף ב.",
+          "count": 212
+        },
+        {
+          "ref": "דף ו:",
+          "count": 208
+        },
+        {
+          "ref": "דף יא.",
+          "count": 208
+        },
+        {
+          "ref": "דף י.",
+          "count": 204
+        },
+        {
+          "ref": "דף יג.",
+          "count": 200
+        },
+        {
+          "ref": "דף ה:",
+          "count": 194
+        },
+        {
+          "ref": "דף ג:",
+          "count": 191
+        },
+        {
+          "ref": "דף יד.",
+          "count": 189
+        },
+        {
+          "ref": "דף ז.",
+          "count": 189
+        },
+        {
+          "ref": "דף יא:",
+          "count": 178
+        },
+        {
+          "ref": "דף טו.",
+          "count": 174
+        },
+        {
+          "ref": "דף ח.",
+          "count": 172
+        },
+        {
+          "ref": "דף ג.",
+          "count": 167
+        },
+        {
+          "ref": "דף ד.",
+          "count": 167
+        },
+        {
+          "ref": "דף יב.",
+          "count": 164
+        },
+        {
+          "ref": "דף ד:",
+          "count": 161
+        },
+        {
+          "ref": "דף יג:",
+          "count": 160
+        },
+        {
+          "ref": "דף ט.",
+          "count": 160
+        },
+        {
+          "ref": "דף ב:",
+          "count": 158
+        },
+        {
+          "ref": "דף יז:",
+          "count": 157
+        },
+        {
+          "ref": "דף ה.",
+          "count": 156
+        },
+        {
+          "ref": "דף יד:",
+          "count": 155
+        },
+        {
+          "ref": "דף כא:",
+          "count": 155
+        },
+        {
+          "ref": "דף ח:",
+          "count": 154
+        },
+        {
+          "ref": "דף כ.",
+          "count": 153
+        },
+        {
+          "ref": "דף כה.",
+          "count": 152
+        },
+        {
+          "ref": "דף כ:",
+          "count": 151
+        },
+        {
+          "ref": "דף כו.",
+          "count": 149
+        },
+        {
+          "ref": "דף יט.",
+          "count": 148
+        },
+        {
+          "ref": "דף טז.",
+          "count": 147
+        },
+        {
+          "ref": "דף יב:",
+          "count": 147
+        },
+        {
+          "ref": "דף כא.",
+          "count": 146
+        },
+        {
+          "ref": "נמי",
+          "count": 146
+        },
+        {
+          "ref": "דף טו:",
+          "count": 146
+        },
+        {
+          "ref": "דף כח.",
+          "count": 146
+        },
+        {
+          "ref": "דף כו:",
+          "count": 145
+        }
+      ]
+    },
+    "ibn_ezra": {
+      "fileCount": 31,
+      "segmentCount": 20880,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 13,
+          "totalOccurrences": 35752,
+          "examples": [
+            {
+              "ref": "Ibn Ezra on Genesis 1:26:1",
+              "text": "<b>נעשה אדם</b><i data-commentator=\"Mechokekei Yehudah; Karnei Ohr\" data-order=\"123\"></i>, יש אומרים<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-order=\"301\"></i> כי מלת נעשה שם התואר מבנין",
+              "count": 184
+            },
+            {
+              "ref": "Ibn Ezra on Genesis Introduction:16",
+              "text": "הדרך הב׳ בחרוה פתלתולים<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-label=\"25\" data-order=\"29\"></i> ואם הם ישראלים<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-label=\"26\" data-o",
+              "count": 164
+            },
+            {
+              "ref": "Ibn Ezra on Genesis 1:1:3",
+              "text": "<i data-commentator=\"Mechokekei Yehudah; Karnei Ohr\" data-order=\"8\"></i> אלהים<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-order=\"40\"></i><i data-commentator=\"Mechokekei Yehudah; Karnei Oh",
+              "count": 112
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "taamim": {
+          "segmentsAffected": 1,
+          "totalOccurrences": 3,
+          "examples": [
+            {
+              "ref": "Ibn Ezra on Lamentations 3:3:1",
+              "text": "<b>יַהֲפֹ֥ךְ יָד֖וֹ.</b> המפרש ו\"ו <b>בעברתו</b> על השם יפרש יהפך ידו מכתו, כמו הנה יד ה' הויה במקנך (שמות ט ג) והמכה ביד:",
+              "count": 2
+            },
+            {
+              "ref": "Ibn Ezra on Lamentations 3:35:1",
+              "text": "<b>לְהַטּוֹת֙.</b> מלת הטה עם משפט כמו עוות:",
+              "count": 1
+            }
+          ]
+        },
+        "nikkud": {
+          "segmentsAffected": 12,
+          "totalOccurrences": 1207,
+          "examples": [
+            {
+              "ref": "Ibn Ezra on Genesis Introduction:47",
+              "text": "מִדְיָנִים<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-label=\"39\" data-order=\"283\"></i> עוּשׂוּ<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-label=\"40\" data-order=\"284\"></i> בּו",
+              "count": 39
+            },
+            {
+              "ref": "Ibn Ezra on Genesis Introduction:55",
+              "text": "מִשְׁקְלֵי<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-label=\"66\" data-order=\"310\"></i> הָאַרְבָּעָה<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-label=\"67\" data-order=\"311\"></i",
+              "count": 39
+            },
+            {
+              "ref": "Ibn Ezra on Genesis Introduction:59",
+              "text": "רַחֲצוּ עִם מֵי חָכְמַת לֵב<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-label=\"81\" data-order=\"325\"></i> בְּתוֹךְ מַיִם גָאוּ<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-label=",
+              "count": 36
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "inlineRefs": {
+          "segmentsAffected": 14,
+          "totalOccurrences": 848,
+          "examples": [
+            {
+              "ref": "Ibn Ezra on Genesis Introduction:19",
+              "text": "גם יש דרש להרויח נפש חלושה בהלכה קשה<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-label=\"36\" data-order=\"165\"></i>, ויש דרש מסברא ידועה, ויש שהוא בהלכה שאיננה קבועה<i data-commentator=\"Mech",
+              "count": 18
+            },
+            {
+              "ref": "Ibn Ezra on Genesis 1:26:1",
+              "text": "<b>נעשה אדם</b><i data-commentator=\"Mechokekei Yehudah; Karnei Ohr\" data-order=\"123\"></i>, יש אומרים<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-order=\"301\"></i> כי מלת נעשה שם התואר מבנין",
+              "count": 12
+            },
+            {
+              "ref": "Ibn Ezra on Genesis 27:40:2",
+              "text": "<b>ופרקת.</b> מגזרת מפרק הרים (מ\"א יט יא)<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-order=\"84\"></i>, ומהם \"מפרקתו\" (ש\"א ד' יח)<i data-commentator=\"Mechokekei Yehudah; Yahel Ohr\" data-ord",
+              "count": 9
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 2,
+          "totalOccurrences": 446,
+          "examples": [
+            {
+              "ref": "Ibn Ezra on Leviticus 23:11:1",
+              "text": "<b>ממחרת השבת.</b> אמרו חז״ל ממחרת יום טוב והמכחישים אמרו שהוא כמשמעו והמאמינים הביאו ראיות משנת השמטה והיובל והצום הגדול ויום תרועה שכתוב בו שבתון וכן שבתון נאמר בא׳‎ של סוכות ובשמיני ואמרו כי שבע שב",
+              "count": 6
+            },
+            {
+              "ref": "Ibn Ezra on Deuteronomy 32:18:2",
+              "text": "<b>תשי</b> כמו לא תנשה והנח הנעלם אחר התי״‎ו תחת הדגש שהוא אלף הבלוע והיו״‎ד תחת ה״‎א וכן אל תמחי ובאו שניהם מלעיל להפריש בין זכר לנקבה בפעלים שהאות האחרון ה״‎א נח והנכון בעיני כי היו״‎ד נוסף והוא על ",
+              "count": 5
+            },
+            {
+              "ref": "Ibn Ezra on Deuteronomy 32:39:1",
+              "text": "<b>אני אני.</b> פעמיים כמו אנכי אנכי או כי אני הוא ולא אשנה והוא הנכון כי אין עמו פועל אני הוא שהמתי את ישראל ואני אחיה אותם והנה הם לא נצולו ואין מציל אתכם מידי גם אתם מידי עד עשותי את המשפט בכם. ורב",
+              "count": 5
+            }
+          ]
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "ה",
+          "count": 11
+        },
+        {
+          "ref": "ו",
+          "count": 8
+        },
+        {
+          "ref": "כי",
+          "count": 5
+        },
+        {
+          "ref": "הוא",
+          "count": 3
+        },
+        {
+          "ref": "כמו",
+          "count": 3
+        },
+        {
+          "ref": "שם",
+          "count": 3
+        },
+        {
+          "ref": "את",
+          "count": 3
+        },
+        {
+          "ref": "שמות לד ז",
+          "count": 3
+        },
+        {
+          "ref": "י",
+          "count": 3
+        },
+        {
+          "ref": "מ",
+          "count": 3
+        },
+        {
+          "ref": "ב",
+          "count": 3
+        },
+        {
+          "ref": "רמז",
+          "count": 2
+        },
+        {
+          "ref": "שהיא",
+          "count": 2
+        },
+        {
+          "ref": "רק",
+          "count": 2
+        },
+        {
+          "ref": "עד",
+          "count": 2
+        },
+        {
+          "ref": "במדבר יט יג",
+          "count": 2
+        },
+        {
+          "ref": "תהלים לג ו",
+          "count": 2
+        },
+        {
+          "ref": "בראשית א כ",
+          "count": 2
+        },
+        {
+          "ref": "נחמיה ה יח",
+          "count": 2
+        },
+        {
+          "ref": "דניאל ב לו",
+          "count": 2
+        },
+        {
+          "ref": "בראשית מט כה",
+          "count": 2
+        },
+        {
+          "ref": "שמות ב ו",
+          "count": 2
+        },
+        {
+          "ref": "איוב כב ו",
+          "count": 2
+        },
+        {
+          "ref": "בראשית ד ט",
+          "count": 2
+        },
+        {
+          "ref": "שמות ט ג",
+          "count": 2
+        },
+        {
+          "ref": "בראשית יח טז",
+          "count": 2
+        },
+        {
+          "ref": "איוב לה טז",
+          "count": 2
+        },
+        {
+          "ref": "בראשית כג יג",
+          "count": 2
+        },
+        {
+          "ref": "דניאל ז טו",
+          "count": 2
+        },
+        {
+          "ref": "קהלת יב ז",
+          "count": 2
+        },
+        {
+          "ref": "משלי כז א",
+          "count": 2
+        },
+        {
+          "ref": "בראשית מא נז",
+          "count": 2
+        },
+        {
+          "ref": "בראשית ח כב",
+          "count": 2
+        },
+        {
+          "ref": "במדבר כא א",
+          "count": 2
+        },
+        {
+          "ref": "בראשית יב א",
+          "count": 2
+        },
+        {
+          "ref": "בראשית יג טו",
+          "count": 2
+        },
+        {
+          "ref": "במדבר טז ד",
+          "count": 2
+        },
+        {
+          "ref": "בראשית ד יג",
+          "count": 2
+        },
+        {
+          "ref": "בראשית יח ג",
+          "count": 2
+        },
+        {
+          "ref": "בראשית יט יט",
+          "count": 2
+        },
+        {
+          "ref": "בראשית כז יט",
+          "count": 2
+        },
+        {
+          "ref": "בראשית כה כג",
+          "count": 2
+        },
+        {
+          "ref": "בראשית מג ח",
+          "count": 2
+        },
+        {
+          "ref": "שמות כא לג",
+          "count": 2
+        },
+        {
+          "ref": "בראשית ל, ל",
+          "count": 2
+        },
+        {
+          "ref": "שמואל ב כג ב",
+          "count": 2
+        },
+        {
+          "ref": "שלי",
+          "count": 2
+        },
+        {
+          "ref": "הנה",
+          "count": 2
+        },
+        {
+          "ref": "לה",
+          "count": 2
+        },
+        {
+          "ref": "דברים ד כו",
+          "count": 1
+        }
+      ]
+    },
+    "midrash_rabbah": {
+      "fileCount": 75,
+      "segmentCount": 96266,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 74,
+          "totalOccurrences": 221155,
+          "examples": [
+            {
+              "ref": "Bamidbar Rabbah 10:5",
+              "text": "דַּבֵּר אֶל בְּנֵי יִשְׂרָאֵל <small>(במדבר ו, ב)</small>, אֵלּוּ הַנּוֹדְרִים בְּנָזִיר, <small>(במדבר ו, ב)</small>: וְאָמַרְתָּ אֲלֵיהֶם, לְהַזְהִיר בֵּית דִּין עַל כָּךְ שֶׁלֹא יַנִּיחוּ לְנָזִיר ",
+              "count": 216
+            },
+            {
+              "ref": "Bamidbar Rabbah 10:2",
+              "text": "אִישׁ אוֹ אִשָּׁה כִּי יַפְלִא וגו', הֲדָא הוּא דִכְתִיב <small>(משלי כג, כו)</small>: תְּנָה בְנִי לִבְּךָ לִי וְעֵינֶיךָ דְּרָכַי תִּצֹּרְנָה. תְּנָה בְנִי, אֵלּוּ יִשְׂרָאֵל שֶׁנִּקְרְאוּ בָּנִים, ",
+              "count": 192
+            },
+            {
+              "ref": "Bamidbar Rabbah 4:20",
+              "text": "וּפְקֻדַּת אֶלְעָזָר בֶּן אַהֲרֹן הַכֹּהֵן וגו' <small>(במדבר ד, טז)</small>, הֲדָא הוּא דִּכְתִיב <small>(משלי כה, ו)</small>: אַל תִּתְהַדַּר לִפְנֵי מֶלֶךְ וּבִמְקוֹם גְּדֹלִים אַל תַּעֲמֹד, אִם לִ",
+              "count": 186
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 2,
+          "totalOccurrences": 9,
+          "examples": [
+            {
+              "ref": "Etz Yosef on Bereishit Rabbah 1:10:15",
+              "text": "<b>שני עוקצין </b>כזה &gt;ציור&lt;ב:",
+              "count": 2
+            },
+            {
+              "ref": "Etz Yosef on Bereishit Rabbah 1:10:16",
+              "text": "<b>ה' שמו </b>פי' שרומזת אל האל\"ף שבאחורי הבי\"ת. ופי' המת\"כ וז\"ל האל\"ף תחלת אותיות של אדני ושל אהיה ושם של הוי\"ה קריאתו אדני. וכן אל אלהים. או יש לומר ה' שמו האל\"ף כותבין שני יודי\"ן וי\"ו באמצע כזה &gt",
+              "count": 2
+            },
+            {
+              "ref": "Etz Yosef on Esther Rabbah 6:1:7",
+              "text": "<b>זה המגדל יתום.</b> דכיון דבכל עת הוא לבוש בכסותו הוי ליה עושה צדקה בכל עת, ששם בעליו עליו לעולם, והרי הוא עושה בממונו תמיד. [ובפרק אלו נערות&amp; איתא זה המגדל יתום ויתומה בתוך ביתו ומשאין וכתב מהר",
+              "count": 1
+            }
+          ]
+        },
+        "taamim": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "nikkud": {
+          "segmentsAffected": 35,
+          "totalOccurrences": 2134843,
+          "examples": [
+            {
+              "ref": "Bamidbar Rabbah 4:20",
+              "text": "וּפְקֻדַּת אֶלְעָזָר בֶּן אַהֲרֹן הַכֹּהֵן וגו' <small>(במדבר ד, טז)</small>, הֲדָא הוּא דִּכְתִיב <small>(משלי כה, ו)</small>: אַל תִּתְהַדַּר לִפְנֵי מֶלֶךְ וּבִמְקוֹם גְּדֹלִים אַל תַּעֲמֹד, אִם לִ",
+              "count": 10553
+            },
+            {
+              "ref": "Eikhah Rabbah Petichta:24",
+              "text": "רַבִּי יוֹחָנָן פָּתַח <small>(ישעיה כב, א)</small>: מַשָֹּׂא גֵיא חִזָּיוֹן, גֵּיא שֶׁכָּל הַחוֹזִים מִתְנַבְּאִים עָלֶיהָ, גֵּיא שֶׁכָּל הַחוֹזִים עוֹמְדִים מִמֶּנָּה, דְּאָמַר רַבִּי יוֹחָנָן כָּל ",
+              "count": 7931
+            },
+            {
+              "ref": "Bamidbar Rabbah 8:4",
+              "text": "אִישׁ אוֹ אִשָּׁה וגו', הֲדָא הוּא דִּכְתִיב <small>(תהלים קלח, ד)</small>: יוֹדוּךָ ה' כָּל מַלְכֵי אָרֶץ כִּי שָׁמְעוּ אִמְרֵי פִיךָ, אָמַר רַבִּי פִּינְחָס שְׁנֵי דְּבָרִים שָׁמְעוּ מַלְכֵי אֻמּוֹת",
+              "count": 7486
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "inlineRefs": {
+          "segmentsAffected": 60,
+          "totalOccurrences": 34551,
+          "examples": [
+            {
+              "ref": "Bamidbar Rabbah 10:5",
+              "text": "דַּבֵּר אֶל בְּנֵי יִשְׂרָאֵל <small>(במדבר ו, ב)</small>, אֵלּוּ הַנּוֹדְרִים בְּנָזִיר, <small>(במדבר ו, ב)</small>: וְאָמַרְתָּ אֲלֵיהֶם, לְהַזְהִיר בֵּית דִּין עַל כָּךְ שֶׁלֹא יַנִּיחוּ לְנָזִיר ",
+              "count": 108
+            },
+            {
+              "ref": "Bamidbar Rabbah 10:2",
+              "text": "אִישׁ אוֹ אִשָּׁה כִּי יַפְלִא וגו', הֲדָא הוּא דִכְתִיב <small>(משלי כג, כו)</small>: תְּנָה בְנִי לִבְּךָ לִי וְעֵינֶיךָ דְּרָכַי תִּצֹּרְנָה. תְּנָה בְנִי, אֵלּוּ יִשְׂרָאֵל שֶׁנִּקְרְאוּ בָּנִים, ",
+              "count": 96
+            },
+            {
+              "ref": "Bamidbar Rabbah 4:20",
+              "text": "וּפְקֻדַּת אֶלְעָזָר בֶּן אַהֲרֹן הַכֹּהֵן וגו' <small>(במדבר ד, טז)</small>, הֲדָא הוּא דִּכְתִיב <small>(משלי כה, ו)</small>: אַל תִּתְהַדַּר לִפְנֵי מֶלֶךְ וּבִמְקוֹם גְּדֹלִים אַל תַּעֲמֹד, אִם לִ",
+              "count": 93
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "א",
+          "count": 463
+        },
+        {
+          "ref": "ב",
+          "count": 400
+        },
+        {
+          "ref": "ג",
+          "count": 358
+        },
+        {
+          "ref": "יפה תואר",
+          "count": 337
+        },
+        {
+          "ref": "ד",
+          "count": 324
+        },
+        {
+          "ref": "מתנות כהונה",
+          "count": 316
+        },
+        {
+          "ref": "ה",
+          "count": 304
+        },
+        {
+          "ref": "ו",
+          "count": 289
+        },
+        {
+          "ref": "ז",
+          "count": 269
+        },
+        {
+          "ref": "ח",
+          "count": 255
+        },
+        {
+          "ref": "ט",
+          "count": 239
+        },
+        {
+          "ref": "י",
+          "count": 231
+        },
+        {
+          "ref": "אות אמת",
+          "count": 216
+        },
+        {
+          "ref": "יא",
+          "count": 210
+        },
+        {
+          "ref": "יב",
+          "count": 195
+        },
+        {
+          "ref": "יג",
+          "count": 188
+        },
+        {
+          "ref": "יפה ענף",
+          "count": 187
+        },
+        {
+          "ref": "יד",
+          "count": 181
+        },
+        {
+          "ref": "טו",
+          "count": 162
+        },
+        {
+          "ref": "טז",
+          "count": 151
+        },
+        {
+          "ref": "יז",
+          "count": 144
+        },
+        {
+          "ref": "יח",
+          "count": 133
+        },
+        {
+          "ref": "יפה מראה",
+          "count": 129
+        },
+        {
+          "ref": "יט",
+          "count": 121
+        },
+        {
+          "ref": "כ",
+          "count": 113
+        },
+        {
+          "ref": "מוסף הערוך",
+          "count": 109
+        },
+        {
+          "ref": "כא",
+          "count": 97
+        },
+        {
+          "ref": "כב",
+          "count": 96
+        },
+        {
+          "ref": "כג",
+          "count": 91
+        },
+        {
+          "ref": "שם",
+          "count": 86
+        },
+        {
+          "ref": "ערוך",
+          "count": 84
+        },
+        {
+          "ref": "כד",
+          "count": 80
+        },
+        {
+          "ref": "כה",
+          "count": 72
+        },
+        {
+          "ref": "כו",
+          "count": 68
+        },
+        {
+          "ref": "כז",
+          "count": 64
+        },
+        {
+          "ref": "כח",
+          "count": 58
+        },
+        {
+          "ref": "כט",
+          "count": 58
+        },
+        {
+          "ref": "ל",
+          "count": 57
+        },
+        {
+          "ref": "לא",
+          "count": 56
+        },
+        {
+          "ref": "סימן ב",
+          "count": 55
+        },
+        {
+          "ref": "מוסף",
+          "count": 51
+        },
+        {
+          "ref": "לב",
+          "count": 48
+        },
+        {
+          "ref": "שמות כד, ז",
+          "count": 46
+        },
+        {
+          "ref": "סימן ג",
+          "count": 46
+        },
+        {
+          "ref": "לג",
+          "count": 45
+        },
+        {
+          "ref": "סימן ה",
+          "count": 45
+        },
+        {
+          "ref": "נזר הקודש",
+          "count": 43
+        },
+        {
+          "ref": "סימן ד",
+          "count": 42
+        },
+        {
+          "ref": "לד",
+          "count": 41
+        },
+        {
+          "ref": "לה",
+          "count": 41
+        }
+      ]
+    },
+    "mishnah": {
+      "fileCount": 956,
+      "segmentCount": 245961,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 771,
+          "totalOccurrences": 627563,
+          "examples": [
+            {
+              "ref": "Hon Ashir on Mishnah Oktzin 3:12:1",
+              "text": "<b>לכל צדיק וצדיק ש\"י עולמות שנא' וכו'</b>. לפי מה שכתוב אצל יודעי חן תיבת יש היא אחת מחלקי אלב\"ם, והיא כנגד היסוד שבו גנוז חוט אור אין סוף, שהוא אור הגנוז לצדיקים לעתיד לבא, כי כן כתבו חכמי האמת משם ",
+              "count": 278
+            },
+            {
+              "ref": "Nachalat Avot on Avot Introduction:3",
+              "text": "<b>עשרה</b> מסעות נסעה<sup class=\"footnote-marker\">54</sup><i class=\"footnote\">לפי זהר פר' משפטים צז, ע\"ב.</i> מהם תורה וגדולה, והנם היום על קרן הצבי<sup class=\"footnote-marker\">55</sup><i class=\"foot",
+              "count": 198
+            },
+            {
+              "ref": "Nachalat Avot on Avot Introduction:2",
+              "text": "<b>והנה</b> יי' עושה ארובות<sup class=\"footnote-marker\">17</sup><i class=\"footnote\">לפי מלכים ב' ז, ב.</i> להמטיר על שבטך ומשענתך<sup class=\"footnote-marker\">18</sup><i class=\"footnote\">לפי תהילים כג,",
+              "count": 150
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 21,
+          "totalOccurrences": 117,
+          "examples": [
+            {
+              "ref": "Mishnat Eretz Yisrael on Mishnah Baba Kamma 4:5:15",
+              "text": "במכילתא דרבי שמעון בן יוחאי: \"1. בן עזאי אומר נקי מדמו שלו. כולו כאדם שאומר יצא איש פלוני נקי מנכסיו ואין לו בהן הנאה של כלום. 2. רבי אלעזר בן עזריה אומר 'ובעל השור נקי', נקי מדמי <u>ולדות</u>. אמר לו",
+              "count": 10
+            },
+            {
+              "ref": "Mishnat Eretz Yisrael, Preface When and for What Purpose was the Mishnah compiled?:6",
+              "text": "<img alt=\"איור 1. כתובת מאזור עכו המזכירה את המונח היווני &quot;פגוס&quot;, שמשמעו טריטוריום כפרי. במקרה זה: ה&quot;כפר של עכו&quot;. צילם פרופ' ורנר אק.\" src=\"https://textimages.sefaria.org/mishnat_e",
+              "count": 4
+            },
+            {
+              "ref": "Mishnat Eretz Yisrael on Mishnah Eruvin 9:3:6",
+              "text": "<b>רבי יוסי אומר אם מותרין באותה שבת מותרין &gt;לעתיד לבוא ואם אסורין לעתיד&lt; לבוא]</b> – כל המשפט שבין הסוגריים המרובעות חסר בכתב יד קופמן גופו ונוסף בידי המעתיק בשוליים. המצוי בסוגריים המזוותות &g",
+              "count": 4
+            }
+          ]
+        },
+        "taamim": {
+          "segmentsAffected": 4,
+          "totalOccurrences": 32,
+          "examples": [
+            {
+              "ref": "Mishnat Eretz Yisrael on Mishnah Shevuot Preface:97",
+              "text": "וַיֹּ֕אמֶר בִּ֥י נִשְׁבַּ֖עְתִּי נְאֻם ה' כִּ֗י יַ֚עַן אֲשֶׁ֤ר עָשִׂ֙יתָ֙ אֶת־הַדָּבָ֣ר הַזֶּ֔ה וְלֹ֥א חָשַׂ֖כְתָּ אֶת־בִּנְךָ֥ אֶת־יְחִידֶֽךָ: כִּֽי־בָרֵ֣ךְ אֲבָרֶכְךָ֗ וְהַרְבָּ֨ה אַרְבֶּ֤ה אֶֽת־זַר",
+              "count": 18
+            },
+            {
+              "ref": "Mishnat Eretz Yisrael on Mishnah Avodah Zarah 3:5:19",
+              "text": "<b>כל מקום שאת מוצא הר גבוה וגבעה נשאת ועץ רענן רע [דע] שיש שם עבודה זרה </b> – מימרתו של רבי עקיבא חצי ספרותית וחצי משפטית. אכן מקדשים ובמות היו פזורים ברחבי המרחב הגיאוגרפי של ההתיישבות הפגאנית בארץ",
+              "count": 5
+            },
+            {
+              "ref": "Mishnat Eretz Yisrael on Mishnah Sanhedrin 11:2:48",
+              "text": "לדעתנו, הפתרון למשנה ולסתירות הפנימיות ולרוב הקשיים הוא בכך שבתורה ובמדרש ספרי למעשה שתי פרשות. האחת מדברת בדיני ספק והכרעה, כאשר מערכת המשפט המקומית איננה מסוגלת להחליט דבר. או לחילופין כאשר אין כלל ",
+              "count": 5
+            }
+          ]
+        },
+        "nikkud": {
+          "segmentsAffected": 245,
+          "totalOccurrences": 768987,
+          "examples": [
+            {
+              "ref": "Mishnah Sotah 9:15",
+              "text": "מִשֶּׁמֵּת רַבִּי מֵאִיר, בָּטְלוּ מוֹשְׁלֵי מְשָׁלִים. מִשֶּׁמֵּת בֶּן עַזַּאי, בָּטְלוּ הַשַּׁקְדָּנִים. מִשֶּׁמֵּת בֶּן זוֹמָא, בָּטְלוּ הַדַּרְשָׁנִים. מִשֶּׁמֵּת רַבִּי יְהוֹשֻׁעַ, פָּסְקָה טוֹבָ",
+              "count": 1049
+            },
+            {
+              "ref": "Mishnah Eduyot 6:3",
+              "text": "כַּזַּיִת בָּשָׂר הַפּוֹרֵשׁ מֵאֵבָר מִן הַחַי, רַבִּי אֱלִיעֶזֶר מְטַמֵּא, וְרַבִּי יְהוֹשֻׁעַ וְרַבִּי נְחוּנְיָא מְטַהֲרִים. עֶצֶם כַּשְּׂעֹרָה הַפּוֹרֵשׁ מֵאֵבָר מִן הַחַי, רַבִּי נְחוּנְיָא מְטַמ",
+              "count": 1039
+            },
+            {
+              "ref": "Mishnah Yadayim 4:3",
+              "text": "בּוֹ בַיּוֹם אָמְרוּ, עַמּוֹן וּמוֹאָב, מַה הֵן בַּשְּׁבִיעִית. גָּזַר רַבִּי טַרְפוֹן, מַעְשַׂר עָנִי. וְגָזַר רַבִּי אֶלְעָזָר בֶּן עֲזַרְיָה, מַעֲשֵׂר שֵׁנִי. אָמַר רַבִּי יִשְׁמָעֵאל, אֶלְעָזָר בּ",
+              "count": 975
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "inlineRefs": {
+          "segmentsAffected": 771,
+          "totalOccurrences": 69852,
+          "examples": [
+            {
+              "ref": "Yachin on Mishnah Chullin 7:31:1",
+              "text": "<b>אלא שנכתב במקומו</b><br> דכשניתנה תורה. נכתב במקום המעשה. למה נאסר אחר מתן תורה. וקיי\"ל כחכמים. [אמר המפרש מאחר שראיתי שרבינו הר\"ב ז\"ל החל להביא לעיל כמשנה ה' כללי איסור והיתר ובטולן. לכן אמרתי ליל",
+              "count": 26
+            },
+            {
+              "ref": "Yachin on Mishnah Yevamot 2:19:1",
+              "text": "<b>שניות מדברי סופרים</b><br> עריות שאסרום הסופרים, והם עשרים (א) אם אביו, (ב) אם אמו, (ג) אם אבי אביו, (ד) אם אבי אמו, (ה) אשת אבי אביו, (ו) אשת אבי אמו. (ז) אשת אחי אביו מאם, (ח) אשת אחי אמו מאם או ",
+              "count": 25
+            },
+            {
+              "ref": "Yein Levanon on Avot 5:20:17",
+              "text": "<small>ביישן ובשת פנים, ההבדל ביניהם. הגדרת \"פנים\"</small><br><b>\"ובושת פנים לגן עדן\".</b> לא תני \"ומי שאינו עז פנים לגן עדן\", דהיא לאו כללא הוא, שלפעמים מעיז לעבור עבירה ואינו עז פנים, וכדפירשתי לעיל",
+              "count": 24
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 11,
+          "totalOccurrences": 16,
+          "examples": [
+            {
+              "ref": "Lechem Shamayim on Mishnah Sukkah 4:2:10",
+              "text": "<b>ואי </b>קשיא לי הא ק' לי בהך גזרה דרבה. דכי נמי יעבירנו בר\"ה מאי הוי. הא לית ביה איסור כרת. כדקיי\"ל בפרקין דלעיל שכח והוציא את הלולב לר\"ה בי\"ט א' שחל בשבת פטור. [סוכה דף מ\"א ע\"ב]‏. כיון שטרוד במצוה",
+              "count": 1
+            },
+            {
+              "ref": "Lechem Shamayim on Mishnah Nedarim 5:3:1",
+              "text": "<b>מושכרין בעירן</b>‎ שהיו מושכרים. אבל השכירן לאחר מכן. לא כו'. דא\"א אפילו בשכירות שרי. ליתני השכירן עכ\"ל תי\"ט. ואיכא למימר משום סיפא נקטיה. משו\"ה אינו כל כך הכרח בעיני. אלא לעולם שכירות ביומיה ממכר ",
+              "count": 1
+            },
+            {
+              "ref": "Zeroa Yamin 1:1:7",
+              "text": "<b>ד.</b> וירמוז עוד במשז״ל כי יש ששים רבוא אותיות לתורה וישראל הם ששים רבוא וכל נשמה מישראל אחוזה באות אחת מהתורה ומשה רבינו נעשה שליח קבלה לקבל הקדושין שהם הלוחות כמשז״‎ל והוצרך דוקא משה שנשמתו היה ",
+              "count": 1
+            }
+          ]
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "שם",
+          "count": 2639
+        },
+        {
+          "ref": "להלן",
+          "count": 749
+        },
+        {
+          "ref": "עורכים",
+          "count": 626
+        },
+        {
+          "ref": "ב",
+          "count": 547
+        },
+        {
+          "ref": "א",
+          "count": 538
+        },
+        {
+          "ref": "ג",
+          "count": 379
+        },
+        {
+          "ref": "עורך",
+          "count": 361
+        },
+        {
+          "ref": "ד",
+          "count": 226
+        },
+        {
+          "ref": "ו",
+          "count": 189
+        },
+        {
+          "ref": "ה",
+          "count": 180
+        },
+        {
+          "ref": "לעיל",
+          "count": 173
+        },
+        {
+          "ref": "ז",
+          "count": 139
+        },
+        {
+          "ref": "ראו להלן",
+          "count": 130
+        },
+        {
+          "ref": "י",
+          "count": 104
+        },
+        {
+          "ref": "ח",
+          "count": 101
+        },
+        {
+          "ref": "אבות, ג",
+          "count": 100
+        },
+        {
+          "ref": "ט",
+          "count": 99
+        },
+        {
+          "ref": "שם שם",
+          "count": 98
+        },
+        {
+          "ref": "אבות, ד",
+          "count": 87
+        },
+        {
+          "ref": "אבות, א",
+          "count": 72
+        },
+        {
+          "ref": "יד",
+          "count": 71
+        },
+        {
+          "ref": "חכמים",
+          "count": 70
+        },
+        {
+          "ref": "אבות, ב",
+          "count": 69
+        },
+        {
+          "ref": "לא",
+          "count": 67
+        },
+        {
+          "ref": "יא",
+          "count": 66
+        },
+        {
+          "ref": "יג",
+          "count": 61
+        },
+        {
+          "ref": "טז",
+          "count": 59
+        },
+        {
+          "ref": "לקח טוב",
+          "count": 59
+        },
+        {
+          "ref": "משנה ג",
+          "count": 58
+        },
+        {
+          "ref": "משנה ב",
+          "count": 56
+        },
+        {
+          "ref": "יב",
+          "count": 54
+        },
+        {
+          "ref": "יח",
+          "count": 54
+        },
+        {
+          "ref": "בית שמאי",
+          "count": 54
+        },
+        {
+          "ref": "שוחר טוב",
+          "count": 54
+        },
+        {
+          "ref": "אבות, ה",
+          "count": 51
+        },
+        {
+          "ref": "משנתנו",
+          "count": 50
+        },
+        {
+          "ref": "רבי",
+          "count": 50
+        },
+        {
+          "ref": "משנה ד",
+          "count": 49
+        },
+        {
+          "ref": "כ",
+          "count": 49
+        },
+        {
+          "ref": "טו",
+          "count": 49
+        },
+        {
+          "ref": "בבלי, שם",
+          "count": 48
+        },
+        {
+          "ref": "משנה א",
+          "count": 47
+        },
+        {
+          "ref": "שירליאון, סיריליאו",
+          "count": 44
+        },
+        {
+          "ref": "המחבר אינו ידוע",
+          "count": 44
+        },
+        {
+          "ref": "יז",
+          "count": 43
+        },
+        {
+          "ref": "איור 1",
+          "count": 43
+        },
+        {
+          "ref": "איור 3",
+          "count": 43
+        },
+        {
+          "ref": "איור 5",
+          "count": 43
+        },
+        {
+          "ref": "משנה ו",
+          "count": 42
+        },
+        {
+          "ref": "בית הלל",
+          "count": 42
+        }
+      ]
+    },
+    "mishneh_torah": {
+      "fileCount": 1851,
+      "segmentCount": 103776,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 1844,
+          "totalOccurrences": 364392,
+          "examples": [
+            {
+              "ref": "Mishneh LaMelech on Mishneh Torah, Marriage 11:8:1",
+              "text": "<b>וכל שכתובתה מנה וכו'.</b> בפרק אלו נערות (דף ל\"ו) גרסינן החרשת והשוטה והאילונית יש להן קנס ויש להם טענת בתולים ורמינהי החרשת והשוטה והבוגרת ומוכת עץ אין להם טענת בתולים א\"ר ששת לא קשיא הא ר\"ג הא ר\"",
+              "count": 245
+            },
+            {
+              "ref": "Seder Mishnah on Mishneh Torah, Rest on the Tenth of Tishrei 1:5:2",
+              "text": "<b> וכן למדנו מפי השמועה שאסור לרחוץ בו או לסוך בו כו'.</b> עכ\"ל. <b> (א') עיין</b> במ\"מ מ\"ש בזה, והנה דעתו נראה שהוא ז\"ל פי' בכוונת דברי רבינו בענין שארי העינוים כולם כמות שהם רחיצה, סיכה, נעילת הסנד",
+              "count": 175
+            },
+            {
+              "ref": "Divrei Yirmiyahu on Mishneh Torah, Sabbath 6:1:1",
+              "text": "<b>אסור לומר לעכו\"ם לעשות לנו מלאכה בשבת ואע\"פ שאמר לו מקודם השבת ואע\"פ שאינו צריך לאותה מלאכה אלא לאחר השבת ודבר זה אסור מדברי הסופרים כדי שלא תהיה שבת קלה בעיניהן ויבואו לעשות בעצמן.</b> (א') במס' ש",
+              "count": 170
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 9,
+          "totalOccurrences": 39,
+          "examples": [
+            {
+              "ref": "Lechem Mishneh on Mishneh Torah, Prayer and the Priestly Blessing 11:14:1",
+              "text": "<b>מותר לעשות כו'.</b> בפ' בני העיר (מגילה דף כ\"ז): וכן בני העיר וכו'. משנה ר״פ בני העיר (מגילה דף כ\"ו)]: <b>וכן בני העיר שמכרו בית הכנסת וכו'.</b> הקשה הרב מוהרי״ק ז״ל בסימן קנ״ג דבפרק א' מהל' מתנ״ע ",
+              "count": 4
+            },
+            {
+              "ref": "Tzafnat Pa'neach on Mishneh Torah, Diverse Species 9:5:5",
+              "text": "[<small>השמטה למ\"ש בגדר ספק ובגדר היכא שיש בו שני הכחות מעורבים ועי\"ז נעשה ספק:</small><br><b>ועיין </b>בדברי רבינו בהל' מא\"ס פ\"א הי\"ב וי\"ג דבהי\"ב כ' דכל שהוא ספק אם הוא חי' אם בהמה כו' ובהי\"ג כ' דדבר",
+              "count": 4
+            },
+            {
+              "ref": "Tzafnat Pa'neach on Mishneh Torah, Heave Offerings 1:23:2",
+              "text": "<b>ובאמת </b>נ\"ל דגם מש\"כ התוס' יבמות דף ט\"ז ע\"ב דלמ\"ד עכו\"ם הבא על בת ישראל הולד ממזר תליא בהך דר\"ע דאין קידושין תופסין בחייבי לאוין והוא תמוה כמבואר יבמות דף מ\"ה וכ\"מ ודף ע' שם וע' תוס' קדושין דף ע\"",
+              "count": 4
+            }
+          ]
+        },
+        "taamim": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "nikkud": {
+          "segmentsAffected": 121,
+          "totalOccurrences": 2508876,
+          "examples": [
+            {
+              "ref": "Mishneh Torah, Tefillin, Mezuzah and the Torah Scroll 8:4",
+              "text": "וּלְפִי שֶׁרָאִיתִי שִׁבּוּשׁ גָּדוֹל בְּכָל הַסְּפָרִים שֶׁרָאִיתִי בִּדְבָרִים אֵלּוּ. וְכֵן בַּעֲלֵי הַמָּסֹרֶת שֶׁכּוֹתְבִין וּמְחַבְּרִין לְהוֹדִיעַ הַפְּתוּחוֹת וְהַסְּתוּמוֹת נֶחְלָקִים בִּדְבָ",
+              "count": 9834
+            },
+            {
+              "ref": "Mishneh Torah, The Sanhedrin and the Penalties within Their Jurisdiction 19:4",
+              "text": "כָּל לֹא תַּעֲשֶׂה שֶׁבַּתּוֹרָה שֶׁאֵין בָּהֶן לֹא כָּרֵת וְלֹא מִיתַת בֵּית דִּין שֶׁלּוֹקִין עֲלֵיהֶן קס\"ח וְאֵלּוּ הֵן. א) הָעוֹשֶׂה אֱלִיל. ב) הָעוֹשֶׂה אֱלִיל לְנוֹי. ג) הַפּוֹנֶה אֶל אֱלִילִים ",
+              "count": 2775
+            },
+            {
+              "ref": "Mishneh Torah, The Order of Prayer 5:4",
+              "text": "<b>(הָעִנְיָנוֹת שֶׁנָּהֲגוּ רֹב הָעָם לִקְרוֹת מִן הַנְּבִיאִים בְּכָל שַׁבָּת וְשַׁבָּת וּמַפְטִירִין בָּהֶן וְאֵלּוּ הֵן:)</b> בְּרֵאשִׁית. הֵן עַבְדִּי אֶתְמָךְ בּוֹ עַד אֵלֶּה הַדְּבָרִים עֲשִׂית",
+              "count": 2404
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "inlineRefs": {
+          "segmentsAffected": 851,
+          "totalOccurrences": 14275,
+          "examples": [
+            {
+              "ref": "Mishneh Torah, Overview of Mishneh Torah Contents 1:21",
+              "text": "הלכות עבודה זרה וחוקות הגויים יש בכללן אחת וחמישים מצוות: שתי מצוות עשה, ותשע וארבעים מצוות לא תעשה. וזה הוא פרטן: (א) שלא לפנות אחר עבודה זרה. (ב) שלא לתור אחר הרהור הלב וראיית העיניים. (ג) שלא לגדף.",
+              "count": 51
+            },
+            {
+              "ref": "Mishneh Torah, Transmission of the Oral Law 21",
+              "text": "נִמְצָא מֵרָב אַשֵׁי עַד מֹשֶׁה רַבֵּנוּ – אַרְבָּעִים אִישׁ, וְאֵלּוּ הֶן: (א) רָב אַשֵׁי, (ב) מֵרַבָּא, (ג) מֵרַבָּה, (ד) מֵרָב הוּנָא, (ה) מֵרִבִּי יוֹחָנָן וְרָב וּשְׁמוּאֵל, (ו) מֵרַבֵּנוּ הַקָּד",
+              "count": 40
+            },
+            {
+              "ref": "Mishneh Torah, Overview of Mishneh Torah Contents 5:3",
+              "text": "הלכות איסורי ביאה. יש בכללן שבע ושלושים מצוות – אחת מצות עשה, ושש ושלושים מצוות לא תעשה; וזה הוא פרטן: (א) שלא לבוא על האם; (ב) שלא לבוא על אשת אב; (ג) שלא לבעול אחות; (ד) שלא לבעול בת אשת אב; (ה) שלא",
+              "count": 37
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 10,
+          "totalOccurrences": 747,
+          "examples": [
+            {
+              "ref": "Mishneh Torah, Tefillin, Mezuzah and the Torah Scroll 8:4",
+              "text": "וּלְפִי שֶׁרָאִיתִי שִׁבּוּשׁ גָּדוֹל בְּכָל הַסְּפָרִים שֶׁרָאִיתִי בִּדְבָרִים אֵלּוּ. וְכֵן בַּעֲלֵי הַמָּסֹרֶת שֶׁכּוֹתְבִין וּמְחַבְּרִין לְהוֹדִיעַ הַפְּתוּחוֹת וְהַסְּתוּמוֹת נֶחְלָקִים בִּדְבָ",
+              "count": 75
+            },
+            {
+              "ref": "Mishneh Torah, The Order of Prayer 5:4",
+              "text": "<b>(הָעִנְיָנוֹת שֶׁנָּהֲגוּ רֹב הָעָם לִקְרוֹת מִן הַנְּבִיאִים בְּכָל שַׁבָּת וְשַׁבָּת וּמַפְטִירִין בָּהֶן וְאֵלּוּ הֵן:)</b> בְּרֵאשִׁית. הֵן עַבְדִּי אֶתְמָךְ בּוֹ עַד אֵלֶּה הַדְּבָרִים עֲשִׂית",
+              "count": 23
+            },
+            {
+              "ref": "Mishneh Torah, The Order of Prayer 3:8",
+              "text": "רֹאשׁ הַשָּׁנָה. נָהֲגוּ רֹב הָעָם מֵרֹאשׁ הַשָּׁנָה וְעַד יוֹם הַכִּפּוּרִים לְהוֹסִיף בְּכָל תְּפִלָּה בַּעֲשֶׂרֶת הַיָּמִים. בִּבְרָכָה רִאשׁוֹנָה מוֹסִיפִים זָכְרֵנוּ לְחַיִּים כוּ׳‎ בָּרוּךְ אַתּ",
+              "count": 19
+            }
+          ]
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "ב",
+          "count": 189
+        },
+        {
+          "ref": "שם",
+          "count": 160
+        },
+        {
+          "ref": "א",
+          "count": 157
+        },
+        {
+          "ref": "ג",
+          "count": 142
+        },
+        {
+          "ref": "ד",
+          "count": 114
+        },
+        {
+          "ref": "ה",
+          "count": 88
+        },
+        {
+          "ref": "ו",
+          "count": 73
+        },
+        {
+          "ref": "חסר",
+          "count": 64
+        },
+        {
+          "ref": "א-ב",
+          "count": 59
+        },
+        {
+          "ref": "לא",
+          "count": 58
+        },
+        {
+          "ref": "ז",
+          "count": 42
+        },
+        {
+          "ref": "אלא",
+          "count": 39
+        },
+        {
+          "ref": "י",
+          "count": 39
+        },
+        {
+          "ref": "ח",
+          "count": 36
+        },
+        {
+          "ref": "ט",
+          "count": 29
+        },
+        {
+          "ref": "ב-ג",
+          "count": 29
+        },
+        {
+          "ref": "ח-ט",
+          "count": 28
+        },
+        {
+          "ref": "ז-ח",
+          "count": 28
+        },
+        {
+          "ref": "את",
+          "count": 27
+        },
+        {
+          "ref": "ג-ד",
+          "count": 25
+        },
+        {
+          "ref": "לו",
+          "count": 24
+        },
+        {
+          "ref": "הוא",
+          "count": 23
+        },
+        {
+          "ref": "יא",
+          "count": 23
+        },
+        {
+          "ref": "יב-יג",
+          "count": 23
+        },
+        {
+          "ref": "ו-ז",
+          "count": 23
+        },
+        {
+          "ref": "בזמן הבית",
+          "count": 23
+        },
+        {
+          "ref": "יב",
+          "count": 22
+        },
+        {
+          "ref": "כאן חסר",
+          "count": 22
+        },
+        {
+          "ref": "יג",
+          "count": 21
+        },
+        {
+          "ref": "ד-ה",
+          "count": 21
+        },
+        {
+          "ref": "יד",
+          "count": 19
+        },
+        {
+          "ref": "יא-יב",
+          "count": 19
+        },
+        {
+          "ref": "ה-ו",
+          "count": 19
+        },
+        {
+          "ref": "יד-טו",
+          "count": 19
+        },
+        {
+          "ref": "במדבר ל ג",
+          "count": 18
+        },
+        {
+          "ref": "דברים כד א",
+          "count": 18
+        },
+        {
+          "ref": "ט-י",
+          "count": 17
+        },
+        {
+          "ref": "י-יא",
+          "count": 17
+        },
+        {
+          "ref": "לה",
+          "count": 17
+        },
+        {
+          "ref": "דברים יב יז",
+          "count": 17
+        },
+        {
+          "ref": "אם",
+          "count": 16
+        },
+        {
+          "ref": "טו",
+          "count": 16
+        },
+        {
+          "ref": "יג-יד",
+          "count": 16
+        },
+        {
+          "ref": "טו-טז",
+          "count": 16
+        },
+        {
+          "ref": "ל",
+          "count": 15
+        },
+        {
+          "ref": "טז-יז",
+          "count": 15
+        },
+        {
+          "ref": "אמר",
+          "count": 15
+        },
+        {
+          "ref": "טז",
+          "count": 14
+        },
+        {
+          "ref": "אין",
+          "count": 14
+        },
+        {
+          "ref": "זה",
+          "count": 14
+        }
+      ]
+    },
+    "moreh": {
+      "fileCount": 6,
+      "segmentCount": 5854,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 6,
+          "totalOccurrences": 24089,
+          "examples": [
+            {
+              "ref": "Guide for the Perplexed Part 1:48:3",
+              "text": "<sup>4</sup> מצאתי אפוא שהוא תרגם כל <b>ראיה</b> שיוחסה לה' בכל ה<b>תורה</b> \"<b>וחזא</b>\", מלבד אלה שאתאר לך: <br><sup>א)</sup> \"<b>כִּי רָאָה ה' אֶת עָנְיִי</b>\" (בראשית כט,לב; ושם: בְּעָנְיִי) – \"<",
+              "count": 87
+            },
+            {
+              "ref": "Guide for the Perplexed Part 3:16:2",
+              "text": "<span class=\"mediumGrey\">דעת הפילוסופים – אין השגחה ואין ידיעה</span><br><sup>2</sup> <sup>נקודת התחלה)</sup> עיקר מה שהפיל אותם בדבר זה והביא אותם לכך הוא מה שנראה במבט ראשון כחוסר סדירות במצבי בני ה",
+              "count": 82
+            },
+            {
+              "ref": "Guide for the Perplexed Part 3:23:2",
+              "text": "<span class=\"mediumGrey\">דעת איוב בהתחלה: אין השגחה</span><br><sup>3</sup> <sup>כולם נפגעים)</sup> דעתו של איוב בנושא זה היתה שזאת ראיה לכך שהצדיק והרשע שווים מבחינתו יתעלה, מתוך חוסר אכפתיות ממין האד",
+              "count": 71
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "taamim": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "nikkud": {
+          "segmentsAffected": 4,
+          "totalOccurrences": 46621,
+          "examples": [
+            {
+              "ref": "Guide for the Perplexed Part 2:29:10",
+              "text": "<sup>13</sup> שמע את סידור העניינים וסמיכות הפסוקים המורים על כך. <br><sup>פתיחה)</sup> בראשית הפרשה הזאת אמר: \"חַסְדֵי ה' אַזְכִּיר תְּהִלֹּת ה' [כְּעַל כֹּל אֲשֶׁר גְּמָלָנוּ ה' וְרַב טוּב לְבֵית יִ",
+              "count": 787
+            },
+            {
+              "ref": "Guide for the Perplexed Part 3:23:2",
+              "text": "<span class=\"mediumGrey\">דעת איוב בהתחלה: אין השגחה</span><br><sup>3</sup> <sup>כולם נפגעים)</sup> דעתו של איוב בנושא זה היתה שזאת ראיה לכך שהצדיק והרשע שווים מבחינתו יתעלה, מתוך חוסר אכפתיות ממין האד",
+              "count": 570
+            },
+            {
+              "ref": "Guide for the Perplexed Part 3:19:3",
+              "text": "<span class=\"mediumGrey\">תשובה א: נדרשת התבוננות מקיפה עד סוף המאורעות</span><br><sup>3</sup> הנביא ציין שהוא העסיק בכך את מחשבתו, עד שהתברר לו שיש לראות את הדברים לפי אחריתם ולא לפי תחילתם. <br><sup>",
+              "count": 539
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "inlineRefs": {
+          "segmentsAffected": 5,
+          "totalOccurrences": 2865,
+          "examples": [
+            {
+              "ref": "Guide for the Perplexed Part 1:46:8",
+              "text": "<span class=\"mediumGrey\">אברי הגוף המושאלים ושאינם מושאלים</span><br><sup>13</sup> אברי התנועה המקומית המיוחסים לו יתעלה הם כגון דבריו \"<b>הֲדֹם רַגְלָי</b>\" (ישעיהו סו,א), \"<b>וְאֶת מְקוֹם כַּפּוֹת ר",
+              "count": 19
+            },
+            {
+              "ref": "Guide for the Perplexed Part 2:41:4",
+              "text": "<span class=\"mediumGrey\">הדגמות א: מלאך מדבר בחלום או במראה</span><br><sup>4</sup> מה שנאמר בצורה הראשונה הוא דוגמת דבריו: \"וַיֹּאמֶר אֵלַי מַלְאַךְ הָאֱלֹהִים בַּחֲלוֹם\" (בראשית לא,יא), \"וַיֹּאמֶר אֱ",
+              "count": 19
+            },
+            {
+              "ref": "Guide for the Perplexed Part 2:45:6",
+              "text": "<span class=\"mediumGrey\">המשך הדוגמאות: דוד ושלמה ודניאל</span><br><sup>11</sup> ראוי שנסב את תשומת הלב לכך שדוד ושלמה ודניאל הם בדרגה זו, ואינם בדרגת ישעיה וירמיה ונתן הנביא ואחיה השילוני והדומים להם",
+              "count": 14
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "שם",
+          "count": 55
+        },
+        {
+          "ref": "ב,א",
+          "count": 13
+        },
+        {
+          "ref": "במדבר יב,ו",
+          "count": 10
+        },
+        {
+          "ref": "שם,טז",
+          "count": 9
+        },
+        {
+          "ref": "דברים לב,ד",
+          "count": 9
+        },
+        {
+          "ref": "חכמינו",
+          "count": 9
+        },
+        {
+          "ref": "שם,כו",
+          "count": 8
+        },
+        {
+          "ref": "שם,כ",
+          "count": 8
+        },
+        {
+          "ref": "שם,ה",
+          "count": 8
+        },
+        {
+          "ref": "שם,יג",
+          "count": 7
+        },
+        {
+          "ref": "שם,ב",
+          "count": 7
+        },
+        {
+          "ref": "שם,ט",
+          "count": 7
+        },
+        {
+          "ref": "שם,יב",
+          "count": 7
+        },
+        {
+          "ref": "שם,יח",
+          "count": 7
+        },
+        {
+          "ref": "רק",
+          "count": 7
+        },
+        {
+          "ref": "שם,טו",
+          "count": 6
+        },
+        {
+          "ref": "בראשית טו,א",
+          "count": 6
+        },
+        {
+          "ref": "שם,י",
+          "count": 6
+        },
+        {
+          "ref": "א,נד",
+          "count": 6
+        },
+        {
+          "ref": "שם,יט",
+          "count": 6
+        },
+        {
+          "ref": "בפרק הבא",
+          "count": 6
+        },
+        {
+          "ref": "בראשית א,לא",
+          "count": 6
+        },
+        {
+          "ref": "האל",
+          "count": 6
+        },
+        {
+          "ref": "העולם",
+          "count": 6
+        },
+        {
+          "ref": "בראשית כא,לג",
+          "count": 5
+        },
+        {
+          "ref": "שלא כפשוטו",
+          "count": 5
+        },
+        {
+          "ref": "במדבר יב,ח",
+          "count": 5
+        },
+        {
+          "ref": "שמות לד,ו",
+          "count": 5
+        },
+        {
+          "ref": "שם,כב",
+          "count": 5
+        },
+        {
+          "ref": "דברים לג,כו",
+          "count": 5
+        },
+        {
+          "ref": "ב,יט",
+          "count": 5
+        },
+        {
+          "ref": "אלפאראבי",
+          "count": 5
+        },
+        {
+          "ref": "מאפרודיסיאס",
+          "count": 5
+        },
+        {
+          "ref": "שם,ד",
+          "count": 5
+        },
+        {
+          "ref": "דברים ד,ח",
+          "count": 5
+        },
+        {
+          "ref": "לא",
+          "count": 4
+        },
+        {
+          "ref": "אריסטו",
+          "count": 4
+        },
+        {
+          "ref": "שמות לג,יח",
+          "count": 4
+        },
+        {
+          "ref": "במדבר כ,טז",
+          "count": 4
+        },
+        {
+          "ref": "פסקה 2",
+          "count": 4
+        },
+        {
+          "ref": "תהילים לג,ו",
+          "count": 4
+        },
+        {
+          "ref": "בראשית לא,יא",
+          "count": 4
+        },
+        {
+          "ref": "האנושי",
+          "count": 4
+        },
+        {
+          "ref": "שם,כה",
+          "count": 4
+        },
+        {
+          "ref": "שם,יא",
+          "count": 4
+        },
+        {
+          "ref": "א,מו",
+          "count": 4
+        },
+        {
+          "ref": "מסכת",
+          "count": 4
+        },
+        {
+          "ref": "של אריסטו",
+          "count": 4
+        },
+        {
+          "ref": "אלוה",
+          "count": 4
+        },
+        {
+          "ref": "שם,ז",
+          "count": 4
+        }
+      ]
+    },
+    "other": {
+      "fileCount": 1809,
+      "segmentCount": 1615511,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 1567,
+          "totalOccurrences": 3914812,
+          "examples": [
+            {
+              "ref": "Tur Yoreh Deah:267:1",
+              "text": "<b>הלכות עבדים </b><br> <i data-commentator=\"Bach\" data-order=\"1.1\"></i> מצות עשה על הרב למול את עבדיו שנאמר המול ימול יליד ביתך ומקנת כספך  <i data-commentator=\"Beit_Yosef\" data-order=\"1.1\"></i> עבר ",
+              "count": 875
+            },
+            {
+              "ref": "Tur Even HaEzer:141:1",
+              "text": "<i data-commentator=\"Bach\" data-order=\"1.1\"></i>  <i data-commentator=\"Beit_Yosef\" data-order=\"1.1\"></i> האשה יכולה לעשות שליח לקבל גיטה מיד שליח בעלה בד\"א שעשתה שליח אחר לקבלו ממנו  <i data-commentat",
+              "count": 710
+            },
+            {
+              "ref": "Tur Yoreh Deah:331:1",
+              "text": "<b>הלכות תרומות ומעשרות ומעשר עני וראשית הגז </b><br> <i data-commentator=\"Bach\" data-order=\"1.1\"></i> מפני שאין נוהגין תרומות ומעשרות בארצות אלו אין רצוני להאריך בהם אף על פי שמצינו בכמה מקומות בתלמו",
+              "count": 649
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 130,
+          "totalOccurrences": 10176,
+          "examples": [
+            {
+              "ref": "Recanati on the Torah Bo:23",
+              "text": "ספר הזוהר [ואתחנן רס\"ב א'] תפלין דאנח קב\"ה. &lt;תרגום - תפילין שהקב\"ה מניחם&gt;. הוא הוא דבעי בר נש לאנחא בכל יום בגין דאינון שמא קדישא עילאה. &lt;ולכן צריך האדם להניח תפילין בכל יום משום שהם השם הקדו",
+              "count": 288
+            },
+            {
+              "ref": "Recanati on the Torah Vayikra:14",
+              "text": "והסיר את מראתו בנוצתה וגו'. דע כי השלכת המוראה והנוצה למקום הדשן היא דוגמת הקרבה ויתבאר בסוד תרומת הדשן הקודמת לכל הקרבנות והבן מה שאמרו רז\"ל תמות וזכרות בבהמה ואין תמות וזכרות בעוף. ועוד יש לרז\"ל בספ",
+              "count": 165
+            },
+            {
+              "ref": "Recanati on the Torah Vayikra:16",
+              "text": "ספר הזוהר [פנחס רמ\"א ב'] על רזא דא א\"ר שמעון אסור לאדם שיטעום כלום עד דייכול מלכא עילאה. &lt;תרגום - על סוד זה אמר רבי שמעון אסור לאדם לטעום כלום עד שיאכל המלך העליון&gt;. ומאי ניהו צלותא דבר נש כגוונ",
+              "count": 140
+            }
+          ]
+        },
+        "taamim": {
+          "segmentsAffected": 71,
+          "totalOccurrences": 15822,
+          "examples": [
+            {
+              "ref": "Jerusalem Talmud Sanhedrin 10:2:5",
+              "text": "כָּתוּב בְּיָמָ֞יו בָּנָ֥ה חִיאֵ֛ל בֵּ֥ית הָֽאֱלִי֖ אֶת־יְרִיחוּ בַּֽאֲבִירָ֨ם בְּכֹר֜וֹ יִסְּדָ֗הּ וּבִשְׂג֤וּב צְעִירוֹ֙ הִצִּ֣יב דְּלָתֶ֔יהָ. חִיאֵל מִן יְהוֹשָׁפָט. יְרִיחוֹ מִבִּנְיָמִין. אֶלָּא ",
+              "count": 121
+            },
+            {
+              "ref": "Jerusalem Talmud Sanhedrin 11:5:9",
+              "text": "כָּתוּב וְאִ֨ישׁ אֶחָ֜ד מִבְּנֵ֣י הַנְּבִיאִ֗ים אָמַ֧ר אֶל־רֵעֵ֛הוּ בִּדְבַ֥ר יְי וגו׳. וַיֹּ֣אמֶר ל֗וֹ יַ֚עַן אֲשֶׁ֤ר לֹֽא־שָׁמַ֨עְתָּ֙ בְּק֣וֹל יְי הִנְּךָ֤ הוֹלֵךְ֙ מֵֽאִתִּ֔י וְהִכְּךָ֖ הָֽאַרְיֵ֑",
+              "count": 101
+            },
+            {
+              "ref": "Jerusalem Talmud Sanhedrin 6:7:3",
+              "text": "כְּתִיב וַיִּתְּנֵ֙ם יְהוֹשֻׁ֜עַ בַּיּ֣וֹם הַה֗וּא חוֹטְבֵי עֵצִ֛ים וְשׁוֹאֲבֵי מַיִ֭ם לָֽעֵדָ֑ה. נִיחָא לָעֵדָה. וּלְמִזְבַּ֤ח יְי. אֶלָּא שֶׁתְּלָייָן יְהוֹשֻׁעַ בריפן<i data-commentator=\"Notes by H",
+              "count": 94
+            }
+          ]
+        },
+        "nikkud": {
+          "segmentsAffected": 663,
+          "totalOccurrences": 26841063,
+          "examples": [
+            {
+              "ref": "Kuzari 4:3",
+              "text": "(ג) אָמַר הֶחָבֵר: אֲבָל רוֹמְזִים אֵלָיו בָּרְמִיזָה הַנְּבוּאִית וּבָרְאִיָּה הָרוּחָנִית, כִּי הָרְאָיוֹת מַתְעִים וּמִן הָרְאָיוֹת יָבוֹא אָדָם לְאֶפִּיקוּרְסוּת וּלְדֵעוֹת מֻפְסָדוֹת. וְכִי מָה ה",
+              "count": 8533
+            },
+            {
+              "ref": "Kuzari 5:20",
+              "text": "(כ) אָמַר הֶחָבֵר: אֵינֶנּוּ מַכְחִישׁ טֶבַע הָאֶפְשָׁר כִּי אִם מִתְעַקֵּשׁ־חָנֵף, יֹאמַר מַה שֶּׁאֵינֶנּוּ מַאֲמִין בּוֹ, כִּי אַתָּה רוֹאֶה מֵהִזְדַּמְּנוּתוֹ לְמַה שֶּׁהוּא מְקַוֶּה אוֹ יָרֵא, מַה",
+              "count": 7615
+            },
+            {
+              "ref": "Kuzari 5:12",
+              "text": "(יב) אָמַר הֶחָבֵר: יִתְבָּאֵר מְצִיאוּת הַנֶּפֶשׁ בִּתְנוּעוֹת וְהַרְגָּשׁוֹת לַחַיִּים, שׁוֹנוֹת מִן הַתְּנוּעוֹת הַיְסוֹדִיּוֹת, וְנִקְרֵאת סִבָּתָם נֶפֶשׁ אוֹ כֹחַ נַפְשִׁי. וְיִתְחַלְּקוּ הַכֹּחו",
+              "count": 6500
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 1,
+          "totalOccurrences": 1,
+          "examples": [
+            {
+              "ref": "Horeb 462:1",
+              "text": "עתה הבה נתבונן, אם בעת עשית צרכיך, שאז הנך אנוס להיות בהמה לך, ובכל זאת הן החובה עליך ככל האפשר, להיות איש באנשים ולכסות מערומי גו{פ}ך גם בפני עין הגוף — הנה נקל להבין מה רע ומכוער הוא הדבר לזלזל בדבר",
+              "count": 1
+            }
+          ]
+        },
+        "inlineRefs": {
+          "segmentsAffected": 1386,
+          "totalOccurrences": 615188,
+          "examples": [
+            {
+              "ref": "Ohr LaYesharim on Jerusalem Talmud Taanit 4:5:13",
+              "text": "<b>תני</b> – שנה (ברייתא) <b>רבי שמעון בן יוחי</b> (מגדולי התנאים בדור הרביעי, מתלמידיו של רבי עקיבא)<b>: עקיבה רבי היה דורש</b> (את הכתוב)<b>: \"דרך כוכב מיעקב\"</b> (במדבר כד,יז) <b>- דרך כוזבא מיעקב<",
+              "count": 166
+            },
+            {
+              "ref": "Midrash HaIttamari 23:26",
+              "text": "הנהגות רבינו אשר אורח חיים למעלה למשכיל למען סור משאול מטה. (א) שיפריש מעשר מכל ריוח שיביא הקב\"ה בידו (ב) שיתן צדקה מיד אשר תשיג ידו ולבסוף כל חודש שני פשיטין ולסוף כל שנה זהוב וחצי (ג) שיתפלל ערב ובק",
+              "count": 152
+            },
+            {
+              "ref": "Ohr LaYesharim on Jerusalem Talmud Taanit 4:7:2",
+              "text": "<big><strong>תלמוד</strong></big><br>במשנה שנינו, שחמישה עשר באב ויום הכיפורים היו ימים טובים.\nואומרים: <b>ניחא</b> (<b>ב</b>)<b>יום הכיפורים</b> – נוח (מובן) יום הכיפורים<b>, שהוא כפרה על ישראל</b> –",
+              "count": 140
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 86,
+          "totalOccurrences": 34755,
+          "examples": [
+            {
+              "ref": "Tzidkat HaTzadik 263:1",
+              "text": "‏[רסג] המחשבה דבור ומעשה דתורה ומצות הם לבושי כבוד לאדם כמ\"ש (שבת קיג.) דמאני ‏מכבדותא. ובמתאי שמאי (שם קמה:) היינו במקום שורש הנפש הכבוד הוא כפי עצם מעלת הנפש. ‏ובלא מתאי היינו בעוה\"ז וכן בג\"ע תותבאי",
+              "count": 77
+            },
+            {
+              "ref": "HaEmunot veHaDeot [Treatise VIII] Messianic Redemption:6:1",
+              "text": "ואומר אחר זה, כי על שני הענינים יחד, ר\"ל אם לא נחזור בתשובה ויהיו המאורעים של בן יוסף, ‏ואם נחזור בתשובה ולא יהיו, יראה לנו משיח בן דוד פתאום. ואם יהיה משיח בן יוסף קודם לו, ‏יהיה כשליח לו וכמתקן האומ",
+              "count": 76
+            },
+            {
+              "ref": "HaEmunot veHaDeot [Treatise VII] The Resurrection of the Dead:1:2",
+              "text": "אמר יהודה בן שאול, אמר המחבר. יתברך ויתעלה האל אלהי ישראל. המאמת דבריו, הצדיק ‏במועדו. ואחרי כן אומר שמצאתי המון בני ישראל מאמינים, כי הבורא יתברך ויתעלה, יחיה מתיהם ‏בעת הגאולה, ומצאתים שמפרשים כל פר",
+              "count": 73
+            }
+          ]
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "שם",
+          "count": 23252
+        },
+        {
+          "ref": "א",
+          "count": 5384
+        },
+        {
+          "ref": "ב",
+          "count": 4788
+        },
+        {
+          "ref": "ג",
+          "count": 3157
+        },
+        {
+          "ref": "ו",
+          "count": 2570
+        },
+        {
+          "ref": "ד",
+          "count": 2399
+        },
+        {
+          "ref": "ה",
+          "count": 2121
+        },
+        {
+          "ref": "י",
+          "count": 1943
+        },
+        {
+          "ref": "ז",
+          "count": 1491
+        },
+        {
+          "ref": "שם שם",
+          "count": 1416
+        },
+        {
+          "ref": "ח",
+          "count": 1367
+        },
+        {
+          "ref": "ט",
+          "count": 1234
+        },
+        {
+          "ref": "יא",
+          "count": 1032
+        },
+        {
+          "ref": "יב",
+          "count": 945
+        },
+        {
+          "ref": "יג",
+          "count": 865
+        },
+        {
+          "ref": "יד",
+          "count": 800
+        },
+        {
+          "ref": "טו",
+          "count": 741
+        },
+        {
+          "ref": "טז",
+          "count": 686
+        },
+        {
+          "ref": "יז",
+          "count": 650
+        },
+        {
+          "ref": "לא",
+          "count": 645
+        },
+        {
+          "ref": "יח",
+          "count": 618
+        },
+        {
+          "ref": "כ",
+          "count": 614
+        },
+        {
+          "ref": "אמורא ארץ ישראלי בדור השלישי",
+          "count": 603
+        },
+        {
+          "ref": "בתמיהה",
+          "count": 597
+        },
+        {
+          "ref": "יט",
+          "count": 573
+        },
+        {
+          "ref": "כא",
+          "count": 512
+        },
+        {
+          "ref": "כב",
+          "count": 501
+        },
+        {
+          "ref": "אמורא ארץ ישראלי בדור הרביעי",
+          "count": 486
+        },
+        {
+          "ref": "כג",
+          "count": 459
+        },
+        {
+          "ref": "כד",
+          "count": 451
+        },
+        {
+          "ref": "כה",
+          "count": 439
+        },
+        {
+          "ref": "גדול אמוראי ארץ ישראל בדור השני",
+          "count": 415
+        },
+        {
+          "ref": "כו",
+          "count": 392
+        },
+        {
+          "ref": "מגדולי אמוראי ארץ ישראל בדור הרביעי",
+          "count": 383
+        },
+        {
+          "ref": "כז",
+          "count": 382
+        },
+        {
+          "ref": "ל",
+          "count": 375
+        },
+        {
+          "ref": "כח",
+          "count": 347
+        },
+        {
+          "ref": "לו",
+          "count": 346
+        },
+        {
+          "ref": "מכילתא",
+          "count": 343
+        },
+        {
+          "ref": "התנא",
+          "count": 339
+        },
+        {
+          "ref": "כט",
+          "count": 324
+        },
+        {
+          "ref": "לה",
+          "count": 301
+        },
+        {
+          "ref": "את",
+          "count": 289
+        },
+        {
+          "ref": "לב",
+          "count": 284
+        },
+        {
+          "ref": "אמורא ארץ ישראלי בדור הראשון",
+          "count": 274
+        },
+        {
+          "ref": "אלא",
+          "count": 268
+        },
+        {
+          "ref": "לד",
+          "count": 251
+        },
+        {
+          "ref": "לג",
+          "count": 248
+        },
+        {
+          "ref": "כאן",
+          "count": 238
+        },
+        {
+          "ref": "ע״ב",
+          "count": 238
+        }
+      ]
+    },
+    "ramban": {
+      "fileCount": 6,
+      "segmentCount": 3453,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 6,
+          "totalOccurrences": 10264,
+          "examples": [
+            {
+              "ref": "Ramban on Exodus 20:13:1",
+              "text": "<b>לֹא תִּרְצָח לֹא תִּנְאָף לֹא תִּגְנֹב</b> אָמַר, הִנֵּה צִוִּיתִיךָ לְהוֹדוֹת שֶׁאֲנִי בּוֹרֵא אֶת הַכֹּל בַּלֵּב וּבְמַעֲשֶׂה, וּלְכַבֵּד הָאָבוֹת בַּעֲבוּר שֶׁהֵם מִשְׁתַּתְּפִים בַּיְּצִירָה, א",
+              "count": 37
+            },
+            {
+              "ref": "Ramban on Deuteronomy 15:1:1",
+              "text": "<b>מִקֵּץ שֶׁבַע שָׁנִים תַּעֲשֶׂה שְׁמִטָּה</b>, הַנָּכוֹן בְּעֵינַי שֶׁיַּזְהִיר עַל שְׁנַת הַשֶּׁבַע עַצְמָהּ, שֶׁנַּעֲשֶׂה אוֹתָהּ שְׁמִטָּה בֶּחָרִישׁ וּבַקָּצִיר, כְּמוֹ שֶׁאָמַר (שמות כג יא) וְ",
+              "count": 36
+            },
+            {
+              "ref": "Ramban on Exodus 14:19:1",
+              "text": "<b>וַיִּסַּע מַלְאַךְ הָאֱלֹהִים</b> אָמַר ר\"א (אבן עזרא על שמות י\"ד:י\"ט) <b>מַלְאַךְ הָאֱלֹהִים</b> הוּא הַשַּׂר הַגָּדוֹל הַהוֹלֵךְ בֶּעָנָן, וְהוּא הַכָּתוּב עָלָיו \"וַה' הֹלֵךְ לִפְנֵיהֶם יוֹמָם\",",
+              "count": 36
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "taamim": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "nikkud": {
+          "segmentsAffected": 6,
+          "totalOccurrences": 1119213,
+          "examples": [
+            {
+              "ref": "Ramban on Genesis 46:1:1",
+              "text": "<b>וַיִּזְבַּח זְבָחִים לֵאלֹהֵי אָבִיו יִצְחָק</b> חַיָּב אָדָם בִּכְבוֹד אָבִיו יוֹתֵר מִכְּבוֹד זְקֵנוֹ, לְפִיכָךְ תָּלָה בְּיִצְחָק וְלֹא בְּאַבְרָהָם, לְשׁוֹן רַשִׁ\"י (רש\"י על בראשית מ\"ו:א'). וְא",
+              "count": 5555
+            },
+            {
+              "ref": "Ramban on Leviticus 25:5:1",
+              "text": "<b>אֵת סְפִיחַ קְצִירְךָ</b> אֲפִלּוּ לֹא זָרַעְתָּ וְהִיא צָמְחָה מִן הַזֶּרַע שֶׁנָּפַל בִּשְׁעַת הַקָּצִיר, וְהוּא קָרוּי סָפִיחַ, <b>לֹא תִקְצֹר</b> לִהְיוֹת מַחֲזִיק בּוֹ כִּשְׁאָר קָצִיר אֶלָּא ",
+              "count": 4216
+            },
+            {
+              "ref": "Ramban on Leviticus 18:21:1",
+              "text": "<b>לַמֹּלֶךְ</b> עֲבוֹדָה זָרָה שֶׁשְּׁמָהּ מֹלֶךְ. וְהִזְכִּירוֹ הַכָּתוּב בְּשֵׁם הַיְּדִיעָה, כִּי הָיָה בְּמִצְרַיִם יָדוּעַ לָהֶם. וְרַבִּי אַבְרָהָם אָמַר (אבן עזרא על ויקרא י\"ח:כ\"א) כִּי יִתָּכ",
+              "count": 4046
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "inlineRefs": {
+          "segmentsAffected": 5,
+          "totalOccurrences": 6608,
+          "examples": [
+            {
+              "ref": "Ramban on Genesis 46:1:1",
+              "text": "<b>וַיִּזְבַּח זְבָחִים לֵאלֹהֵי אָבִיו יִצְחָק</b> חַיָּב אָדָם בִּכְבוֹד אָבִיו יוֹתֵר מִכְּבוֹד זְקֵנוֹ, לְפִיכָךְ תָּלָה בְּיִצְחָק וְלֹא בְּאַבְרָהָם, לְשׁוֹן רַשִׁ\"י (רש\"י על בראשית מ\"ו:א'). וְא",
+              "count": 61
+            },
+            {
+              "ref": "Ramban on Leviticus 18:25:1",
+              "text": "<b>וַתִּטְמָא הָאָרֶץ וָאֶפְקֹד עֲוֹנָהּ עָלֶיהָ וַתָּקִא הָאָרֶץ</b> הֶחְמִיר הַכָּתוּב בָּעֲרָיוֹת, בַּעֲבוּר הָאָרֶץ שֶׁתִּטְמָא בָּהֶן וְתָקִיא הַנְּפָשׁוֹת הָעוֹשׂוֹת. וְהִנֵּה הָעֲרָיוֹת חוֹבַת ",
+              "count": 45
+            },
+            {
+              "ref": "Ramban on Numbers 20:8:1",
+              "text": "הַחֵטְא בְּמֹשֶׁה וְאַהֲרֹן בְּמֵי מְרִיבָה אֵינוֹ מִתְפַּרְסֵם בַּכָּתוּב. וְרַשִׁ״י פֵּרֵשׁ (רש״י על במדבר כ׳:י״א) מִפְּנֵי שֶׁצִּוָּה אוֹתָם \"וְדִבַּרְתֶּם אֶל הַסֶּלַע\" וְלֹא אָמַר וְהִכִּיתֶם, שֶ",
+              "count": 42
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 1,
+          "totalOccurrences": 4,
+          "examples": [
+            {
+              "ref": "Ramban on Genesis 1:21:1",
+              "text": "<b>וַיִּבְרָא אֱלֹהִים אֶת הַתַּנִּינִם הַגְּדֹלִים</b> בַּעֲבוּר גֹּדֶל הַנִּבְרָאִים הָאֵלֶּה שֶׁיֵּשׁ מֵהֶם אָרְכָּם פַּרְסָאוֹת רַבּוֹת, הִגִּידוּ הַיְּוָנִים בְּסִפְרֵיהֶם שֶׁיָּדְעוּ מֵהֶם אֲרֻכ",
+              "count": 3
+            },
+            {
+              "ref": "Ramban on Genesis 1:3:2",
+              "text": "<b>וַיְהִי אוֹר</b> לֹא אָמַר \"וַיְהִי־‎כֵן\", כָּאָמוּר בִּשְׁאָר הַיָּמִים, לְפִי שֶׁלֹּא עָמַד הָאוֹר בַּתְּכוּנָה הַזֹּאת כָּל הַיָּמִים כִּשְׁאָר מַעֲשֵׂה בְּרֵאשִׁית. וְיֵשׁ לְרַבּוֹתֵינוּ בָּזֶה",
+              "count": 1
+            }
+          ]
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "שם",
+          "count": 147
+        },
+        {
+          "ref": "כאן",
+          "count": 71
+        },
+        {
+          "ref": "במכילתא כאן",
+          "count": 16
+        },
+        {
+          "ref": "ויקרא יח כה",
+          "count": 13
+        },
+        {
+          "ref": "מכילתא כאן",
+          "count": 13
+        },
+        {
+          "ref": "שם פסוק יט",
+          "count": 10
+        },
+        {
+          "ref": "שם פסוק כד",
+          "count": 9
+        },
+        {
+          "ref": "שם פסוק כ",
+          "count": 8
+        },
+        {
+          "ref": "שמות כ ב",
+          "count": 8
+        },
+        {
+          "ref": "שם פסוק כא",
+          "count": 8
+        },
+        {
+          "ref": "שם פסוק יז",
+          "count": 8
+        },
+        {
+          "ref": "שם פסוק יב",
+          "count": 7
+        },
+        {
+          "ref": "שם יט",
+          "count": 7
+        },
+        {
+          "ref": "שם ג",
+          "count": 7
+        },
+        {
+          "ref": "שם יד",
+          "count": 7
+        },
+        {
+          "ref": "שם כ",
+          "count": 6
+        },
+        {
+          "ref": "שם פסוק טז",
+          "count": 6
+        },
+        {
+          "ref": "ג מו",
+          "count": 6
+        },
+        {
+          "ref": "שמות כג יא",
+          "count": 6
+        },
+        {
+          "ref": "שמות כג לג",
+          "count": 6
+        },
+        {
+          "ref": "שם פסוק ד",
+          "count": 6
+        },
+        {
+          "ref": "דברים ד לו",
+          "count": 6
+        },
+        {
+          "ref": "שם טו",
+          "count": 6
+        },
+        {
+          "ref": "שם יז",
+          "count": 6
+        },
+        {
+          "ref": "שם פסוק ג",
+          "count": 5
+        },
+        {
+          "ref": "שם שם טז",
+          "count": 5
+        },
+        {
+          "ref": "שמות יט כ",
+          "count": 5
+        },
+        {
+          "ref": "שם פסוק כג",
+          "count": 5
+        },
+        {
+          "ref": "שם פסוק יד",
+          "count": 5
+        },
+        {
+          "ref": "תהלים מד ד",
+          "count": 5
+        },
+        {
+          "ref": "ויקרא יז ז",
+          "count": 5
+        },
+        {
+          "ref": "שם פסוק יג",
+          "count": 5
+        },
+        {
+          "ref": "סנהדרין סד",
+          "count": 5
+        },
+        {
+          "ref": "שם פסוק יא",
+          "count": 5
+        },
+        {
+          "ref": "יהושע כד כז",
+          "count": 5
+        },
+        {
+          "ref": "שם פסוק ט",
+          "count": 5
+        },
+        {
+          "ref": "במדבר י כט",
+          "count": 5
+        },
+        {
+          "ref": "שם יח",
+          "count": 5
+        },
+        {
+          "ref": "שם טז",
+          "count": 5
+        },
+        {
+          "ref": "שם ח",
+          "count": 5
+        },
+        {
+          "ref": "דברים א יז",
+          "count": 5
+        },
+        {
+          "ref": "דברים ה כא",
+          "count": 5
+        },
+        {
+          "ref": "דברים ה יט",
+          "count": 5
+        },
+        {
+          "ref": "שמות ג יב",
+          "count": 5
+        },
+        {
+          "ref": "שם כ יג",
+          "count": 5
+        },
+        {
+          "ref": "סנהדרין נח",
+          "count": 5
+        },
+        {
+          "ref": "כתובות קי",
+          "count": 5
+        },
+        {
+          "ref": "שמות כד א",
+          "count": 4
+        },
+        {
+          "ref": "שם פסוק טו",
+          "count": 4
+        },
+        {
+          "ref": "דברים לב נא",
+          "count": 4
+        }
+      ]
+    },
+    "rashi": {
+      "fileCount": 39,
+      "segmentCount": 28251,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 39,
+          "totalOccurrences": 58537,
+          "examples": [
+            {
+              "ref": "Rashi on Deuteronomy 32:43:7",
+              "text": "בְּפָנִים אֲחֵרִים הִיא נִדְרֶשֶׁת בְּסִפְרֵי וְנֶחְלְקוּ בָהּ רַבִּי יְהוּדָה וְרַבִּי נְחֶמְיָה, רַבִּי יְהוּדָה דוֹרֵשׁ כֻּלָּהּ כְּנֶגֶד יִשְׂרָאֵל, וְרַבִּי נְחֶמְיָה דוֹרֵשׁ אֶת כֻּלָּה כְּנֶגֶד",
+              "count": 20
+            },
+            {
+              "ref": "Rashi on I Kings 7:37:2",
+              "text": "<small>פירוש מבעל צורת הבית:</small><b> וזה מעשה המכונה.</b> עשה ארבעה אופני נחושת, שנאמר (פסוק ל): <b>וארבע אופני נחשת למכונה האחת</b> כצורת עגלה גדולה, וקומת האופן האחד, אמה וחצי האמה. ומעשה האופנים",
+              "count": 16
+            },
+            {
+              "ref": "Rashi on Exodus 23:2:1",
+              "text": "<b>לא תהיה אחרי רבים לרעת.</b> יֵשׁ בְּמִקְרָא זֶה מִדְרְשֵׁי חַכְמֵי יִשְׂרָאֵל, אֲבָל אֵין לְשׁוֹן הַמִּקְרָא מְיֻשָּׁב בָּהֶן עַל אָפְנָיו. מִכָּאן דָּרְשׁוּ שֶׁאֵין מַטִּין לְחוֹבָה בְּהַכְרָעַת ד",
+              "count": 14
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "taamim": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "nikkud": {
+          "segmentsAffected": 20,
+          "totalOccurrences": 702986,
+          "examples": [
+            {
+              "ref": "Rashi on II Kings 17:1:1",
+              "text": "<b>בִּשְׁנַת שְׁתֵּים עֶשְׂרֵה לְאָחָז וְגוֹ'.</b> אִי אֶפְשָׁר לוֹמַר שֶׁמָּלַךְ הוֹשֵעַ בִּשְׁנַת שְׁתֵּים עֶשְׂרֵה לְאָחָז, שֶׁהֲרֵי בִּשְׁנַת אַרְבַּע לְאָחָז הָרַג אֶת פֶּקַח וּמָלַךְ תַּחְתָּיו,",
+              "count": 957
+            },
+            {
+              "ref": "Rashi on Numbers 34:3:2",
+              "text": "<b>ממדבר צן.</b> אֲשֶׁר אֵצֶל אֱדוֹם מַתְחִיל מִקְצוֹעַ דְרוֹמִית מִזְרָחִית שֶׁל אֶרֶץ תִּשְׁעַת הַמַּטּוֹת; כֵּיצַד? שָׁלוֹשׁ אֲרָצוֹת יוֹשְׁבוֹת בִּדְרוֹמָהּ שֶׁל אֶרֶץ יִשְׂרָאֵל זוֹ אֵצֶל זוֹ — ק",
+              "count": 945
+            },
+            {
+              "ref": "Rashi on Leviticus 14:44:1",
+              "text": "<b>ובא הכהן וראה והנה פשה.</b> יָכוֹל לֹא יְהֵא הַחוֹזֵר טָמֵא אֶלָּא אִם כֵּן פָּשָׂה, נֶאֱמַר צָרַעַת מַמְאֶרֶת בַּבָּתִּים, וְנֶאֱמַר צָרַעַת מַמְאֶרֶת בַּבגדים, מַה לְּהַלָּן טִמֵּא אֶת הַחוֹזֵר א",
+              "count": 917
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "inlineRefs": {
+          "segmentsAffected": 35,
+          "totalOccurrences": 5537,
+          "examples": [
+            {
+              "ref": "Rashi on Judges 11:26:2",
+              "text": "<b>שְׁלֹשׁ מֵאוֹת שָׁנָה.</b> מִשֶּׁכָּבְשׁוּ אֶת הָאָרֶץ בִּימֵי יְהוֹשֻׁעַ עַד יִפְתָּח מִכָּאן יֵשׁ לִלְמוֹד שְׁנוֹת הַשּׁוֹפְטִים הַנִּזְכָּרִים עַד הֵנָּה, אִם שְׁנֵי הַשִּׁעְבּוּד שֶׁל כָּל אוּמ",
+              "count": 13
+            },
+            {
+              "ref": "Rashi on I Kings 7:37:2",
+              "text": "<small>פירוש מבעל צורת הבית:</small><b> וזה מעשה המכונה.</b> עשה ארבעה אופני נחושת, שנאמר (פסוק ל): <b>וארבע אופני נחשת למכונה האחת</b> כצורת עגלה גדולה, וקומת האופן האחד, אמה וחצי האמה. ומעשה האופנים",
+              "count": 9
+            },
+            {
+              "ref": "Rashi on Job 1:1:2",
+              "text": "<b>והיה האיש.</b> אע\"פ שהוא לשון עתיד כן דרך לשון עברית ולשון מליצתו והווה האיש ההוא גדול מכל בני קדם בני ארץ המזרחי שארם במזרחו של עולם הוא שנאמר (במדבר כ״ג:ז׳) מן ארם ינחני בלק מהררי קדם, דבר אחר עו",
+              "count": 9
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 2,
+          "totalOccurrences": 2,
+          "examples": [
+            {
+              "ref": "Rashi on Deuteronomy 14:22:1",
+              "text": "<b>לא תבשל גדי‎ … עשר תעשר.</b> מָה עִנְיַן זֶה אֵצֶל זֶה? אָמַר לָהֶם הַקָּבָּ\"ה לְיִשְׂרָאֵל: אַל תִּגְרְמוּ לִי לְבַשֵּׁל גְּדָיִים שֶׁל תְּבוּאָה עַד שֶׁהֵן בִּמְעֵי אִמּוֹתֵיהֶן, שֶׁאִם אֵין אַתּ",
+              "count": 1
+            },
+            {
+              "ref": "Rashi on Genesis 5:24:1",
+              "text": "<b>ויתהלך חנוך.</b> צַדִּיק הָיָה וְקַל בְּדַעְתּוֹ לָשׁוּב לְהַרְשִׁיעַ, לְפִיכָךְ מִהֵר הַקָּבָּ\"ה וְסִלְּקוֹ וֶהֱמִיתוֹ קֹדֶם זְמַנּוֹ, וְזֶהוּ שֶׁשִּׁנָּה הַכָּתוּב בְּמִיתָתוֹ לִכְתֹּב וְאֵינֶנּו",
+              "count": 1
+            }
+          ]
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "שם",
+          "count": 596
+        },
+        {
+          "ref": "ספרי",
+          "count": 229
+        },
+        {
+          "ref": "ספרא",
+          "count": 180
+        },
+        {
+          "ref": "בראשית רבה",
+          "count": 178
+        },
+        {
+          "ref": "מכילתא",
+          "count": 131
+        },
+        {
+          "ref": "תנחומא",
+          "count": 112
+        },
+        {
+          "ref": "תרגום:",
+          "count": 98
+        },
+        {
+          "ref": "מצאתי",
+          "count": 27
+        },
+        {
+          "ref": "שמות רבה",
+          "count": 20
+        },
+        {
+          "ref": "כאן",
+          "count": 13
+        },
+        {
+          "ref": "מענה איוב",
+          "count": 10
+        },
+        {
+          "ref": "לעיל י",
+          "count": 9
+        },
+        {
+          "ref": "לעיל ו",
+          "count": 8
+        },
+        {
+          "ref": "לעיל א",
+          "count": 7
+        },
+        {
+          "ref": "בראשית כד",
+          "count": 7
+        },
+        {
+          "ref": "שמות טו",
+          "count": 7
+        },
+        {
+          "ref": "שם ו",
+          "count": 6
+        },
+        {
+          "ref": "שמות יד",
+          "count": 6
+        },
+        {
+          "ref": "שם א",
+          "count": 6
+        },
+        {
+          "ref": "לעיל ח",
+          "count": 6
+        },
+        {
+          "ref": "שם יז",
+          "count": 6
+        },
+        {
+          "ref": "שם טו",
+          "count": 6
+        },
+        {
+          "ref": "לעיל יג",
+          "count": 6
+        },
+        {
+          "ref": "לעיל כב",
+          "count": 6
+        },
+        {
+          "ref": "ילקוט שמעוני",
+          "count": 6
+        },
+        {
+          "ref": "איוב ל׳:ל׳",
+          "count": 5
+        },
+        {
+          "ref": "שם ט",
+          "count": 5
+        },
+        {
+          "ref": "לעיל טז",
+          "count": 5
+        },
+        {
+          "ref": "לעיל ג",
+          "count": 5
+        },
+        {
+          "ref": "מיכה א",
+          "count": 5
+        },
+        {
+          "ref": "שם לא",
+          "count": 5
+        },
+        {
+          "ref": "לעיל ב",
+          "count": 5
+        },
+        {
+          "ref": "ויקרא כו",
+          "count": 5
+        },
+        {
+          "ref": "איכה א",
+          "count": 5
+        },
+        {
+          "ref": "לקמן לא",
+          "count": 5
+        },
+        {
+          "ref": "דברים לב",
+          "count": 5
+        },
+        {
+          "ref": "לקמן לב",
+          "count": 5
+        },
+        {
+          "ref": "לקמן לח",
+          "count": 5
+        },
+        {
+          "ref": "איוב יג",
+          "count": 5
+        },
+        {
+          "ref": "שמות י״ז:ט״ז",
+          "count": 5
+        },
+        {
+          "ref": "איכה ג",
+          "count": 5
+        },
+        {
+          "ref": "שם כה",
+          "count": 5
+        },
+        {
+          "ref": "לעיל כג",
+          "count": 5
+        },
+        {
+          "ref": "במדבר כ״ד:י״ז",
+          "count": 5
+        },
+        {
+          "ref": "שם יג",
+          "count": 5
+        },
+        {
+          "ref": "שם לג",
+          "count": 5
+        },
+        {
+          "ref": "ישעיה ה",
+          "count": 5
+        },
+        {
+          "ref": "לעיל ט",
+          "count": 5
+        },
+        {
+          "ref": "לקמן כד",
+          "count": 4
+        },
+        {
+          "ref": "שמות ט׳:ל״ג",
+          "count": 4
+        }
+      ]
+    },
+    "shulchan_arukh": {
+      "fileCount": 72,
+      "segmentCount": 263762,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 65,
+          "totalOccurrences": 686548,
+          "examples": [
+            {
+              "ref": "Shulchan Arukh, Choshen Mishpat 46:37",
+              "text": "<i data-commentator=\"Me'irat Einayim\" data-order=\"90\"></i><i data-commentator=\"Be'er HaGolah\" data-label=\"א\" data-order=\"96\"></i>שנים החתומים על השטר <i data-commentator=\"Urim VeTumim, Urim\" data-orde",
+              "count": 322
+            },
+            {
+              "ref": "Shulchan Arukh, Choshen Mishpat 163:3",
+              "text": "<i data-commentator=\"Beur HaGra\" data-order=\"33\"></i><i data-commentator=\"Be'er HaGolah\" data-label=\"ט\" data-order=\"9\"></i>כשגובין מאנשי העיר לבנות החומה גובין לפי <i data-commentator=\"Ba'er Hetev\" da",
+              "count": 304
+            },
+            {
+              "ref": "Shulchan Arukh, Choshen Mishpat 62:1",
+              "text": "<b>דין אשה הנושאת ונותנת בתוך הבית. ובו סעיף אחד:</b><br><i data-commentator=\"Urim VeTumim, Urim\" data-order=\"1\"></i><i data-commentator=\"Me'irat Einayim\" data-order=\"1\"></i><i data-commentator=\"Be'er",
+              "count": 291
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 4,
+          "totalOccurrences": 35,
+          "examples": [
+            {
+              "ref": "Peri Megadim on Yoreh De'ah Introduction to the Laws of Meat with Milk:9",
+              "text": "<b>עוד </b>אדבר כמעט רגע איזו בשר בחלב האסור באכילה והנאה מן התורה הוא דרך בישול הא מליחה וכבישה מעל\"ע או בחומץ וציר כשיעור שירתיח דרבנן קודם שבישלו וחם לתוך צונן דנאסר כ\"ק לא הוה מ\"ה דאדמיקר בלע לא מ",
+              "count": 8
+            },
+            {
+              "ref": "Chokhmat Shlomo on Shulchan Arukh, Orach Chayim 363:1",
+              "text": "<b>סעיף א' מקום שיש לו שלשה מחיצות  </b>נ\"ב עיין בחיבורי ספר החיים מ\"ש בדין עירובין על דברי הת\"ש ועיין בסי' ש\"ג בחיבורי לאו\"ה משנת תקצ\"ט בתשובה לק\"ק זלאטשיב מ\"ש לחכם אחד מה שלא הבין דברינו וביארתי שם ",
+              "count": 3
+            },
+            {
+              "ref": "Chokhmat Shlomo on Shulchan Arukh, Orach Chayim 318:1",
+              "text": "<b>סעיף א' המבשל בשבת.  </b>נ\"ב הנה הרי\"ף כתב כיון דבפלוגתא ר\"א ורבינא הלכה כדברי המיקל ממילא אין הלכה כר\"י הסנדלר והרא\"ש בפ\"ז רב\"ק בסוגיא דטובח ע\"י אחר תמה עליו דמה ענין זה לזה והנה הגאון החסיד מוהר\"",
+              "count": 2
+            }
+          ]
+        },
+        "taamim": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "nikkud": {
+          "segmentsAffected": 14,
+          "totalOccurrences": 197,
+          "examples": [
+            {
+              "ref": "Kaf HaChayim on Shulchan Arukh, Orach Chayim 685:33:5",
+              "text": "<b>לג) לשם  </b>יחוד קבה\"ו וכו' הנה אנחנו באים לקרות (או לשמוע) פרשת שקלים לעורר שקל הקודש פלס ומוזני משפט לה' ולהכניע מוזני מרמה בגבול הרשעה הנצב כאריה יכסוף לטרוף וככפיר יושב במסתרים ובסגולת קריאה נ",
+              "count": 18
+            },
+            {
+              "ref": "Ba'er Hetev on Shulchan Arukh, Orach Chayim 582:4",
+              "text": "<b>אין. </b> אפי' רצה להחזיר אסור ד\"מ מ\"א. לחיים בשו\"א הלמ\"ד ולא בפתח דמשמע לא חיים כדאיתא בנדרים לחולין בפתח הוי כמו לא חולין ע\"ש. ודוקא בר\"ה קפדינן אבל בכל השנה אומרים השכיבנו לחיים בפת\"ח תחת הלמ\"ד ",
+              "count": 9
+            },
+            {
+              "ref": "Kaf HaChayim on Shulchan Arukh, Orach Chayim 582:33:1",
+              "text": "<b>לג) ויאמר  </b>זכרנו וכן כתבנו בחטף קמ\"ץ שהוא לשון בקשם ולא יאמר זכרנו או כתבנו בחול\"ם שהוא אינו לשון בקשה אלא שם התואר זוכר שלנו או כותב שלנו. לבוש. מט\"ט סי' תשצ\"ו. מ\"א סק\"ד. וכתב הטור דהר\"ם מרוטנ",
+              "count": 9
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 1,
+          "totalOccurrences": 4,
+          "examples": [
+            {
+              "ref": "Mishnah Berurah 498:60",
+              "text": "{ס} יכולים לשחטה - כיון דא\"א לכזית בשר בלי שחיטה אינו עושה הישראל בשביל עכו\"ם כלום אלא לעצמו הוא עוסק:",
+              "count": 1
+            },
+            {
+              "ref": "Mishnah Berurah 498:80",
+              "text": "{פ} ומיהו עדיף טפי וכו' - דדקר שהיה נעוץ מבע\"י לכך אין בו איסור מוקצה ורק עשיית גומא דאינו אלא מקלקל במקום שא\"צ להגומא וס\"ל דזהו קילא מאיסור מוקצה אכן כמה אחרונים חולקים אהגה\"ה זו וס\"ל להיפך דמוטב לכס",
+              "count": 1
+            },
+            {
+              "ref": "Mishnah Berurah 515:60",
+              "text": "{ס} מביא - ובעיר שרובה ישראל כל כמה דלא ידעינן דהביא בשביל עכו\"ם מן הסתם תלינן שבשביל ישראל הביא שהם רובא ואם הוא דבר שיש במינו במחובר או מחוסר צידה אמרינן דליקט וצד בשביל ישראלים למכור להם וצריך להמת",
+              "count": 1
+            }
+          ]
+        },
+        "inlineRefs": {
+          "segmentsAffected": 70,
+          "totalOccurrences": 30618,
+          "examples": [
+            {
+              "ref": "Beit Shmuel Beit Shmuel on Names for Men:29",
+              "text": "(יצחק) וא\"צ לכתוב הכינוי (חקין) וכן א\"צ לכתוב (יצחק איצק) או (איצחק) או (איסק) אבל כותבים המ' (אייזק) משום דיש לשם (אייזק) שם קודש אח' והוא שאלתיאל או אהרן וכל שיש לכינוי שם הקודש אחר צריך לכתוב אותו ",
+              "count": 117
+            },
+            {
+              "ref": "Beit Shmuel Beit Shmuel on Names for Men:5",
+              "text": "(בנימן חסר) יו\"ד אחר המ\"ס כ\"פ בת\"ה וכ\"פ בש\"ע ומהרש\"ל ובד\"מ כתבו דכותבי' מלא יו\"ד אחר המ\"ם. ופסק בס\"ש לכתחלה יש לכתוב מלא דהא קי\"ל אפילו מה שראוי להיות חסר וכתב מלא כשר כיון דמבטא הוא כאלו היה מלא מכ\"ש",
+              "count": 76
+            },
+            {
+              "ref": "Beit Shmuel Beit Shmuel on Names for Men:2",
+              "text": "אברהם כן יש לכתוב מן הסתם שכולם נקראים על שם אברהם אבינו שאמר הקדוש ברוך הוא  ולא יקרא עוד את שמך אברם והיה שמך לאברהם. וכתב מהרש\"ל אם לא שיש לו קבלה שאותו משפחה נקראו בשם אברם על איזה סיבה כי לפעמים ",
+              "count": 70
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 2,
+          "totalOccurrences": 5,
+          "examples": [
+            {
+              "ref": "Siftei Kohen on Shulchan Arukh, Choshen Mishpat 46:5:1",
+              "text": "<b> אין מקיימין שטרות בלילה </b> ואפי' קיימוהו בדיעבד לא הוי קיום כדלעיל סי' ז' [‎‎‎‎ה'] סעיף ב' גבי דין ואין חילוק בזה בין שטרות לגט אפי' במקום עיגון כ\"כ בתשו' ר\"א מזרחי סי' פ\"ב וע\"ש שהאריך בזה:",
+              "count": 4
+            },
+            {
+              "ref": "Biur Halacha 336:7:1",
+              "text": "<b> מעציץ שאינו נקוב</b> -  עיין במ\"ב ודע דבחושן משפט סימן ר\"ב ס\"ב‏[1] מובא מחלוקת די\"א דבעציץ עץ אפי' אינה נקובה כנקובה דמיא משום דעץ מתלחלח ויונק מהקרקע ולא בעינן נקובה רק גבי כלי חרס וי\"א דאדרבה בח",
+              "count": 1
+            }
+          ]
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "ליקוט",
+          "count": 2862
+        },
+        {
+          "ref": "שם",
+          "count": 1017
+        },
+        {
+          "ref": "טור",
+          "count": 774
+        },
+        {
+          "ref": "א",
+          "count": 758
+        },
+        {
+          "ref": "ב",
+          "count": 698
+        },
+        {
+          "ref": "ג",
+          "count": 661
+        },
+        {
+          "ref": "ד",
+          "count": 633
+        },
+        {
+          "ref": "ה",
+          "count": 609
+        },
+        {
+          "ref": "מגן אברהם",
+          "count": 597
+        },
+        {
+          "ref": "ו",
+          "count": 583
+        },
+        {
+          "ref": "ז",
+          "count": 552
+        },
+        {
+          "ref": "ח",
+          "count": 532
+        },
+        {
+          "ref": "ט",
+          "count": 503
+        },
+        {
+          "ref": "י",
+          "count": 473
+        },
+        {
+          "ref": "יא",
+          "count": 439
+        },
+        {
+          "ref": "יב",
+          "count": 414
+        },
+        {
+          "ref": "יג",
+          "count": 393
+        },
+        {
+          "ref": "יד",
+          "count": 377
+        },
+        {
+          "ref": "טו",
+          "count": 359
+        },
+        {
+          "ref": "טז",
+          "count": 345
+        },
+        {
+          "ref": "יז",
+          "count": 324
+        },
+        {
+          "ref": "יח",
+          "count": 307
+        },
+        {
+          "ref": "יט",
+          "count": 292
+        },
+        {
+          "ref": "כ",
+          "count": 272
+        },
+        {
+          "ref": "כא",
+          "count": 254
+        },
+        {
+          "ref": "לא",
+          "count": 246
+        },
+        {
+          "ref": "כב",
+          "count": 243
+        },
+        {
+          "ref": "כג",
+          "count": 238
+        },
+        {
+          "ref": "כד",
+          "count": 235
+        },
+        {
+          "ref": "כה",
+          "count": 223
+        },
+        {
+          "ref": "כו",
+          "count": 217
+        },
+        {
+          "ref": "כז",
+          "count": 207
+        },
+        {
+          "ref": "כח",
+          "count": 201
+        },
+        {
+          "ref": "מלבושי יום טוב",
+          "count": 198
+        },
+        {
+          "ref": "כט",
+          "count": 192
+        },
+        {
+          "ref": "ל",
+          "count": 182
+        },
+        {
+          "ref": "לב",
+          "count": 168
+        },
+        {
+          "ref": "לג",
+          "count": 161
+        },
+        {
+          "ref": "לו",
+          "count": 156
+        },
+        {
+          "ref": "לד",
+          "count": 153
+        },
+        {
+          "ref": "לה",
+          "count": 146
+        },
+        {
+          "ref": "לז",
+          "count": 131
+        },
+        {
+          "ref": "לח",
+          "count": 123
+        },
+        {
+          "ref": "לט",
+          "count": 116
+        },
+        {
+          "ref": "מ",
+          "count": 114
+        },
+        {
+          "ref": "מא",
+          "count": 111
+        },
+        {
+          "ref": "מב",
+          "count": 109
+        },
+        {
+          "ref": "לבוש",
+          "count": 105
+        },
+        {
+          "ref": "מג",
+          "count": 103
+        },
+        {
+          "ref": "מד",
+          "count": 102
+        }
+      ]
+    },
+    "siddur": {
+      "fileCount": 64,
+      "segmentCount": 124592,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 54,
+          "totalOccurrences": 113535,
+          "examples": [
+            {
+              "ref": "Siddur Ashkenaz Shabbat:Musaf LeShabbat:Shir HaKavod:2",
+              "text": "<em><small>חזן:</small></em> - אַנְעִים זְמִירות וְשִׁירִים אֶאֱרוג. כִּי אֵלֶיךָ נַפְשִׁי תַעֲרוג: <br> <em><small>קהל:</small></em> - נַפְשִׁי חָמְדָה בְּצֵל יָדֶךָ. לָדַעַת כָּל רָז סודֶךָ: <br> <e",
+              "count": 154
+            },
+            {
+              "ref": "Machzor Yom Kippur Edot HaMizrach Neilah:Slichot:11",
+              "text": "<b>אֱלֹהֵֽינוּ</b> שֶׁבַּשָּׁמַֽיִם שְׁמַע קוֹלֵֽנוּ וְקַבֵּל תְּפִלָּתֵֽנוּ בְּרָצוֹן: <br>אֱלֹהֵֽינוּ שֶׁבַּשָּׁמַֽיִם <b>אַ</b>ל־תְּאַבְּדֵֽנוּ בְּאֹֽרֶךְ גָּלוּתֵֽנוּ: <br>אַבֵּד כָּל־הַקָּמִים עָ",
+              "count": 111
+            },
+            {
+              "ref": "Machzor Yom Kippur Edot HaMizrach Arvit:Slichot:38",
+              "text": "<b>אֱלֹהֵֽינוּ</b> שֶׁבַּשָּׁמַֽיִם שְׁמַע קוֹלֵֽנוּ וְקַבֵּל תְּפִלָּתֵֽנוּ בְּרָצוֹן: <br>אֱלֹהֵֽינוּ שֶׁבַּשָּׁמַֽיִם <b>אַ</b>ל־תְּאַבְּדֵֽנוּ בְּאֹֽרֶךְ גָּלוּתֵֽנוּ: <br>אַבֵּד כָּל־הַקָּמִים עָ",
+              "count": 109
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 2,
+          "totalOccurrences": 6,
+          "examples": [
+            {
+              "ref": "Siddur Sefard Pesach Haggadah:Nirtzah:13",
+              "text": "<small><small><b>&lt;&lt;הַיּוֹם יוֹם אֶחָד לָעֹמֶר:&gt;&gt;</b></small></small>",
+              "count": 4
+            },
+            {
+              "ref": "Machzor Yom Kippur Sefard Mincha Service:Reader's Repetition:94",
+              "text": "small&gt;וְעַל חֵטְא שֶׁחָטָאנוּ לְפָנֶיךָ בְּמַאֲכָל וּבְמִשְׁתֶּה:",
+              "count": 1
+            },
+            {
+              "ref": "Machzor Yom Kippur Sefard Mincha Service:Reader's Repetition:102",
+              "text": "small&gt;עַל חֵטְא שֶׁחָטָאנוּ לְפָנֶיךָ בִּפְרִיקַת עוֹל:",
+              "count": 1
+            }
+          ]
+        },
+        "taamim": {
+          "segmentsAffected": 24,
+          "totalOccurrences": 113222,
+          "examples": [
+            {
+              "ref": "Leshon Chakhamim Part I:21:20",
+              "text": "<b>(מ)</b> בְּעֶשְׂרִ֣ים וְחָמֵ֣שׁ שָׁנָ֣ה לְ֠גָלוּתֵ֠נוּ בְּרֹ֨אשׁ הַשָּׁנָ֜ה בֶּעָשׂ֣וֹר לַחֹ֗דֶשׁ בְּאַרְבַּ֤ע עֶשְׂרֵה֙ שָׁנָ֔ה אַחַ֕ר אֲשֶׁ֥ר הֻכְּתָ֖ה הָעִ֑יר בְּעֶ֣צֶם <b>׀</b> הַיּ֣וֹם הַזֶּ֗ה",
+              "count": 651
+            },
+            {
+              "ref": "Machzor Yom Kippur Ashkenaz Mincha:Torah Reading for Mincha Service:10",
+              "text": "וַֽיְהִי֙ דְּבַר־יְהֹוָ֔ה אֶל־יוֹנָ֥ה בֶן־אֲמִתַּ֖י לֵאמֹֽר: קוּם לֵ֧ךְ אֶל־נִֽינְוֵ֛ה הָעִ֥יר הַגְּדוֹלָ֖ה וּקְרָ֣א עָלֶ֑יהָ כִּי־עָֽלְתָ֥ה רָֽעָתָ֖ם לְפָנָֽי: וַיָּ֤קָם יוֹנָה֙ לִבְרֹ֣חַ תַּרְשִׁ֔יש",
+              "count": 552
+            },
+            {
+              "ref": "Machzor Yom Kippur Sefard Mincha Service:Haftarah:3",
+              "text": "וַֽיְהִי֙ דְּבַר־יְהֹוָ֔ה אֶל־יוֹנָ֥ה בֶן־אֲמִתַּ֖י לֵאמֹֽר: קוּם לֵ֧ךְ אֶל־נִֽינְוֵ֛ה הָעִ֥יר הַגְּדוֹלָ֖ה וּקְרָ֣א עָלֶ֑יהָ כִּי־עָֽלְתָ֥ה רָֽעָתָ֖ם לְפָנָֽי: וַיָּ֤קָם יוֹנָה֙ לִבְרֹ֣חַ תַּרְשִׁ֔יש",
+              "count": 548
+            }
+          ]
+        },
+        "nikkud": {
+          "segmentsAffected": 48,
+          "totalOccurrences": 4847946,
+          "examples": [
+            {
+              "ref": "Tikkun HaKlali 13",
+              "text": "<b>תפלה מר' נתן</b><br><b>אָשִׁירָה לַיהֹוָה בְּחַיָּי,</b> אֲזַמְּרָה לֵאלֹהַי בְּעוֹדִי: יֶעֱרַב עָלָיו שִׂיחִי, אָנֹכִי אֶשְׂמַח בַּיהֹוָה: הוֹדוּ לַיהֹוָה בְּכִנּוֹר, בְּנֵבֶל עָשׂוֹר זַמְּרוּ לוֹ",
+              "count": 7285
+            },
+            {
+              "ref": "Machzor Yom Kippur Ashkenaz Linear The Morning Prayers:Reader's Repetition of the Amidah:603",
+              "text": "מִי יְתַנֶּה תֹּֽקֶף תְּהִלָּתֶֽךָ. מִי יְשַׁנֵּן שִׁעוּר שִׁבְחֶֽךָ. מִי יְרַנֵּן רֹב רוֹמְמוּתֶֽךָ. מִי יִקְצוֹב קְרִיאַת קְדֻשָּׁתֶֽךָ. מִי יְצַפְצֵף צְבִי צִבְאוֹתֶֽיךָ. מִי יְפָרֵשׁ פִּלְאֵי פִלְ",
+              "count": 5662
+            },
+            {
+              "ref": "Machzor Yom Kippur Ashkenaz The Morning Prayers:Reader's Repetition of the Amidah:207",
+              "text": "מִי יְתַנֶּה תֹּֽקֶף תְּהִלָּתֶֽךָ. מִי יְשַׁנֵּן שִׁעוּר שִׁבְחֶֽךָ. מִי יְרַנֵּן רֹב רוֹמְמוּתֶֽךָ. מִי יִקְצוֹב קְרִיאַת קְדֻשָּׁתֶֽךָ. מִי יְצַפְצֵף צְבִי צִבְאוֹתֶֽיךָ. מִי יְפָרֵשׁ פִּלְאֵי פִלְ",
+              "count": 5662
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "inlineRefs": {
+          "segmentsAffected": 45,
+          "totalOccurrences": 3268,
+          "examples": [
+            {
+              "ref": "Barukh SheAmar on Pesach Haggadah Magid:First Fruits Declaration:15:1",
+              "text": "<b>ואת עמלנו אלו הבנים, כמה שנאמר כל הבן הילוד היאורה תשליכוהו וכל הבת תחיון..</b> הנה גם אחרי הראי׳ מפסוק כל הבן הילוד וכו׳ אין מבואר איפה מרומז ענין זה בלשון עמלנו. ואפשר לומר, משום דמצינו לשם ״עמל״",
+              "count": 58
+            },
+            {
+              "ref": "Barukh SheAmar on Pesach Haggadah Magid:First Fruits Declaration:14:1",
+              "text": "<b>וירא את ענינו זו פרישות דרך ארץ, כמו שנאמר וירא אלהים את בני ישראל וידע אלהים</b> לא נתבאר מה יתרון להפסוק וירא אלהים על הפסוק וירא את ענינו עד שמביא ממנו ראי׳ לבאור הפסוק הקודם, והלא לכאורה אדרבה,",
+              "count": 51
+            },
+            {
+              "ref": "Seder Ma'amadot 1:43",
+              "text": "(ד) וַיֹּ֤אמֶר יְהוָה֙ אֶל-מֹשֶׁ֔ה הִנְנִ֨י מַמְטִ֥יר לָכֶ֛ם לֶ֖חֶם מִן-הַשָּׁמָ֑יִם וְיָצָ֨א הָעָ֤ם וְלָֽקְטוּ֙ דְּבַר-י֣וֹם בְּיוֹמ֔וֹ לְמַ֧עַן אֲנַסֶּ֛נּוּ הֲיֵלֵ֥ךְ בְּתוֹרָתִ֖י אִם-לֹֽא: (ה) וְהָ",
+              "count": 33
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 10,
+          "totalOccurrences": 137,
+          "examples": [
+            {
+              "ref": "Siddur Ashkenaz Weekday:Shacharit:Post Amidah:Tachanun:For Monday and Thursday:4",
+              "text": "<b>הַבֶּט־נָא</b> רַחֶם־נָא עַל־עַמְּךָ מְהֵרָה לְמַֽ‎עַן שְׁמֶךָ: בְּרַחֲמֶֽ‎יךָ הָרַבִּים יְהֹוָה אֱלהֵֽ‎ינוּ חוּס וְרַחֵם וְהוֹשִֽׁיעָה צֹאן מַרְעִיתֶֽךָ וְאַל־יִמְשָׁל בָּֽ‎נוּ קֶצֶף כִּי לְךָ עֵי",
+              "count": 12
+            },
+            {
+              "ref": "Pesach Haggadah Edot Hamizrah Hallel:Second Half of Hallel:2",
+              "text": "לֹ֤א לָ֥נוּ יְהֹוָ֗ה לֹ֫א לָ֥נוּ כִּֽי־לְ֭שִׁמְךָ תֵּ֣ן כָּב֑וֹד עַל־חַ֝סְדְּךָ֗ עַל־אֲמִתֶּֽךָ׃ ‏לָ֭מָּה יֹאמְר֣וּ הַגּוֹיִ֑ם אַיֵּה־נָ֝֗א אֱלֹהֵיהֶֽם׃ וֵֽאלֹהֵ֥ינוּ בַשָּׁמָ֑יִם כֹּ֭ל ‏אֲשֶׁר־חָפֵ֣ץ",
+              "count": 10
+            },
+            {
+              "ref": "Pesach Haggadah Edot Hamizrah Hallel:Second Half of Hallel:3",
+              "text": "אָ֭הַבְתִּי כִּֽי־יִשְׁמַ֥ע ׀ יְהֹוָ֑ה אֶת־ק֝וֹלִ֗י תַּחֲנוּנָֽי׃ כִּֽי־הִטָּ֣ה אָזְנ֣וֹ לִ֑י ‏וּבְיָמַ֥י אֶקְרָֽא׃ אֲפָפ֤וּנִי ׀ חֶבְלֵי־מָ֗וֶת וּמְצָרֵ֣י שְׁא֣וֹל מְצָא֑וּנִי צָרָ֖ה ‏וְיָג֣וֹן אֶמְצ",
+              "count": 8
+            }
+          ]
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "יהוה",
+          "count": 84
+        },
+        {
+          "ref": "ס",
+          "count": 84
+        },
+        {
+          "ref": "ג",
+          "count": 41
+        },
+        {
+          "ref": "א",
+          "count": 41
+        },
+        {
+          "ref": "ב",
+          "count": 40
+        },
+        {
+          "ref": "פלוני",
+          "count": 39
+        },
+        {
+          "ref": "ד",
+          "count": 36
+        },
+        {
+          "ref": "ה",
+          "count": 32
+        },
+        {
+          "ref": "ו",
+          "count": 28
+        },
+        {
+          "ref": "ז",
+          "count": 27
+        },
+        {
+          "ref": "בט״ר צת״ג",
+          "count": 26
+        },
+        {
+          "ref": "ח",
+          "count": 25
+        },
+        {
+          "ref": "י",
+          "count": 25
+        },
+        {
+          "ref": "נביאים",
+          "count": 25
+        },
+        {
+          "ref": "כתובים",
+          "count": 25
+        },
+        {
+          "ref": "ט",
+          "count": 24
+        },
+        {
+          "ref": "אמן",
+          "count": 24
+        },
+        {
+          "ref": "תורה",
+          "count": 24
+        },
+        {
+          "ref": "אבודרהם",
+          "count": 21
+        },
+        {
+          "ref": "תהלים",
+          "count": 19
+        },
+        {
+          "ref": "יא",
+          "count": 18
+        },
+        {
+          "ref": "יב",
+          "count": 18
+        },
+        {
+          "ref": "מאור הגולה",
+          "count": 17
+        },
+        {
+          "ref": "יג",
+          "count": 17
+        },
+        {
+          "ref": "קר״ע שט״ן",
+          "count": 16
+        },
+        {
+          "ref": "יד",
+          "count": 16
+        },
+        {
+          "ref": "לוי",
+          "count": 14
+        },
+        {
+          "ref": "אב״ג ית״ץ",
+          "count": 14
+        },
+        {
+          "ref": "נג״ד יכ״ש",
+          "count": 14
+        },
+        {
+          "ref": "טו",
+          "count": 14
+        },
+        {
+          "ref": "המבדיל",
+          "count": 14
+        },
+        {
+          "ref": "חק״ב טנ״ע",
+          "count": 12
+        },
+        {
+          "ref": "יג״ל פז״ק",
+          "count": 11
+        },
+        {
+          "ref": "שק״ו צי״ת",
+          "count": 11
+        },
+        {
+          "ref": "טז",
+          "count": 11
+        },
+        {
+          "ref": "במוצאי",
+          "count": 11
+        },
+        {
+          "ref": "בא״ח בשלח כ״א",
+          "count": 10
+        },
+        {
+          "ref": "יהו״ה",
+          "count": 10
+        },
+        {
+          "ref": "פב״פ",
+          "count": 10
+        },
+        {
+          "ref": "יז",
+          "count": 9
+        },
+        {
+          "ref": "י׳ ב׳",
+          "count": 8
+        },
+        {
+          "ref": "פלוני בן פלוני",
+          "count": 8
+        },
+        {
+          "ref": "יט",
+          "count": 8
+        },
+        {
+          "ref": "כא",
+          "count": 8
+        },
+        {
+          "ref": "כב",
+          "count": 8
+        },
+        {
+          "ref": "על בית",
+          "count": 8
+        },
+        {
+          "ref": "אדני",
+          "count": 8
+        },
+        {
+          "ref": "שם",
+          "count": 7
+        },
+        {
+          "ref": "פ",
+          "count": 7
+        },
+        {
+          "ref": "יח",
+          "count": 7
+        }
+      ]
+    },
+    "tanakh": {
+      "fileCount": 39,
+      "segmentCount": 23206,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 39,
+          "totalOccurrences": 20134,
+          "examples": [
+            {
+              "ref": "Jeremiah 51:34",
+              "text": "<span class=\"mam-kq\"><span class=\"mam-kq-k\">(אכלנו)</span> <span class=\"mam-kq-q\">[אֲכָלַ֣נִי]</span></span> <span class=\"mam-kq\"><span class=\"mam-kq-k\">(הממנו)</span> <span class=\"mam-kq-q\">[הֲמָמַ֗נ",
+              "count": 30
+            },
+            {
+              "ref": "Daniel 5:16",
+              "text": "וַאֲנָה֙ שִׁמְעֵ֣ת <span class=\"mam-kq\"><span class=\"mam-kq-k\">(עליך)</span> <span class=\"mam-kq-q\">[עֲלָ֔ךְ]</span></span> דִּֽי־<span class=\"mam-kq\"><span class=\"mam-kq-q\">[תִכּ֥וּל]</span> <span cl",
+              "count": 27
+            },
+            {
+              "ref": "Jeremiah 50:11",
+              "text": "כִּ֤י <span class=\"mam-kq\"><span class=\"mam-kq-k\">(תשמחי)</span> <span class=\"mam-kq-q\">[תִשְׂמְחוּ֙]</span></span> כִּ֣י <span class=\"mam-kq\"><span class=\"mam-kq-k\">(תעלזי)</span> <span class=\"mam-kq",
+              "count": 24
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 38,
+          "totalOccurrences": 22041,
+          "examples": [
+            {
+              "ref": "I Samuel 6:17",
+              "text": "וְאֵ֙לֶּה֙ טְחֹרֵ֣י הַזָּהָ֔ב אֲשֶׁ֨ר הֵשִׁ֧יבוּ פְלִשְׁתִּ֛ים אָשָׁ֖ם לַיהֹוָ֑ה&nbsp;<span class=\"mam-spi-samekh\">{ס}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;לְאַשְׁדּ֨וֹד אֶחָ֜ד&nbsp;<",
+              "count": 54
+            },
+            {
+              "ref": "Judges 5:30",
+              "text": "הֲלֹ֨א יִמְצְא֜וּ יְחַלְּק֣וּ שָׁלָ֗ל&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;רַ֤חַם רַחֲמָתַ֙יִם֙ לְרֹ֣אשׁ גֶּ֔בֶר&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;שְׁלַ֤ל צְבָעִים֙ לְסִ֣יסְרָ֔א",
+              "count": 40
+            },
+            {
+              "ref": "Deuteronomy 5:17",
+              "text": "לֹ֥֖א תִּֿרְצָ֖͏ֽח׃&nbsp;<span class=\"mam-spi-samekh\">{ס}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;וְלֹ֣֖א תִּֿנְאָ֑͏ֽף׃&nbsp;<span class=\"mam-spi-samekh\">{ס}</span>&nbsp;&nbsp;&nbsp;&nbs",
+              "count": 36
+            }
+          ]
+        },
+        "taamim": {
+          "segmentsAffected": 39,
+          "totalOccurrences": 251136,
+          "examples": [
+            {
+              "ref": "II Kings 1:6",
+              "text": "וַיֹּאמְר֨וּ אֵלָ֜יו אִ֣ישׁ&thinsp;<b>׀</b> עָלָ֣ה לִקְרָאתֵ֗נוּ וַיֹּ֣אמֶר אֵלֵ֘ינוּ֮ לְכ֣וּ שׁ֘וּבוּ֮ אֶל־הַמֶּ֣לֶךְ אֲשֶׁר־שָׁלַ֣ח אֶתְכֶם֒ וְדִבַּרְתֶּ֣ם אֵלָ֗יו כֹּ֚ה אָמַ֣ר יְהֹוָ֔ה הֲֽמִבְּלִ֤י",
+              "count": 37
+            },
+            {
+              "ref": "II Kings 6:32",
+              "text": "וֶאֱלִישָׁע֙ יֹשֵׁ֣ב בְּבֵית֔וֹ וְהַזְּקֵנִ֖ים יֹשְׁבִ֣ים אִתּ֑וֹ וַיִּשְׁלַ֨ח אִ֜ישׁ מִלְּפָנָ֗יו בְּטֶ֣רֶם יָבֹא֩ הַמַּלְאָ֨ךְ אֵלָ֜יו וְה֣וּא&thinsp;<b>׀</b> אָמַ֣ר אֶל־הַזְּקֵנִ֗ים הַרְּאִיתֶם֙ כּ",
+              "count": 35
+            },
+            {
+              "ref": "Esther 8:9",
+              "text": "וַיִּקָּרְא֣וּ סֹפְרֵֽי־הַמֶּ֣לֶךְ בָּֽעֵת־הַ֠הִ֠יא בַּחֹ֨דֶשׁ הַשְּׁלִישִׁ֜י הוּא־חֹ֣דֶשׁ סִיוָ֗ן בִּשְׁלוֹשָׁ֣ה וְעֶשְׂרִים֮ בּוֹ֒ וַיִּכָּתֵ֣ב כְּֽכׇל־אֲשֶׁר־צִוָּ֣ה מׇרְדֳּכַ֣י אֶל־הַיְּהוּדִ֡ים ו",
+              "count": 35
+            }
+          ]
+        },
+        "nikkud": {
+          "segmentsAffected": 39,
+          "totalOccurrences": 1114819,
+          "examples": [
+            {
+              "ref": "Esther 8:9",
+              "text": "וַיִּקָּרְא֣וּ סֹפְרֵֽי־הַמֶּ֣לֶךְ בָּֽעֵת־הַ֠הִ֠יא בַּחֹ֨דֶשׁ הַשְּׁלִישִׁ֜י הוּא־חֹ֣דֶשׁ סִיוָ֗ן בִּשְׁלוֹשָׁ֣ה וְעֶשְׂרִים֮ בּוֹ֒ וַיִּכָּתֵ֣ב כְּֽכׇל־אֲשֶׁר־צִוָּ֣ה מׇרְדֳּכַ֣י אֶל־הַיְּהוּדִ֡ים ו",
+              "count": 188
+            },
+            {
+              "ref": "Daniel 5:23",
+              "text": "וְעַ֣ל מָרֵֽא־שְׁמַיָּ֣א&thinsp;<small>׀</small>&thinsp;הִתְרוֹמַ֡מְתָּ וּלְמָֽאנַיָּ֨א דִֽי־בַיְתֵ֜הּ הַיְתִ֣יו <span class=\"mam-kq\"><span class=\"mam-kq-k\">(קדמיך)</span> <span class=\"mam-kq-q\">[קׇֽד",
+              "count": 170
+            },
+            {
+              "ref": "Esther 3:12",
+              "text": "וַיִּקָּרְאוּ֩ סֹפְרֵ֨י הַמֶּ֜לֶךְ בַּחֹ֣דֶשׁ הָרִאשׁ֗וֹן בִּשְׁלוֹשָׁ֨ה עָשָׂ֣ר יוֹם֮ בּוֹ֒ וַיִּכָּתֵ֣ב כְּֽכׇל־אֲשֶׁר־צִוָּ֣ה הָמָ֡ן אֶ֣ל אֲחַשְׁדַּרְפְּנֵֽי־הַ֠מֶּ֠לֶךְ וְֽאֶל־הַפַּח֞וֹת אֲשֶׁ֣ר&t",
+              "count": 166
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 38,
+          "totalOccurrences": 3552,
+          "examples": [
+            {
+              "ref": "I Samuel 6:17",
+              "text": "וְאֵ֙לֶּה֙ טְחֹרֵ֣י הַזָּהָ֔ב אֲשֶׁ֨ר הֵשִׁ֧יבוּ פְלִשְׁתִּ֛ים אָשָׁ֖ם לַיהֹוָ֑ה&nbsp;<span class=\"mam-spi-samekh\">{ס}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;לְאַשְׁדּ֨וֹד אֶחָ֜ד&nbsp;<",
+              "count": 6
+            },
+            {
+              "ref": "Deuteronomy 5:17",
+              "text": "לֹ֥֖א תִּֿרְצָ֖͏ֽח׃&nbsp;<span class=\"mam-spi-samekh\">{ס}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;וְלֹ֣֖א תִּֿנְאָ֑͏ֽף׃&nbsp;<span class=\"mam-spi-samekh\">{ס}</span>&nbsp;&nbsp;&nbsp;&nbs",
+              "count": 4
+            },
+            {
+              "ref": "Exodus 20:13",
+              "text": "לֹ֥֖א תִּֿרְצָ֖͏ֽח׃&nbsp;<span class=\"mam-spi-samekh\">{ס}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;לֹ֣֖א תִּֿנְאָ֑͏ֽף׃&nbsp;<span class=\"mam-spi-samekh\">{ס}</span>&nbsp;&nbsp;&nbsp;&nbsp;",
+              "count": 4
+            }
+          ]
+        },
+        "inlineRefs": {
+          "segmentsAffected": 35,
+          "totalOccurrences": 1056,
+          "examples": [
+            {
+              "ref": "Jeremiah 51:34",
+              "text": "<span class=\"mam-kq\"><span class=\"mam-kq-k\">(אכלנו)</span> <span class=\"mam-kq-q\">[אֲכָלַ֣נִי]</span></span> <span class=\"mam-kq\"><span class=\"mam-kq-k\">(הממנו)</span> <span class=\"mam-kq-q\">[הֲמָמַ֗נ",
+              "count": 5
+            },
+            {
+              "ref": "Jeremiah 50:11",
+              "text": "כִּ֤י <span class=\"mam-kq\"><span class=\"mam-kq-k\">(תשמחי)</span> <span class=\"mam-kq-q\">[תִשְׂמְחוּ֙]</span></span> כִּ֣י <span class=\"mam-kq\"><span class=\"mam-kq-k\">(תעלזי)</span> <span class=\"mam-kq",
+              "count": 4
+            },
+            {
+              "ref": "Daniel 5:16",
+              "text": "וַאֲנָה֙ שִׁמְעֵ֣ת <span class=\"mam-kq\"><span class=\"mam-kq-k\">(עליך)</span> <span class=\"mam-kq-q\">[עֲלָ֔ךְ]</span></span> דִּֽי־<span class=\"mam-kq\"><span class=\"mam-kq-q\">[תִכּ֥וּל]</span> <span cl",
+              "count": 4
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "kriKetiv": {
+          "segmentsAffected": 36,
+          "totalOccurrences": 3263,
+          "examples": [
+            {
+              "ref": "Jeremiah 51:34",
+              "text": "<span class=\"mam-kq\"><span class=\"mam-kq-k\">(אכלנו)</span> <span class=\"mam-kq-q\">[אֲכָלַ֣נִי]</span></span> <span class=\"mam-kq\"><span class=\"mam-kq-k\">(הממנו)</span> <span class=\"mam-kq-q\">[הֲמָמַ֗נ",
+              "count": 15
+            },
+            {
+              "ref": "Jeremiah 50:11",
+              "text": "כִּ֤י <span class=\"mam-kq\"><span class=\"mam-kq-k\">(תשמחי)</span> <span class=\"mam-kq-q\">[תִשְׂמְחוּ֙]</span></span> כִּ֣י <span class=\"mam-kq\"><span class=\"mam-kq-k\">(תעלזי)</span> <span class=\"mam-kq",
+              "count": 12
+            },
+            {
+              "ref": "Daniel 5:16",
+              "text": "וַאֲנָה֙ שִׁמְעֵ֣ת <span class=\"mam-kq\"><span class=\"mam-kq-k\">(עליך)</span> <span class=\"mam-kq-q\">[עֲלָ֔ךְ]</span></span> דִּֽי־<span class=\"mam-kq\"><span class=\"mam-kq-q\">[תִכּ֥וּל]</span> <span cl",
+              "count": 12
+            }
+          ]
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "לא",
+          "count": 15
+        },
+        {
+          "ref": "אנתה",
+          "count": 10
+        },
+        {
+          "ref": "עליא",
+          "count": 9
+        },
+        {
+          "ref": "עליך",
+          "count": 8
+        },
+        {
+          "ref": "ולא",
+          "count": 6
+        },
+        {
+          "ref": "שבית",
+          "count": 5
+        },
+        {
+          "ref": "אתי",
+          "count": 5
+        },
+        {
+          "ref": "ויאמר",
+          "count": 5
+        },
+        {
+          "ref": "לזועה",
+          "count": 5
+        },
+        {
+          "ref": "והיה",
+          "count": 5
+        },
+        {
+          "ref": "מדונים",
+          "count": 5
+        },
+        {
+          "ref": "על",
+          "count": 4
+        },
+        {
+          "ref": "עשיתי",
+          "count": 4
+        },
+        {
+          "ref": "דבריך",
+          "count": 4
+        },
+        {
+          "ref": "בנוית",
+          "count": 4
+        },
+        {
+          "ref": "המאיות",
+          "count": 4
+        },
+        {
+          "ref": "אם",
+          "count": 4
+        },
+        {
+          "ref": "את",
+          "count": 4
+        },
+        {
+          "ref": "כשדיא",
+          "count": 4
+        },
+        {
+          "ref": "קיתרס",
+          "count": 4
+        },
+        {
+          "ref": "ואנתה",
+          "count": 4
+        },
+        {
+          "ref": "מחצצרים",
+          "count": 4
+        },
+        {
+          "ref": "עניים",
+          "count": 4
+        },
+        {
+          "ref": "אחד",
+          "count": 3
+        },
+        {
+          "ref": "וישתחו",
+          "count": 3
+        },
+        {
+          "ref": "ויבאו",
+          "count": 3
+        },
+        {
+          "ref": "מלך",
+          "count": 3
+        },
+        {
+          "ref": "ויאמרו",
+          "count": 3
+        },
+        {
+          "ref": "ואת",
+          "count": 3
+        },
+        {
+          "ref": "ישיב",
+          "count": 3
+        },
+        {
+          "ref": "במותי",
+          "count": 3
+        },
+        {
+          "ref": "אשוב",
+          "count": 3
+        },
+        {
+          "ref": "יעיש",
+          "count": 3
+        },
+        {
+          "ref": "מנהון",
+          "count": 3
+        },
+        {
+          "ref": "ומנהון",
+          "count": 3
+        },
+        {
+          "ref": "דארין",
+          "count": 3
+        },
+        {
+          "ref": "רביעיה",
+          "count": 3
+        },
+        {
+          "ref": "עליה",
+          "count": 3
+        },
+        {
+          "ref": "קדמיה",
+          "count": 3
+        },
+        {
+          "ref": "היא",
+          "count": 3
+        },
+        {
+          "ref": "היהודיים",
+          "count": 3
+        },
+        {
+          "ref": "חירם",
+          "count": 3
+        },
+        {
+          "ref": "ישוב",
+          "count": 3
+        },
+        {
+          "ref": "הימיני",
+          "count": 2
+        },
+        {
+          "ref": "בה",
+          "count": 2
+        },
+        {
+          "ref": "דנאל",
+          "count": 2
+        },
+        {
+          "ref": "זכרתי",
+          "count": 2
+        },
+        {
+          "ref": "כשדיים",
+          "count": 2
+        },
+        {
+          "ref": "וגויך",
+          "count": 2
+        },
+        {
+          "ref": "יהיה",
+          "count": 2
+        }
+      ]
+    },
+    "tanchuma": {
+      "fileCount": 1,
+      "segmentCount": 2122,
+      "pollution": {
+        "htmlTags": {
+          "segmentsAffected": 1,
+          "totalOccurrences": 15064,
+          "examples": [
+            {
+              "ref": "Midrash Tanchuma Tzav:13:1",
+              "text": "<b>זֹאת</b> תּוֹרַת הָעוֹלָה. וּמַהוּ עוֹלָה, אֶלָּא שֶׁהִיא עוֹלָה לִפְנֵי הַקָּדוֹשׁ בָּרוּךְ הוּא וּמְכַפֶּרֶת עַל עֲוֹנוֹתֵיהֶם שֶׁל יִשְׂרָאֵל. כִּי בְּעֵת שֶׁעָשָׂה אַבְרָהָם עוֹלַת הָאַיִל, שֶׁ",
+              "count": 150
+            },
+            {
+              "ref": "Midrash Tanchuma Tazria:9:1",
+              "text": "<b>אָדָם</b> כִּי יִהְיֶה בְעוֹר בְּשָׂרוֹ. זֶה שֶׁאָמַר הַכָּתוּב: כִּי לֹא אֵל חָפֵץ רֶשַׁע אַתָּה, לֹא יְגֻרְךָ רָע. לְלַמֶּדְךָ, שֶׁאֵין הַקָּדוֹשׁ בָּרוּךְ הוּא חָפֵץ לְחַיֵּב בְּרִיָּה, שֶׁנֶּאֱ",
+              "count": 108
+            },
+            {
+              "ref": "Midrash Tanchuma Shmini:9:1",
+              "text": "<b>וַיְהִי</b> בַּיּוֹם הַשְּׁמִינִי. רַבִּי תַּנְחוּמָא וְרַבִּי חִיָּא רַבָּה וְרַבִּי בְּרֶכְיָה בְּשֵׁם רַבִּי אֶלְעָזָר אָמַר, כָּל מָקוֹם שֶׁנֶּאֱמַר וַיְהִי, אֵינוֹ אֶלָּא לְשׁוֹן צָרָה. רַבִּי",
+              "count": 94
+            }
+          ]
+        },
+        "htmlEntities": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "taamim": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "nikkud": {
+          "segmentsAffected": 1,
+          "totalOccurrences": 807760,
+          "examples": [
+            {
+              "ref": "Midrash Tanchuma Vayikra:8:1",
+              "text": "<b>וַיִּקְרָא</b> אֶל מֹשֶׁה. לָמָּה אָמַר וַיִּקְרָא. אֶלָּא בִּשְׁבִיל שֶׁאָמַר לְמַעְלָה, וְלֹא יָכֹל מֹשֶׁה לָבוֹא אֶל אֹהֶל מוֹעֵד, כְּשֶׁשָּׁרְתָה הַשְּׁכִינָה בְּאֹהֶל מוֹעֵד, וְלֹא יָכֹל לָבוֹ",
+              "count": 5592
+            },
+            {
+              "ref": "Midrash Tanchuma Tzav:13:1",
+              "text": "<b>זֹאת</b> תּוֹרַת הָעוֹלָה. וּמַהוּ עוֹלָה, אֶלָּא שֶׁהִיא עוֹלָה לִפְנֵי הַקָּדוֹשׁ בָּרוּךְ הוּא וּמְכַפֶּרֶת עַל עֲוֹנוֹתֵיהֶם שֶׁל יִשְׂרָאֵל. כִּי בְּעֵת שֶׁעָשָׂה אַבְרָהָם עוֹלַת הָאַיִל, שֶׁ",
+              "count": 5524
+            },
+            {
+              "ref": "Midrash Tanchuma Vaetchanan:6:1",
+              "text": "<b>אַל</b> תּוֹסֶף. זֶה שֶׁאָמַר הַכָּתוּב: אִיּוֹב, אִם יַעֲלֶה לַשָּׂמַיִם שִׂיאוֹ וְגוֹ', כְּגֶלְלוֹ לָנֶצַח יֹאבֵד וְגוֹ' <small>(שם כ, ו-ז)</small>. כְּנֶגֶד מִי אָמַר אִיּוֹב מִקְרָא זֶה. לֹא אֲ",
+              "count": 5520
+            }
+          ]
+        },
+        "paraMarkers": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        },
+        "inlineRefs": {
+          "segmentsAffected": 1,
+          "totalOccurrences": 6411,
+          "examples": [
+            {
+              "ref": "Midrash Tanchuma Tzav:13:1",
+              "text": "<b>זֹאת</b> תּוֹרַת הָעוֹלָה. וּמַהוּ עוֹלָה, אֶלָּא שֶׁהִיא עוֹלָה לִפְנֵי הַקָּדוֹשׁ בָּרוּךְ הוּא וּמְכַפֶּרֶת עַל עֲוֹנוֹתֵיהֶם שֶׁל יִשְׂרָאֵל. כִּי בְּעֵת שֶׁעָשָׂה אַבְרָהָם עוֹלַת הָאַיִל, שֶׁ",
+              "count": 73
+            },
+            {
+              "ref": "Midrash Tanchuma Tazria:9:1",
+              "text": "<b>אָדָם</b> כִּי יִהְיֶה בְעוֹר בְּשָׂרוֹ. זֶה שֶׁאָמַר הַכָּתוּב: כִּי לֹא אֵל חָפֵץ רֶשַׁע אַתָּה, לֹא יְגֻרְךָ רָע. לְלַמֶּדְךָ, שֶׁאֵין הַקָּדוֹשׁ בָּרוּךְ הוּא חָפֵץ לְחַיֵּב בְּרִיָּה, שֶׁנֶּאֱ",
+              "count": 53
+            },
+            {
+              "ref": "Midrash Tanchuma Shmini:9:1",
+              "text": "<b>וַיְהִי</b> בַּיּוֹם הַשְּׁמִינִי. רַבִּי תַּנְחוּמָא וְרַבִּי חִיָּא רַבָּה וְרַבִּי בְּרֶכְיָה בְּשֵׁם רַבִּי אֶלְעָזָר אָמַר, כָּל מָקוֹם שֶׁנֶּאֱמַר וַיְהִי, אֵינוֹ אֶלָּא לְשׁוֹן צָרָה. רַבִּי",
+              "count": 46
+            }
+          ]
+        },
+        "controlChars": {
+          "segmentsAffected": 1,
+          "totalOccurrences": 831,
+          "examples": [
+            {
+              "ref": "Midrash Tanchuma Korach:12:1",
+              "text": "<b>מַנְצְפַּ</b>״‎ךְ הָאוֹתִיּוֹת כְּפוּלוֹת, צוֹפִים אֲמָרוּם. לֵךְ לְךָ, רֶמֶז נִרְמָז לְאַבְרָהָם לְמֵאָה שָׁנָה יוֹלִיד יִצְחָק. כִּי עָצַמְתָּ מִמֶּנּוּ מְאֹד <small>(בראשית כו, טז)</small>, רֶמֶ",
+              "count": 15
+            },
+            {
+              "ref": "Midrash Tanchuma Masei:12:1",
+              "text": "<b>וְנָס</b> שָׁמָּה רוֹצֵחַ מַכֵּה נֶפֶשׁ בִּשְׁגָגָה. בִּשְׁגָגָה וְלֹא בְּזָדוֹן. אִם יֵלֵךְ אָדָם וְיַהֲרֹג בְּזָדוֹן וְיֹאמַר בִּשְׁגָגָה הָרַגְתִּי וִיהֵא בּוֹרֵחַ לְעָרֵי מִקְלָט, אָמַר הַקָּדו",
+              "count": 14
+            },
+            {
+              "ref": "Midrash Tanchuma Chukat:6:1",
+              "text": "<b>רַבִּי</b> יִצְחָק פָּתַח, כָּל זֹה נִסִּיתִי בַחָכְמָה אָמַרְתִּי אֶחְכָּמָה וְהִיא רְחוֹקָה מִמֶּנִּי <small>(קהלת ז, כג)</small>. אָמַרְתִּי אֶחְכָּמָה. כְּתִיב: וַיִּתֵּן אֱלֹהִים חָכְמָה לִשְׁ",
+              "count": 9
+            }
+          ]
+        },
+        "kriKetiv": {
+          "segmentsAffected": 0,
+          "totalOccurrences": 0,
+          "examples": []
+        }
+      },
+      "topInlineRefs": [
+        {
+          "ref": "שם",
+          "count": 165
+        },
+        {
+          "ref": "שם פסוק ט",
+          "count": 15
+        },
+        {
+          "ref": "שם פסוק ח",
+          "count": 15
+        },
+        {
+          "ref": "ירמיה כג, כד",
+          "count": 14
+        },
+        {
+          "ref": "שם פסוק יג",
+          "count": 14
+        },
+        {
+          "ref": "שם פסוק ד",
+          "count": 13
+        },
+        {
+          "ref": "שמות כה, ח",
+          "count": 12
+        },
+        {
+          "ref": "שם פסוק ז",
+          "count": 12
+        },
+        {
+          "ref": "שמות טז, ד",
+          "count": 11
+        },
+        {
+          "ref": "שם פסוק ו",
+          "count": 11
+        },
+        {
+          "ref": "ירמיה ג, יט",
+          "count": 10
+        },
+        {
+          "ref": "שם פסוק טז",
+          "count": 10
+        },
+        {
+          "ref": "במדבר יב, ז",
+          "count": 9
+        },
+        {
+          "ref": "שם פסוק טו",
+          "count": 9
+        },
+        {
+          "ref": "שם פסוק יב",
+          "count": 9
+        },
+        {
+          "ref": "שם פסוק י",
+          "count": 9
+        },
+        {
+          "ref": "שם פסוק ה",
+          "count": 9
+        },
+        {
+          "ref": "יהושע א, ח",
+          "count": 8
+        },
+        {
+          "ref": "תהלים לא, כ",
+          "count": 8
+        },
+        {
+          "ref": "ישעיה נח, יג",
+          "count": 8
+        },
+        {
+          "ref": "ישעיה ו, ב",
+          "count": 8
+        },
+        {
+          "ref": "בראשית כד, א",
+          "count": 8
+        },
+        {
+          "ref": "דניאל ב, כב",
+          "count": 8
+        },
+        {
+          "ref": "תהלים יח, לא",
+          "count": 8
+        },
+        {
+          "ref": "בראשית א, ב",
+          "count": 8
+        },
+        {
+          "ref": "שם פסוק יד",
+          "count": 8
+        },
+        {
+          "ref": "במדבר יב, ח",
+          "count": 7
+        },
+        {
+          "ref": "עובדיה א, כא",
+          "count": 7
+        },
+        {
+          "ref": "דברים לג, ב",
+          "count": 7
+        },
+        {
+          "ref": "יחזקאל לו, כו",
+          "count": 7
+        },
+        {
+          "ref": "תהלים קמז, יט",
+          "count": 7
+        },
+        {
+          "ref": "שמות יג, כא",
+          "count": 7
+        },
+        {
+          "ref": "במדבר כח, ב",
+          "count": 7
+        },
+        {
+          "ref": "שמות לב, ד",
+          "count": 7
+        },
+        {
+          "ref": "ויקרא טז, ל",
+          "count": 7
+        },
+        {
+          "ref": "שם פסוק כב",
+          "count": 7
+        },
+        {
+          "ref": "שם פסוק כג",
+          "count": 7
+        },
+        {
+          "ref": "שם פסוק כ",
+          "count": 7
+        },
+        {
+          "ref": "שם פסוק יט",
+          "count": 7
+        },
+        {
+          "ref": "משלי ג, יט",
+          "count": 6
+        },
+        {
+          "ref": "במדבר יב, ג",
+          "count": 6
+        },
+        {
+          "ref": "ישעיה נה, א",
+          "count": 6
+        },
+        {
+          "ref": "בראשית כה, כז",
+          "count": 6
+        },
+        {
+          "ref": "בראשית א, כח",
+          "count": 6
+        },
+        {
+          "ref": "דברים ד, ד",
+          "count": 6
+        },
+        {
+          "ref": "ישעיה מו, י",
+          "count": 6
+        },
+        {
+          "ref": "דברים י, יז",
+          "count": 6
+        },
+        {
+          "ref": "שמות לד, כח",
+          "count": 6
+        },
+        {
+          "ref": "ישעיה ו, ג",
+          "count": 6
+        },
+        {
+          "ref": "ישעיה מ, יב",
+          "count": 6
+        }
+      ]
+    }
+  },
+  "worstFiles": [
+    {
+      "path": "json/Chasidut/Breslov/Likutei Halakhot/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 10465,
+      "totalPollutionHits": 7313879,
+      "pollution": {
+        "htmlTags": 37,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 7312769,
+        "paraMarkers": 0,
+        "inlineRefs": 1073,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Kabbalah/Zohar/Zohar/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 16852,
+      "totalPollutionHits": 2865347,
+      "pollution": {
+        "htmlTags": 4438,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 2845552,
+        "paraMarkers": 0,
+        "inlineRefs": 15357,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Halakhah/Shulchan Arukh HaRav/Shulchan Arukh HaRav/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 7147,
+      "totalPollutionHits": 2240900,
+      "pollution": {
+        "htmlTags": 108862,
+        "htmlEntities": 1,
+        "taamim": 2,
+        "nikkud": 2131712,
+        "paraMarkers": 0,
+        "inlineRefs": 323,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Midrash/Aggadah/Ein Yaakov/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 3192,
+      "totalPollutionHits": 1056874,
+      "pollution": {
+        "htmlTags": 694,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 1046618,
+        "paraMarkers": 0,
+        "inlineRefs": 9562,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Chasidut/Breslov/Likutei Moharan/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 7182,
+      "totalPollutionHits": 911239,
+      "pollution": {
+        "htmlTags": 345,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 906512,
+        "paraMarkers": 0,
+        "inlineRefs": 4382,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Chasidut/Breslov/Likutei Tefilot/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 8482,
+      "totalPollutionHits": 906918,
+      "pollution": {
+        "htmlTags": 1141,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 905775,
+        "paraMarkers": 0,
+        "inlineRefs": 2,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Midrash/Aggadah/Midrash Tanchuma/Hebrew/merged.json",
+      "corpus": "tanchuma",
+      "segmentCount": 2122,
+      "totalPollutionHits": 830066,
+      "pollution": {
+        "htmlTags": 15064,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 807760,
+        "paraMarkers": 0,
+        "inlineRefs": 6411,
+        "controlChars": 831,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Halakhah/Sifrei Mitzvot/Sefer HaChinukh/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 2668,
+      "totalPollutionHits": 789357,
+      "pollution": {
+        "htmlTags": 1228,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 784126,
+        "paraMarkers": 0,
+        "inlineRefs": 4003,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Kabbalah/Zohar/Zohar Chadash/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 4421,
+      "totalPollutionHits": 693138,
+      "pollution": {
+        "htmlTags": 18,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 690240,
+        "paraMarkers": 0,
+        "inlineRefs": 2880,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Liturgy/Siddur/Siddur Sefard/Hebrew/merged.json",
+      "corpus": "siddur",
+      "segmentCount": 6799,
+      "totalPollutionHits": 650091,
+      "pollution": {
+        "htmlTags": 23161,
+        "htmlEntities": 4,
+        "taamim": 2783,
+        "nikkud": 623902,
+        "paraMarkers": 0,
+        "inlineRefs": 240,
+        "controlChars": 1,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Halakhah/Kitzur Shulchan Arukh/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 2765,
+      "totalPollutionHits": 525637,
+      "pollution": {
+        "htmlTags": 25,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 525324,
+        "paraMarkers": 0,
+        "inlineRefs": 288,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Midrash/Aggadah/Midrash Rabbah/Bereshit Rabbah/Hebrew/merged.json",
+      "corpus": "midrash_rabbah",
+      "segmentCount": 1036,
+      "totalPollutionHits": 471387,
+      "pollution": {
+        "htmlTags": 10280,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 455976,
+        "paraMarkers": 0,
+        "inlineRefs": 5131,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Midrash/Aggadah/Midrash Rabbah/Bamidbar Rabbah/Hebrew/merged.json",
+      "corpus": "midrash_rabbah",
+      "segmentCount": 444,
+      "totalPollutionHits": 467218,
+      "pollution": {
+        "htmlTags": 10960,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 450759,
+        "paraMarkers": 0,
+        "inlineRefs": 5499,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Jewish Thought/Acharonim/Parashat Derakhim/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 1018,
+      "totalPollutionHits": 454544,
+      "pollution": {
+        "htmlTags": 2160,
+        "htmlEntities": 2,
+        "taamim": 0,
+        "nikkud": 451146,
+        "paraMarkers": 0,
+        "inlineRefs": 1236,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Liturgy/Siddur/Siddur Edot HaMizrach/Hebrew/merged.json",
+      "corpus": "siddur",
+      "segmentCount": 3380,
+      "totalPollutionHits": 427343,
+      "pollution": {
+        "htmlTags": 10511,
+        "htmlEntities": 0,
+        "taamim": 32220,
+        "nikkud": 384343,
+        "paraMarkers": 0,
+        "inlineRefs": 244,
+        "controlChars": 25,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Talmud/Bavli/Seder Moed/Shabbat/Hebrew/merged.json",
+      "corpus": "bavli",
+      "segmentCount": 3778,
+      "totalPollutionHits": 372558,
+      "pollution": {
+        "htmlTags": 1296,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 371261,
+        "paraMarkers": 0,
+        "inlineRefs": 1,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Musar/Acharonim/Kav HaYashar/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 1127,
+      "totalPollutionHits": 338510,
+      "pollution": {
+        "htmlTags": 727,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 337772,
+        "paraMarkers": 0,
+        "inlineRefs": 11,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Chasidut/Breslov/Chayei Moharan/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 629,
+      "totalPollutionHits": 331405,
+      "pollution": {
+        "htmlTags": 0,
+        "htmlEntities": 4,
+        "taamim": 0,
+        "nikkud": 330794,
+        "paraMarkers": 0,
+        "inlineRefs": 607,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Talmud/Bavli/Seder Nezikin/Sanhedrin/Hebrew/merged.json",
+      "corpus": "bavli",
+      "segmentCount": 4171,
+      "totalPollutionHits": 324307,
+      "pollution": {
+        "htmlTags": 588,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 323717,
+        "paraMarkers": 0,
+        "inlineRefs": 2,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    },
+    {
+      "path": "json/Musar/Acharonim/Ohr Yisrael/Hebrew/merged.json",
+      "corpus": "other",
+      "segmentCount": 982,
+      "totalPollutionHits": 315561,
+      "pollution": {
+        "htmlTags": 2431,
+        "htmlEntities": 0,
+        "taamim": 0,
+        "nikkud": 313099,
+        "paraMarkers": 0,
+        "inlineRefs": 31,
+        "controlChars": 0,
+        "kriKetiv": 0
+      }
+    }
+  ]
+}
