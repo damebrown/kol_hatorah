@@ -24,6 +24,8 @@ import {
   makeListTanakhCommentaryGraphEnrichment,
   makeApplyTanakhCommentaryGraphBatch,
   makeUpsertCorpusWork,
+  makeFindSegmentsQuotingRef,
+  makeListQuotedRefsForWork,
 } from "./queries";
 import { SQLiteManager, ScopeFilter, WorkRow } from "./types";
 
@@ -63,6 +65,8 @@ export async function getSQLiteManager(dbPath: string = resolveSqlitePath()): Pr
   const listTanakhCommentaryGraphEnrichment = makeListTanakhCommentaryGraphEnrichment(db);
   const applyTanakhCommentaryGraphBatch = makeApplyTanakhCommentaryGraphBatch(db);
   const upsertCorpusWork = makeUpsertCorpusWork(db);
+  const findSegmentsQuotingRef = makeFindSegmentsQuotingRef(db);
+  const listQuotedRefsForWork = makeListQuotedRefsForWork(db);
 
   const mgr: SQLiteManager = {
     db,
@@ -85,6 +89,8 @@ export async function getSQLiteManager(dbPath: string = resolveSqlitePath()): Pr
     listTanakhCommentaryGraphEnrichment,
     applyTanakhCommentaryGraphBatch,
     upsertCorpusWork,
+    findSegmentsQuotingRef,
+    listQuotedRefsForWork,
     close: () => {
       if (cachedManager?.path === p) cachedManager = null;
       db.close();

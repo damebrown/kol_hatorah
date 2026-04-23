@@ -39,6 +39,7 @@ export interface SegmentEnrichmentUpdate {
   enrichSegment: string | null;
   hasLinks: number;
   linksCount: number;
+  quotedRefsJson: string | null;
 }
 
 /** Graph enrichment row for Tanakh commentary (base-ref–oriented metadata). */
@@ -87,6 +88,11 @@ export interface WorkRow {
   count: number;
 }
 
+export interface QuotedRefRow {
+  ref: string;
+  count: number;
+}
+
 export interface SQLiteManager {
   db: Database.Database;
   insertSegments: (segments: Chunk[]) => void;
@@ -117,5 +123,7 @@ export interface SQLiteManager {
   }) => TanakhCommentaryGraphRow[];
   applyTanakhCommentaryGraphBatch: (items: TanakhCommentaryGraphUpdate[]) => void;
   upsertCorpusWork: (row: CorpusWorkRow) => void;
+  findSegmentsQuotingRef: (ref: string, scope?: ScopeFilter) => Array<any>;
+  listQuotedRefsForWork: (work: string) => QuotedRefRow[];
   close: () => void;
 }

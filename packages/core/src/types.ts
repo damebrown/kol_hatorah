@@ -39,6 +39,10 @@ export interface Chunk extends Record<string, unknown> {
   /** Canonical ref string returned by Sefaria (stored without replacing `ref` / IDs). */
   sefariaCanonicalRef?: string;
   sefariaNormalizedRef?: string;
+  /** Parenthetical scripture refs extracted from the text (e.g. ["בראשית א", "שמות כ:ב"]). */
+  quotedRefs?: string[];
+  /** Nikkud-stripped text used for embedding. Transient — not stored in Qdrant payload. */
+  textEmbed?: string;
 }
 
 export const ChunkZod = z.object({
@@ -77,4 +81,5 @@ export const ChunkZod = z.object({
   linksCount: z.number().optional(),
   sefariaCanonicalRef: z.string().optional(),
   sefariaNormalizedRef: z.string().optional(),
+  quotedRefs: z.array(z.string()).optional(),
 });

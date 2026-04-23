@@ -3,6 +3,7 @@ import { normalizeText } from "@kol-hatorah/core";
 import {
   CorpusWorkRow,
   EnrichmentSegmentRow,
+  QuotedRefRow,
   RefLinkRow,
   ScopeFilter,
   SegmentEnrichmentUpdate,
@@ -367,4 +368,32 @@ export const makeApplyTanakhCommentaryGraphBatch = (db: Database.Database) => {
     });
     run(items);
   };
+};
+
+/** Returns all segments whose quotedRefsJson array contains exactly the given ref string. */
+export const makeFindSegmentsQuotingRef = (db: Database.Database) => (ref: string, scope?: ScopeFilter) => {
+  const { clause, params } = buildScopeWhere(scope);
+  const andClause = clause ? `AND ${clause}` : "";
+  const stmt = db.prepare(`
+    SELECT s.id, s.type, s.work, s.ref, s.normalizedRef, s.lang, s.source, s.textPlain
+    FROM segments s, json_each(s.quotedRefsJson) je
+    WHERE s.quotedRefsJson IS NOT NULL
+      AND je.value = @ref
+      ${andClause}
+    ORDER BY s.work, s.ref
+  `);
+  return stmt.all({ ref, ...params });
+};
+
+/** Returns all distinct quoted refs in a given work, sorted by frequency. */
+export const makeListQuotedRefsForWork = (db: Database.Database) => (work: string): QuotedRefRow[] => {
+  const stmt = db.prepare(`
+    SELECT je.value AS ref, COUNT(*) AS count
+    FROM segments s, json_each(s.quotedRefsJson) je
+    WHERE s.work = @work
+      AND s.quotedRefsJson IS NOT NULL
+    GROUP BY je.value
+    ORDER BY count DESC
+  `);
+  return stmt.all({ work }).map((r: any) => ({ ref: r.ref, count: Number(r.count) }));
 };

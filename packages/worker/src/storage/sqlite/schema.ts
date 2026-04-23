@@ -43,6 +43,11 @@ function ensureEnrichmentSchema(db: Database.Database) {
   ensureColumn(db, "ref_links", "source_work", "TEXT");
 }
 
+function ensureInlineRefsSchema(db: Database.Database) {
+  ensureColumn(db, "segments", "quotedRefsJson", "TEXT");
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_segments_quoted_refs ON segments(quotedRefsJson) WHERE quotedRefsJson IS NOT NULL;`);
+}
+
 /** Base-text–oriented graph metadata for reduced Tanakh commentary (offline pass). */
 function ensureTanakhCommentaryGraphSchema(db: Database.Database) {
   ensureColumn(db, "segments", "graphBaseRef", "TEXT");
@@ -103,6 +108,7 @@ export function ensureSchema(db: Database.Database) {
   db.exec(`CREATE INDEX IF NOT EXISTS idx_segments_normref ON segments(normalizedRef);`);
 
   ensureEnrichmentSchema(db);
+  ensureInlineRefsSchema(db);
   ensureTanakhCommentaryGraphSchema(db);
   ensureCorpusWorksTable(db);
 }
